@@ -25,13 +25,18 @@ canvas{
 }
 #hud{ position:absolute; inset:0; pointer-events:none; border-radius:14px; overflow:hidden; }
 
-.hud-tl, .hud-tr{
+.hud-tl, .hud-tr, .hud-tc {
   position:absolute; top:16px; font-family:"Orbitron",monospace; color:#fff;
 }
-.hud-tl{ left:18px; } .hud-tr{ right:18px; text-align:right; }
+.hud-tl{ left:18px; } 
+.hud-tr{ right:18px; text-align:right; }
+.hud-tc{ width:100%; text-align:center; top:16px; }
+
 .hud-label{ font-size:10px; letter-spacing:2px; color:rgba(255,255,255,0.55); }
 .hud-val{ font-size:20px; font-weight:900; color:var(--lime); text-shadow:0 0 12px rgba(198,255,61,0.6); }
 .hud-val.best{ color:var(--amber); text-shadow:0 0 12px rgba(255,184,77,0.5); font-size:14px; }
+.hud-val.speed{ color:var(--cyan); text-shadow:0 0 12px rgba(0,229,255,0.6); font-size:22px; }
+.hud-val.speed span { font-size:11px; color:rgba(255,255,255,0.7); text-shadow:none; }
 
 #nitro-wrap{
   position:absolute; left:14px; top:80px; width:120px; pointer-events:none;
@@ -70,7 +75,6 @@ canvas{
 }
 #btn-nos.active { background:radial-gradient(circle at 35% 30%, rgba(0,229,255,0.8), rgba(0,150,180,0.5)); }
 
-
 .screen{
   position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
   opacity:0; pointer-events:none; transition:opacity .35s ease;
@@ -105,6 +109,12 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
       <div class="hud-label">MESAFE</div>
       <div class="hud-val" id="hud-score">0m</div>
     </div>
+    
+    <div class="hud-tc">
+      <div class="hud-label">HIZ</div>
+      <div class="hud-val speed" id="hud-speed">0 <span>km/h</span></div>
+    </div>
+
     <div class="hud-tr">
       <div class="hud-label">REKOR</div>
       <div class="hud-val best" id="hud-best">0m</div>
@@ -150,6 +160,7 @@ const startScreen = document.getElementById('start-screen');
 const gameoverScreen = document.getElementById('gameover-screen');
 const hudScoreEl = document.getElementById('hud-score');
 const hudBestEl = document.getElementById('hud-best');
+const hudSpeedEl = document.getElementById('hud-speed');
 const nitroFillEl = document.getElementById('nitro-fill');
 const btnGas = document.getElementById('btn-gas');
 const btnBrake = document.getElementById('btn-brake');
@@ -237,12 +248,13 @@ try { best = parseInt(localStorage.getItem('trafikKacisiBest') || '0', 10) || 0;
 let shakeAmt = 0, shakeX = 0, shakeY = 0;
 let roadDashOffset = 0, bgOffset = 0;
 
+// ARACIN HIZ AYARLARI BİRAZ KISILDI
 let currentSpeed = 0; 
 const COAST_SPEED = 1.5;   
-const GAS_SPEED = 10.0;    
-const NOS_SPEED = 16.0;    
+const GAS_SPEED = 8.5;     // 10.0'dan 8.5'e düşürüldü
+const NOS_SPEED = 14.0;    // 16.0'dan 14.0'a düşürüldü 
 const BRAKE_SPEED = 0.5;   
-const ACCEL = 0.15;        
+const ACCEL = 0.12;        // 0.15'ten ivmelenme daha yumuşak yapıldı
 const DECEL = 0.1;         
 const BRAKE_DECEL = 0.35;  
 
@@ -337,7 +349,6 @@ window.addEventListener('keyup', (e)=>{
   if(e.code==='Space'||e.code==='ShiftLeft') { nosHeld = false; btnNos.classList.remove('active'); }
 });
 
-// SPACEBAR (BOŞLUK TUŞU) BUG'I İÇİN ODAK (BLUR) KALDIRMA DÜZELTMESİ
 document.getElementById('btn-start').addEventListener('click', (e)=>{ e.preventDefault(); e.target.blur(); startGame(); });
 document.getElementById('btn-retry').addEventListener('click', (e)=>{ e.preventDefault(); e.target.blur(); startGame(); });
 
@@ -383,36 +394,35 @@ function updateHud(){
   document.getElementById('start-best').textContent = best + 'm';
   nitroFillEl.style.width = nitroFuel + '%';
   btnNos.style.opacity = nitroFuel > 2 ? '1' : '0.4';
+
+  // Hız hesaplaması (Oyun içi hızı gerçekçi duran km/h değerine çeviriyoruz)
+  let displaySpeed = Math.round(currentSpeed * 14.5); 
+  hudSpeedEl.innerHTML = displaySpeed + ' <span>km/h</span>';
 }
 
-/* ============== TRAFİK OLUŞTURMA & YÖN/HIZ FİZİĞİ DÜZELTMESİ ============== */
+/* ============== TRAFİK OLUŞTURMA ============== */
 const CAR_COLORS = ['#e0463c','#3fa9f5','#f5c542','#8e6bd8','#4caf6a','#f57f42', '#ffffff', '#222222'];
 function spawnTraffic(){
   const lane = Math.floor(Math.random()*4);
   const laneX = LANE_X[lane];
   const isTruck = Math.random() < 0.20;
   const w = isTruck ? 38 : 30, h = isTruck ? 88 : 52;
-  const oncoming = lane < 2; // İlk 2 şerit ters yön
+  const oncoming = lane < 2; 
   
   let ownSpeed, spawnY;
   
   if (oncoming) {
-    // Ters yöndeki araçlar her zaman üstten gelir
     ownSpeed = -(3.0 + Math.random()*2.5);
     spawnY = -150;
   } else {
-    // Aynı yöndeki araçların kendi hızı
     ownSpeed = 1.5 + Math.random()*3.5;
-    
-    // EĞER TRAFİK ARACI BİZDEN DAHA HIZLIYSA, ARKADAN DOĞUP BİZİ SOLLAMALIDIR!
     if (ownSpeed > currentSpeed + 0.5) {
-      spawnY = H + 200; // Arkadan (ekranın altından) doğar
+      spawnY = H + 200; 
     } else {
-      spawnY = -150; // Bizden yavaşsa Önden (ekranın üstünden) doğar
+      spawnY = -150; 
     }
   }
 
-  // Aracın doğacağı yerde başka araç var mı kontrolü (Hem önden hem arkadan doğanlar için mesafe kontrolü)
   const tooClose = traffic.some(c => c.lane === lane && Math.abs(c.y - spawnY) < 220);
   if (tooClose) return;
 
@@ -454,7 +464,7 @@ function updatePhysics() {
 }
 
 function updatePlayer(){
-  const steerSpeed = 6.5;
+  const steerSpeed = 6.0; // Şerit değiştirme de hafif yumuşatıldı
   if (keys.left) player.targetX -= steerSpeed;
   if (keys.right) player.targetX += steerSpeed;
   player.targetX = clamp(player.targetX, ROAD_X+15, ROAD_X+ROAD_W-15);
@@ -473,8 +483,23 @@ function updateTraffic(){
   for (let i = traffic.length - 1; i >= 0; i--) {
     const c = traffic[i];
     
-    // Formül: Kamera Hızımız (currentSpeed) - Aracın Kendi Hızı (ownSpeed)
-    // Bizden hızlı ve arkadan (pozitif Y) gelen bir aracın sonucu negatiftir, ekranda yukarı doğru hareket edip bizi geçer.
+    for (let j = 0; j < traffic.length; j++) {
+      if (i === j) continue;
+      const other = traffic[j];
+      
+      if (c.lane === other.lane) {
+        if (!c.oncoming && !other.oncoming) {
+          if (c.y > other.y && c.y - other.y < 85) {
+            if (c.ownSpeed > other.ownSpeed) c.ownSpeed = other.ownSpeed;
+          }
+        } else if (c.oncoming && other.oncoming) {
+          if (c.y < other.y && other.y - c.y < 85) {
+            if (c.ownSpeed < other.ownSpeed) c.ownSpeed = other.ownSpeed;
+          }
+        }
+      }
+    }
+
     c.y += (currentSpeed - c.ownSpeed); 
 
     if (Math.abs(c.x - player.x) < (c.w+player.w)/2 - 6 && Math.abs(c.y - player.y) < (c.h+player.h)/2 - 6) {
@@ -492,7 +517,6 @@ function updateTraffic(){
       }
     }
 
-    // Hem çok arkada kalanları (H+300) hem de çok öne gidip uzaklaşanları (-400) sil
     if (c.y > H + 300 || c.y < -400) traffic.splice(i,1);
   }
 }
@@ -639,12 +663,20 @@ function loop(){
     updateTraffic();
     updatePickups();
 
+    // TRAFİK YOĞUNLUĞU MANTIĞI (%20'den başlayıp her 1000m'de %5 artar)
     spawnTimer--;
     if (spawnTimer <= 0) {
       spawnTraffic();
-      if(Math.random() < 0.35) spawnTraffic(); 
+      
+      let baslangicYogunluk = 0.20; 
+      let artisMiktari = Math.floor(score / 1000) * 0.05; 
+      let ciftArabaIhtimali = Math.min(baslangicYogunluk + artisMiktari, 0.60); // Maks %60
+      
+      if(Math.random() < ciftArabaIhtimali) spawnTraffic(); 
+      
       spawnTimer = Math.max(15, 60 - currentSpeed*3 + Math.random()*15); 
     }
+    
     pickupTimer--;
     if (pickupTimer <= 0) { spawnPickup(); pickupTimer = 200 + Math.floor(Math.random()*100); }
 
