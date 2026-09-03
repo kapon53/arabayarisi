@@ -228,22 +228,17 @@ function sfx(type){
   if(!audioCtx) return;
   const ctx = audioCtx, t = ctx.currentTime, out = ctx.destination;
   
-  if(type === 'nitro'){
-    const n = mkNoise(ctx, 0.25);
-    const bp = ctx.createBiquadFilter();
-    bp.type = 'bandpass';
-    bp.frequency.setValueAtTime(5000, t); // Yüksek perdeli fıss sesi
-    bp.Q.value = 0.5;
+  if(type === 'nitro_start'){
+    // Need for Speed Tarzı Güçlü NOS Patlaması (Pshhh + Boom)
+    const n = mkNoise(ctx, 0.5);
+    const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 1000;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.8, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.5);
+    n.connect(hp).connect(g).connect(out); n.start(t); n.stop(t+0.5);
     
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0.4, t);
-    g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-    
-    n.connect(bp); 
-    bp.connect(g); 
-    g.connect(out);
-    n.start(t); 
-    n.stop(t + 0.25);
+    const osc = ctx.createOscillator(); osc.type='sine';
+    osc.frequency.setValueAtTime(120, t); osc.frequency.exponentialRampToValueAtTime(20, t+0.4);
+    const g2 = ctx.createGain(); g2.gain.setValueAtTime(0.9, t); g2.gain.exponentialRampToValueAtTime(0.01, t+0.4);
+    osc.connect(g2).connect(out); osc.start(t); osc.stop(t+0.45);
   }
   if(type === 'nearmiss'){
     const o = ctx.createOscillator(), g = ctx.createGain();
@@ -294,6 +289,7 @@ const DECEL = 0.1;
 const BRAKE_DECEL = 0.35;  
 
 let gasHeld = false, brakeHeld = false, nosHeld = false, leftHeld = false, rightHeld = false;
+let wasNosHeld = false; // NOS patlaması için takip değişkeni
 let nitroFuel = 100;
 const NITRO_DRAIN = 1.2, NITRO_REGEN = 0.2;
 
@@ -341,20 +337,27 @@ function drawPopups(){
 
 function shake(amt){ shakeAmt = Math.max(shakeAmt, amt); }
 
-/* ============== GİRİŞ KONTROLLERİ ============== */
-function bindBtn(el, flagName) {
-  el.addEventListener('pointerdown', (e)=>{ e.preventDefault(); window[flagName] = true; el.classList.add('active'); getAudio(); });
-  const up = ()=>{ window[flagName] = false; el.classList.remove('active'); };
-  el.addEventListener('pointerup', up);
-  el.addEventListener('pointerleave', up);
-  el.addEventListener('pointercancel', up);
+/* ============== GİRİŞ KONTROLLERİ (DOKUNMATİK TAM DESTEK) ============== */
+function bindBtn(el, onDown, onUp) {
+  const downHandler = (e) => { e.preventDefault(); onDown(); el.classList.add('active'); getAudio(); };
+  const upHandler = (e) => { e.preventDefault(); onUp(); el.classList.remove('active'); };
+  
+  el.addEventListener('pointerdown', downHandler);
+  el.addEventListener('touchstart', downHandler, {passive: false});
+  
+  el.addEventListener('pointerup', upHandler);
+  el.addEventListener('pointerleave', upHandler);
+  el.addEventListener('pointercancel', upHandler);
+  el.addEventListener('touchend', upHandler);
 }
-bindBtn(btnGas, 'gasHeld');
-bindBtn(btnBrake, 'brakeHeld');
-bindBtn(btnNos, 'nosHeld');
-bindBtn(btnLeft, 'leftHeld');
-bindBtn(btnRight, 'rightHeld');
 
+bindBtn(btnGas, () => gasHeld = true, () => gasHeld = false);
+bindBtn(btnBrake, () => brakeHeld = true, () => brakeHeld = false);
+bindBtn(btnNos, () => nosHeld = true, () => nosHeld = false);
+bindBtn(btnLeft, () => leftHeld = true, () => leftHeld = false);
+bindBtn(btnRight, () => rightHeld = true, () => rightHeld = false);
+
+// Alternatif sürükleme kontrolleri
 let dragging = false;
 function pointerToX(clientX){
   const r = CV.getBoundingClientRect();
@@ -362,11 +365,11 @@ function pointerToX(clientX){
 }
 CV.addEventListener('pointerdown', (e)=>{ 
   dragging = true; 
-  if(state==='play') player.targetX = clamp(pointerToX(e.clientX), ROAD_X+15, ROAD_X+ROAD_W-15); 
+  if(state==='play' && e.target.tagName === 'CANVAS') player.targetX = clamp(pointerToX(e.clientX), ROAD_X+15, ROAD_X+ROAD_W-15); 
   getAudio(); 
 });
 CV.addEventListener('pointermove', (e)=>{ 
-  if(dragging && state==='play') player.targetX = clamp(pointerToX(e.clientX), ROAD_X+15, ROAD_X+ROAD_W-15); 
+  if(dragging && state==='play' && e.target.tagName === 'CANVAS') player.targetX = clamp(pointerToX(e.clientX), ROAD_X+15, ROAD_X+ROAD_W-15); 
 });
 window.addEventListener('pointerup', ()=>{ dragging = false; });
 
@@ -396,7 +399,7 @@ function startGame(){
   getAudio(); startEngine();
   state = 'play'; score = 0; tick = 0; currentSpeed = 0;
   traffic.length = 0; pickups.length = 0; particles.length = 0; popups.length = 0;
-  nitroFuel = 100; gasHeld = false; brakeHeld = false; nosHeld = false; leftHeld = false; rightHeld = false;
+  nitroFuel = 100; gasHeld = false; brakeHeld = false; nosHeld = false; leftHeld = false; rightHeld = false; wasNosHeld = false;
   player.x = LANE_X[2]; player.targetX = LANE_X[2];
   spawnTimer = 20; pickupTimer = 220; wrongWayTimer = 0;
   shakeAmt = 0;
@@ -480,14 +483,16 @@ function updatePhysics() {
   let targetSpeed = COAST_SPEED;
   
   if (nosHeld && nitroFuel > 0) {
+    if (!wasNosHeld) { sfx('nitro_start'); wasNosHeld = true; } // NFS patlama efekti
     targetSpeed = NOS_SPEED; 
     nitroFuel -= NITRO_DRAIN;
-    // NOS fıss sesini aralıklı olarak tetikle
-    if (tick % 8 === 0) sfx('nitro'); 
-  } else if (gasHeld) {
-    targetSpeed = GAS_SPEED; if (!nosHeld) nitroFuel = Math.min(100, nitroFuel + NITRO_REGEN);
   } else {
-    nitroFuel = Math.min(100, nitroFuel + NITRO_REGEN);
+    wasNosHeld = false;
+    if (gasHeld) {
+      targetSpeed = GAS_SPEED; nitroFuel = Math.min(100, nitroFuel + NITRO_REGEN);
+    } else {
+      nitroFuel = Math.min(100, nitroFuel + NITRO_REGEN);
+    }
   }
 
   if (brakeHeld) targetSpeed = BRAKE_SPEED;
@@ -499,7 +504,10 @@ function updatePhysics() {
   }
   
   if(engineOsc && audioCtx){
-    engineOsc.frequency.setValueAtTime(40 + (currentSpeed * 7), audioCtx.currentTime);
+    // NOS açıksa motor daha agresif bağırır
+    let pitch = 40 + (currentSpeed * 7);
+    if(nosHeld && nitroFuel > 0) pitch += 50; 
+    engineOsc.frequency.setValueAtTime(pitch, audioCtx.currentTime);
   }
 }
 
