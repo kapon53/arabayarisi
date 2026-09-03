@@ -47,31 +47,44 @@ canvas{
 
 /* KONTROLLER */
 .control-btn {
-  position:absolute; bottom:16px; width:70px; height:70px; border-radius:50%;
-  font-family:"Orbitron",monospace; font-weight:900; font-size:12px;
+  position:absolute; bottom:16px; width:60px; height:60px; border-radius:50%;
+  font-family:"Orbitron",monospace; font-weight:900; font-size:14px;
   display:flex; align-items:center; justify-content:center; pointer-events:auto; letter-spacing:1px;
-  transition: transform 0.1s; z-index: 10;
+  transition: transform 0.1s; z-index: 10; user-select:none;
 }
 .control-btn:active, .control-btn.active { transform:scale(0.9); }
 
+#btn-left {
+  left: 10px;
+  background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+  border:2px solid rgba(255,255,255,0.4); color:#fff;
+}
+#btn-right {
+  left: 78px;
+  background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+  border:2px solid rgba(255,255,255,0.4); color:#fff;
+}
+
 #btn-brake {
-  left: 16px;
+  right: 95px;
   background:radial-gradient(circle at 35% 30%, rgba(255,59,78,0.5), rgba(180,0,0,0.25));
   border:2px solid var(--red); color:#fff; box-shadow:0 0 25px rgba(255,59,78,0.35);
+  font-size:10px;
 }
 #btn-brake.active { background:radial-gradient(circle at 35% 30%, rgba(255,59,78,0.8), rgba(180,0,0,0.5)); }
 
 #btn-gas {
-  right: 16px; width: 80px; height: 80px;
+  right: 10px; width: 75px; height: 75px;
   background:radial-gradient(circle at 35% 30%, rgba(198,255,61,0.5), rgba(100,180,0,0.25));
   border:2px solid var(--lime); color:#fff; box-shadow:0 0 25px rgba(198,255,61,0.35);
 }
 #btn-gas.active { background:radial-gradient(circle at 35% 30%, rgba(198,255,61,0.8), rgba(100,180,0,0.5)); }
 
 #btn-nos {
-  right: 16px; bottom: 106px; width: 60px; height: 60px;
+  right: 18px; bottom: 100px; width: 55px; height: 55px;
   background:radial-gradient(circle at 35% 30%, rgba(0,229,255,0.5), rgba(0,150,180,0.25));
   border:2px solid var(--cyan); color:#fff; box-shadow:0 0 20px rgba(0,229,255,0.35);
+  font-size:11px;
 }
 #btn-nos.active { background:radial-gradient(circle at 35% 30%, rgba(0,229,255,0.8), rgba(0,150,180,0.5)); }
 
@@ -125,9 +138,12 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
     </div>
   </div>
   
+  <div id="btn-left" class="control-btn">◀</div>
+  <div id="btn-right" class="control-btn">▶</div>
+  
   <div id="btn-brake" class="control-btn">FREN</div>
-  <div id="btn-nos" class="control-btn">NOS</div>
   <div id="btn-gas" class="control-btn">GAZ</div>
+  <div id="btn-nos" class="control-btn">NOS</div>
 
   <div id="start-screen" class="screen on">
     <div class="panel">
@@ -135,7 +151,7 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
       <div class="tagline">GAZA BAS, ŞERİT DEĞİŞTİR</div>
       <div class="best-row">REKOR: <b id="start-best">0m</b></div>
       <button class="game-btn" id="btn-start">BAŞLA</button>
-      <div class="instructions">Ekrana dokunup sürükleyerek şerit değiştir.<br>Hızlanmak için GAZ'a, yavaşlamak için FREN'e bas.<br>Sol 2 şerit TERS YÖNDÜR, ekstra puan kazandırır!</div>
+      <div class="instructions">Sol elinle ok tuşlarına basarak şerit değiştir.<br>Sağ elinle GAZ'a basarak hızlan, FREN'e basarak yavaşla.<br>Sol 2 şerit TERS YÖNDÜR, ekstra puan kazandırır!</div>
     </div>
   </div>
 
@@ -165,6 +181,8 @@ const nitroFillEl = document.getElementById('nitro-fill');
 const btnGas = document.getElementById('btn-gas');
 const btnBrake = document.getElementById('btn-brake');
 const btnNos = document.getElementById('btn-nos');
+const btnLeft = document.getElementById('btn-left');
+const btnRight = document.getElementById('btn-right');
 
 /* ============== SES MOTORU ============== */
 let audioCtx = null;
@@ -209,6 +227,24 @@ function mkNoise(ctx, dur){
 function sfx(type){
   if(!audioCtx) return;
   const ctx = audioCtx, t = ctx.currentTime, out = ctx.destination;
+  
+  if(type === 'nitro'){
+    const n = mkNoise(ctx, 0.25);
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(5000, t); // Yüksek perdeli fıss sesi
+    bp.Q.value = 0.5;
+    
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.4, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    
+    n.connect(bp); 
+    bp.connect(g); 
+    g.connect(out);
+    n.start(t); 
+    n.stop(t + 0.25);
+  }
   if(type === 'nearmiss'){
     const o = ctx.createOscillator(), g = ctx.createGain();
     o.type = 'sine'; o.frequency.setValueAtTime(500, t); o.frequency.exponentialRampToValueAtTime(1200, t+0.12);
@@ -248,17 +284,16 @@ try { best = parseInt(localStorage.getItem('trafikKacisiBest') || '0', 10) || 0;
 let shakeAmt = 0, shakeX = 0, shakeY = 0;
 let roadDashOffset = 0, bgOffset = 0;
 
-// ARACIN HIZ AYARLARI BİRAZ KISILDI
 let currentSpeed = 0; 
 const COAST_SPEED = 1.5;   
-const GAS_SPEED = 8.5;     // 10.0'dan 8.5'e düşürüldü
-const NOS_SPEED = 14.0;    // 16.0'dan 14.0'a düşürüldü 
+const GAS_SPEED = 8.5;     
+const NOS_SPEED = 14.0;    
 const BRAKE_SPEED = 0.5;   
-const ACCEL = 0.12;        // 0.15'ten ivmelenme daha yumuşak yapıldı
+const ACCEL = 0.12;        
 const DECEL = 0.1;         
 const BRAKE_DECEL = 0.35;  
 
-let gasHeld = false, brakeHeld = false, nosHeld = false;
+let gasHeld = false, brakeHeld = false, nosHeld = false, leftHeld = false, rightHeld = false;
 let nitroFuel = 100;
 const NITRO_DRAIN = 1.2, NITRO_REGEN = 0.2;
 
@@ -317,6 +352,8 @@ function bindBtn(el, flagName) {
 bindBtn(btnGas, 'gasHeld');
 bindBtn(btnBrake, 'brakeHeld');
 bindBtn(btnNos, 'nosHeld');
+bindBtn(btnLeft, 'leftHeld');
+bindBtn(btnRight, 'rightHeld');
 
 let dragging = false;
 function pointerToX(clientX){
@@ -335,15 +372,15 @@ window.addEventListener('pointerup', ()=>{ dragging = false; });
 
 const keys = { left:false, right:false };
 window.addEventListener('keydown', (e)=>{
-  if(e.code==='ArrowLeft'||e.code==='KeyA') keys.left = true;
-  if(e.code==='ArrowRight'||e.code==='KeyD') keys.right = true;
+  if(e.code==='ArrowLeft'||e.code==='KeyA') { keys.left = true; btnLeft.classList.add('active'); }
+  if(e.code==='ArrowRight'||e.code==='KeyD') { keys.right = true; btnRight.classList.add('active'); }
   if(e.code==='ArrowUp'||e.code==='KeyW') { gasHeld = true; btnGas.classList.add('active'); }
   if(e.code==='ArrowDown'||e.code==='KeyS') { brakeHeld = true; btnBrake.classList.add('active'); }
   if(e.code==='Space'||e.code==='ShiftLeft') { nosHeld = true; btnNos.classList.add('active'); }
 });
 window.addEventListener('keyup', (e)=>{
-  if(e.code==='ArrowLeft'||e.code==='KeyA') keys.left = false;
-  if(e.code==='ArrowRight'||e.code==='KeyD') keys.right = false;
+  if(e.code==='ArrowLeft'||e.code==='KeyA') { keys.left = false; btnLeft.classList.remove('active'); }
+  if(e.code==='ArrowRight'||e.code==='KeyD') { keys.right = false; btnRight.classList.remove('active'); }
   if(e.code==='ArrowUp'||e.code==='KeyW') { gasHeld = false; btnGas.classList.remove('active'); }
   if(e.code==='ArrowDown'||e.code==='KeyS') { brakeHeld = false; btnBrake.classList.remove('active'); }
   if(e.code==='Space'||e.code==='ShiftLeft') { nosHeld = false; btnNos.classList.remove('active'); }
@@ -359,12 +396,13 @@ function startGame(){
   getAudio(); startEngine();
   state = 'play'; score = 0; tick = 0; currentSpeed = 0;
   traffic.length = 0; pickups.length = 0; particles.length = 0; popups.length = 0;
-  nitroFuel = 100; gasHeld = false; brakeHeld = false; nosHeld = false;
+  nitroFuel = 100; gasHeld = false; brakeHeld = false; nosHeld = false; leftHeld = false; rightHeld = false;
   player.x = LANE_X[2]; player.targetX = LANE_X[2];
   spawnTimer = 20; pickupTimer = 220; wrongWayTimer = 0;
   shakeAmt = 0;
   
   btnGas.classList.remove('active'); btnBrake.classList.remove('active'); btnNos.classList.remove('active');
+  btnLeft.classList.remove('active'); btnRight.classList.remove('active');
   startScreen.classList.remove('on'); gameoverScreen.classList.remove('on');
   updateHud();
 }
@@ -395,7 +433,6 @@ function updateHud(){
   nitroFillEl.style.width = nitroFuel + '%';
   btnNos.style.opacity = nitroFuel > 2 ? '1' : '0.4';
 
-  // Hız hesaplaması (Oyun içi hızı gerçekçi duran km/h değerine çeviriyoruz)
   let displaySpeed = Math.round(currentSpeed * 14.5); 
   hudSpeedEl.innerHTML = displaySpeed + ' <span>km/h</span>';
 }
@@ -443,7 +480,10 @@ function updatePhysics() {
   let targetSpeed = COAST_SPEED;
   
   if (nosHeld && nitroFuel > 0) {
-    targetSpeed = NOS_SPEED; nitroFuel -= NITRO_DRAIN;
+    targetSpeed = NOS_SPEED; 
+    nitroFuel -= NITRO_DRAIN;
+    // NOS fıss sesini aralıklı olarak tetikle
+    if (tick % 8 === 0) sfx('nitro'); 
   } else if (gasHeld) {
     targetSpeed = GAS_SPEED; if (!nosHeld) nitroFuel = Math.min(100, nitroFuel + NITRO_REGEN);
   } else {
@@ -464,9 +504,9 @@ function updatePhysics() {
 }
 
 function updatePlayer(){
-  const steerSpeed = 6.0; // Şerit değiştirme de hafif yumuşatıldı
-  if (keys.left) player.targetX -= steerSpeed;
-  if (keys.right) player.targetX += steerSpeed;
+  const steerSpeed = 6.0; 
+  if (keys.left || leftHeld) player.targetX -= steerSpeed;
+  if (keys.right || rightHeld) player.targetX += steerSpeed;
   player.targetX = clamp(player.targetX, ROAD_X+15, ROAD_X+ROAD_W-15);
   player.x += (player.targetX - player.x) * 0.25;
 
@@ -663,14 +703,13 @@ function loop(){
     updateTraffic();
     updatePickups();
 
-    // TRAFİK YOĞUNLUĞU MANTIĞI (%20'den başlayıp her 1000m'de %5 artar)
     spawnTimer--;
     if (spawnTimer <= 0) {
       spawnTraffic();
       
       let baslangicYogunluk = 0.20; 
       let artisMiktari = Math.floor(score / 1000) * 0.05; 
-      let ciftArabaIhtimali = Math.min(baslangicYogunluk + artisMiktari, 0.60); // Maks %60
+      let ciftArabaIhtimali = Math.min(baslangicYogunluk + artisMiktari, 0.60); 
       
       if(Math.random() < ciftArabaIhtimali) spawnTraffic(); 
       
