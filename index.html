@@ -229,7 +229,6 @@ function sfx(type){
   const ctx = audioCtx, t = ctx.currentTime, out = ctx.destination;
   
   if(type === 'nitro_start'){
-    // Need for Speed Tarzı Güçlü NOS Patlaması (Pshhh + Boom)
     const n = mkNoise(ctx, 0.5);
     const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 1000;
     const g = ctx.createGain(); g.gain.setValueAtTime(0.8, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.5);
@@ -285,11 +284,11 @@ const GAS_SPEED = 8.5;
 const NOS_SPEED = 14.0;    
 const BRAKE_SPEED = 0.5;   
 const ACCEL = 0.12;        
-const DECEL = 0.1;         
+const DECEL = 0.025;       /* DAHA YAVAŞ SÜZÜLME İÇİN DÜŞÜRÜLDÜ */
 const BRAKE_DECEL = 0.35;  
 
 let gasHeld = false, brakeHeld = false, nosHeld = false, leftHeld = false, rightHeld = false;
-let wasNosHeld = false; // NOS patlaması için takip değişkeni
+let wasNosHeld = false; 
 let nitroFuel = 100;
 const NITRO_DRAIN = 1.2, NITRO_REGEN = 0.2;
 
@@ -337,7 +336,7 @@ function drawPopups(){
 
 function shake(amt){ shakeAmt = Math.max(shakeAmt, amt); }
 
-/* ============== GİRİŞ KONTROLLERİ (DOKUNMATİK TAM DESTEK) ============== */
+/* ============== GİRİŞ KONTROLLERİ ============== */
 function bindBtn(el, onDown, onUp) {
   const downHandler = (e) => { e.preventDefault(); onDown(); el.classList.add('active'); getAudio(); };
   const upHandler = (e) => { e.preventDefault(); onUp(); el.classList.remove('active'); };
@@ -356,22 +355,6 @@ bindBtn(btnBrake, () => brakeHeld = true, () => brakeHeld = false);
 bindBtn(btnNos, () => nosHeld = true, () => nosHeld = false);
 bindBtn(btnLeft, () => leftHeld = true, () => leftHeld = false);
 bindBtn(btnRight, () => rightHeld = true, () => rightHeld = false);
-
-// Alternatif sürükleme kontrolleri
-let dragging = false;
-function pointerToX(clientX){
-  const r = CV.getBoundingClientRect();
-  return (clientX - r.left) * (W / r.width);
-}
-CV.addEventListener('pointerdown', (e)=>{ 
-  dragging = true; 
-  if(state==='play' && e.target.tagName === 'CANVAS') player.targetX = clamp(pointerToX(e.clientX), ROAD_X+15, ROAD_X+ROAD_W-15); 
-  getAudio(); 
-});
-CV.addEventListener('pointermove', (e)=>{ 
-  if(dragging && state==='play' && e.target.tagName === 'CANVAS') player.targetX = clamp(pointerToX(e.clientX), ROAD_X+15, ROAD_X+ROAD_W-15); 
-});
-window.addEventListener('pointerup', ()=>{ dragging = false; });
 
 const keys = { left:false, right:false };
 window.addEventListener('keydown', (e)=>{
@@ -483,15 +466,13 @@ function updatePhysics() {
   let targetSpeed = COAST_SPEED;
   
   if (nosHeld && nitroFuel > 0) {
-    if (!wasNosHeld) { sfx('nitro_start'); wasNosHeld = true; } // NFS patlama efekti
+    if (!wasNosHeld) { sfx('nitro_start'); wasNosHeld = true; } 
     targetSpeed = NOS_SPEED; 
     nitroFuel -= NITRO_DRAIN;
   } else {
     wasNosHeld = false;
     if (gasHeld) {
-      targetSpeed = GAS_SPEED; nitroFuel = Math.min(100, nitroFuel + NITRO_REGEN);
-    } else {
-      nitroFuel = Math.min(100, nitroFuel + NITRO_REGEN);
+      targetSpeed = GAS_SPEED; 
     }
   }
 
@@ -504,7 +485,6 @@ function updatePhysics() {
   }
   
   if(engineOsc && audioCtx){
-    // NOS açıksa motor daha agresif bağırır
     let pitch = 40 + (currentSpeed * 7);
     if(nosHeld && nitroFuel > 0) pitch += 50; 
     engineOsc.frequency.setValueAtTime(pitch, audioCtx.currentTime);
