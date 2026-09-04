@@ -84,7 +84,7 @@ canvas{
 .logo{ font-family:"Orbitron",monospace; font-weight:900; font-size:clamp(30px,8vw,42px); line-height:1; color:#fff; }
 .logo span{ display:block; color:var(--lime); text-shadow:0 0 24px rgba(198,255,61,0.6); }
 .tagline{ font-family:"Rajdhani",sans-serif; font-weight:300; font-size:12px; letter-spacing:6px; color:var(--cyan); margin-top:8px; margin-bottom:22px; }
-.best-row{ font-family:"Orbitron",monospace; font-size:12px; color:rgba(255,255,255,0.6); margin-bottom:22px; letter-spacing:1px; }
+.best-row{ font-family:"Orbitron",monospace; font-size:12px; color:rgba(255,255,255,0.6); margin-bottom:22px; letter-spacing:1px; line-height: 1.8; }
 .best-row b{ color:var(--amber); }
 
 button.game-btn{
@@ -157,16 +157,21 @@ button.btn-red:active { background: var(--red); color:#000; box-shadow:0 0 30px 
   <div id="btn-nos" class="control-btn">NOS</div>
   <div id="btn-gas" class="control-btn">GAZ</div>
 
+  <!-- ANA EKRAN -->
   <div id="start-screen" class="screen on">
     <div class="panel">
       <div class="logo">TRAFİK<span>KAÇIŞI</span></div>
       <div class="tagline">ARAÇ TEST SÜRÜMÜ</div>
-      <div class="best-row">KASA: <b id="start-cash" style="color:var(--amber); font-size:14px;">999999 💰</b></div>
+      <div class="best-row">
+        REKOR: <b id="start-best">0m</b><br>
+        KASA: <b id="start-cash" style="color:var(--amber); font-size:14px;">999999 💰</b>
+      </div>
       <button class="game-btn" id="btn-start">YARIŞA BAŞLA</button>
       <button class="game-btn btn-blue" id="btn-garage-menu">GARAJ 🚘</button>
     </div>
   </div>
 
+  <!-- GARAJ EKRANI -->
   <div id="garage-screen" class="screen">
     <div class="panel">
       <div class="g-header">
@@ -196,6 +201,7 @@ button.btn-red:active { background: var(--red); color:#000; box-shadow:0 0 30px 
     </div>
   </div>
 
+  <!-- OYUN SONU -->
   <div id="gameover-screen" class="screen">
     <div class="panel">
       <div class="crash-title">ÇARPTIN!</div>
@@ -214,7 +220,6 @@ const G = CV.getContext('2d');
 const W = 420, H = 760;
 CV.width = W; CV.height = H;
 
-// YENİ: ARAÇ VERİTABANI
 const CARS = [
   { id: 0, name: 'Standart Sedan', price: 0, speed: 8.5, nos: 13.0, steer: 5.5, brake: 0.30, color: '#3fa9f5', w: 30, h: 54, spdBar: 40, hndBar: 40, brkBar: 40 },
   { id: 1, name: 'Kamiq Line', price: 1500, speed: 9.0, nos: 14.5, steer: 6.2, brake: 0.35, color: '#ffffff', w: 32, h: 56, spdBar: 55, hndBar: 55, brkBar: 55 },
@@ -223,7 +228,6 @@ const CARS = [
   { id: 4, name: 'A3 S-Line', price: 15000, speed: 11.5, nos: 17.5, steer: 8.0, brake: 0.50, color: '#c6ff3d', w: 30, h: 56, spdBar: 100, hndBar: 100, brkBar: 100 }
 ];
 
-// TEST MODU: Milyoner ve Tüm Araçlar Açık!
 let globalCash = 999999; 
 let unlockedCars = [0, 1, 2, 3, 4]; 
 let selectedCarId = parseInt(localStorage.getItem('trafikKacisiSelectedCar') || '0', 10);
@@ -344,7 +348,6 @@ window.addEventListener('keyup', (e)=>{ if(e.code==='ArrowLeft'||e.code==='KeyA'
 function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
 function getNightFactor() { let timePhase = (score % 12000) / 12000; if (timePhase > 0.4 && timePhase <= 0.5) return (timePhase - 0.4) * 10; if (timePhase > 0.5 && timePhase <= 0.9) return 1; if (timePhase > 0.9) return 1 - ((timePhase - 0.9) * 10); return 0; }
 
-// Modifiye edilmiş dikdörtgen çizim fonksiyonu (Artık belli bir canvas context'i (G veya P) üzerinden çalışır)
 function roundRectPath(ctx, x,y,w,h,r){
   ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
   ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
@@ -353,6 +356,7 @@ function roundRectPath(ctx, x,y,w,h,r){
 /* ============== EKRAN VE GARAJ YÖNETİMİ ============== */
 document.getElementById('start-cash').innerText = globalCash + ' 💰';
 hudCashEl.innerText = globalCash + ' 💰';
+document.getElementById('start-best').innerText = best + 'm'; // Hata düzeltme satırı!
 
 function updateGarageUI() {
   const c = CARS[viewingCarId];
@@ -377,14 +381,13 @@ function updateGarageUI() {
     btnAction.innerText = 'SATIN AL'; btnAction.style.borderColor = 'var(--amber)'; btnAction.style.color = 'var(--amber)';
   }
 
-  // YENİ: ARAÇ SHOWROOM EKRANI (NET VE BULANIK OLMAYAN ÇİZİM)
   const pCV = document.getElementById('car-preview');
   const pCtx = pCV.getContext('2d');
   pCtx.clearRect(0,0,pCV.width, pCV.height);
   pCtx.save();
   pCtx.translate(pCV.width/2, pCV.height/2);
   
-  let pw = c.w * 2.0; // Showroom'da arabalar 2 kat büyük ve havalı görünsün
+  let pw = c.w * 2.0; 
   let ph = c.h * 2.0;
   
   pCtx.fillStyle = 'rgba(0,0,0,0.4)'; pCtx.beginPath(); pCtx.ellipse(0, ph/2+4, pw/2, 8, 0, 0, Math.PI*2); pCtx.fill();
@@ -479,7 +482,7 @@ function crash(){
 function updateHud(){
   hudScoreEl.textContent = Math.round(score) + 'm';
   hudBestEl.textContent = best + 'm';
-  document.getElementById('start-best').textContent = best + 'm';
+  if(document.getElementById('start-best')) document.getElementById('start-best').textContent = best + 'm'; // GÜVENLİK KONTROLÜ
   nitroFillEl.style.width = nitroFuel + '%';
   btnNos.style.opacity = nitroFuel > 2 ? '1' : '0.4';
 
