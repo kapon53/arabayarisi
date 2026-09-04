@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Trafik Kaçışı</title>
+<title>Trafik Kaçışı - Profesyonel Sürüm</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap">
 <style>
 :root{
@@ -48,14 +48,12 @@ canvas{
 .hud-val.speed{ color:var(--cyan); text-shadow:0 0 12px rgba(0,229,255,0.6); font-size:22px; }
 .hud-val.speed span { font-size:11px; color:rgba(255,255,255,0.7); text-shadow:none; }
 
-#nitro-wrap{
-  position:absolute; left:14px; top:80px; width:120px; pointer-events:none;
-}
+#nitro-wrap{ position:absolute; left:14px; top:120px; width:120px; pointer-events:none; }
 #nitro-label{ font-family:"Orbitron",monospace; font-size:9px; letter-spacing:2px; color:rgba(255,255,255,0.5); margin-bottom:4px; }
 #nitro-bar{ width:100%; height:8px; background:rgba(255,255,255,0.12); border-radius:4px; overflow:hidden; border:1px solid rgba(255,255,255,0.2); }
 #nitro-fill{ height:100%; width:100%; background:linear-gradient(90deg,#00e5ff,#c6ff3d); border-radius:4px; transition:width .05s linear; }
 
-#combo-wrap{ position:absolute; left:14px; top:110px; transition:opacity 0.1s; opacity:0; }
+#combo-wrap{ position:absolute; left:14px; top:150px; transition:opacity 0.1s; opacity:0; }
 #combo-val{ font-family:"Orbitron",monospace; font-weight:900; font-size:24px; color:var(--amber); text-shadow:0 0 15px var(--amber); }
 
 /* KONTROLLER */
@@ -66,65 +64,57 @@ canvas{
   transition: transform 0.1s; z-index: 10; user-select:none;
 }
 .control-btn:active, .control-btn.active { transform:scale(0.9); }
-
-#btn-left {
-  left: 10px;
-  background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
-  border:2px solid rgba(255,255,255,0.4); color:#fff;
-}
-#btn-right {
-  left: 78px;
-  background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
-  border:2px solid rgba(255,255,255,0.4); color:#fff;
-}
-
-#btn-brake {
-  right: 95px;
-  background:radial-gradient(circle at 35% 30%, rgba(255,59,78,0.5), rgba(180,0,0,0.25));
-  border:2px solid var(--red); color:#fff; box-shadow:0 0 25px rgba(255,59,78,0.35);
-  font-size:10px;
-}
+#btn-left { left: 10px; background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.05)); border:2px solid rgba(255,255,255,0.4); color:#fff; }
+#btn-right { left: 78px; background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.05)); border:2px solid rgba(255,255,255,0.4); color:#fff; }
+#btn-brake { right: 95px; background:radial-gradient(circle at 35% 30%, rgba(255,59,78,0.5), rgba(180,0,0,0.25)); border:2px solid var(--red); color:#fff; box-shadow:0 0 25px rgba(255,59,78,0.35); font-size:10px; }
 #btn-brake.active { background:radial-gradient(circle at 35% 30%, rgba(255,59,78,0.8), rgba(180,0,0,0.5)); }
-
-#btn-gas {
-  right: 10px; width: 75px; height: 75px;
-  background:radial-gradient(circle at 35% 30%, rgba(198,255,61,0.5), rgba(100,180,0,0.25));
-  border:2px solid var(--lime); color:#fff; box-shadow:0 0 25px rgba(198,255,61,0.35);
-}
+#btn-gas { right: 10px; width: 75px; height: 75px; background:radial-gradient(circle at 35% 30%, rgba(198,255,61,0.5), rgba(100,180,0,0.25)); border:2px solid var(--lime); color:#fff; box-shadow:0 0 25px rgba(198,255,61,0.35); }
 #btn-gas.active { background:radial-gradient(circle at 35% 30%, rgba(198,255,61,0.8), rgba(100,180,0,0.5)); }
-
-#btn-nos {
-  right: 18px; bottom: 100px; width: 55px; height: 55px;
-  background:radial-gradient(circle at 35% 30%, rgba(0,229,255,0.5), rgba(0,150,180,0.25));
-  border:2px solid var(--cyan); color:#fff; box-shadow:0 0 20px rgba(0,229,255,0.35);
-  font-size:11px;
-}
+#btn-nos { right: 18px; bottom: 100px; width: 55px; height: 55px; background:radial-gradient(circle at 35% 30%, rgba(0,229,255,0.5), rgba(0,150,180,0.25)); border:2px solid var(--cyan); color:#fff; box-shadow:0 0 20px rgba(0,229,255,0.35); font-size:11px; }
 #btn-nos.active { background:radial-gradient(circle at 35% 30%, rgba(0,229,255,0.8), rgba(0,150,180,0.5)); }
 
+/* EKRANLAR */
 .screen{
   position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
   opacity:0; pointer-events:none; transition:opacity .35s ease;
-  background:rgba(5,7,10,0.75); backdrop-filter:blur(8px); border-radius:14px; z-index: 20;
+  background:rgba(5,7,10,0.85); backdrop-filter:blur(8px); border-radius:14px; z-index: 20;
 }
 .screen.on{ opacity:1; pointer-events:all; }
-.panel{ text-align:center; padding:20px; }
+.panel{ text-align:center; padding:20px; width: 90%; }
 .logo{ font-family:"Orbitron",monospace; font-weight:900; font-size:clamp(30px,8vw,42px); line-height:1; color:#fff; }
 .logo span{ display:block; color:var(--lime); text-shadow:0 0 24px rgba(198,255,61,0.6); }
 .tagline{ font-family:"Rajdhani",sans-serif; font-weight:300; font-size:12px; letter-spacing:6px; color:var(--cyan); margin-top:8px; margin-bottom:22px; }
-.best-row{ font-family:"Orbitron",monospace; font-size:12px; color:rgba(255,255,255,0.6); margin-bottom:22px; letter-spacing:1px; }
+.best-row{ font-family:"Orbitron",monospace; font-size:12px; color:rgba(255,255,255,0.6); margin-bottom:22px; letter-spacing:1px; line-height: 1.8; }
 .best-row b{ color:var(--amber); }
+
 button.game-btn{
-  padding:14px 38px; background:transparent; border:2px solid var(--lime); color:var(--lime);
+  padding:14px 30px; margin: 5px; background:transparent; border:2px solid var(--lime); color:var(--lime);
   font-family:"Orbitron",monospace; font-weight:700; font-size:13px; letter-spacing:3px; cursor:pointer;
   clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);
-  transition:background .2s,box-shadow .2s,color .2s;
+  transition:background .2s,box-shadow .2s,color .2s; width: 80%;
 }
 button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px rgba(198,255,61,0.5); }
+button.btn-blue { border-color: var(--cyan); color: var(--cyan); }
+button.btn-blue:active { background: var(--cyan); color:#000; box-shadow:0 0 30px rgba(0,229,255,0.5); }
+button.btn-red { border-color: var(--red); color: var(--red); }
+button.btn-red:active { background: var(--red); color:#000; box-shadow:0 0 30px rgba(255,59,78,0.5); }
+
 .crash-title{ color:var(--red); font-size:1.5em; text-shadow:0 0 18px rgba(255,59,78,0.7); font-family:"Orbitron",monospace; font-weight:900; margin-bottom:6px; }
 .crash-score{ font-family:"Orbitron",monospace; font-size:30px; color:#fff; margin:10px 0 4px; }
-.crash-new-best{ font-family:"Rajdhani",sans-serif; color:var(--amber); font-size:13px; letter-spacing:2px; margin-bottom:20px; display:none; }
-.crash-sub{ font-family:"Rajdhani",sans-serif; color:rgba(255,255,255,0.5); font-size:12px; margin-bottom:22px; letter-spacing:1px; }
-.instructions{ font-family:"Rajdhani",sans-serif; font-size:11px; color:rgba(255,255,255,0.6); margin-top:18px; line-height:1.7; letter-spacing:0.5px; }
+.crash-new-best{ font-family:"Rajdhani",sans-serif; color:var(--amber); font-size:13px; letter-spacing:2px; margin-bottom:10px; display:none; }
+.crash-sub{ font-family:"Rajdhani",sans-serif; color:rgba(255,255,255,0.5); font-size:12px; margin-bottom:8px; letter-spacing:1px; }
+.earned-cash{ font-family:"Orbitron",monospace; color:var(--amber); font-size:18px; margin-bottom: 20px; text-shadow:0 0 10px rgba(255,184,77,0.5); }
+
+/* GARAJ ARAYÜZÜ */
+.g-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.g-nav { font-family: "Orbitron"; font-size: 24px; color: #fff; cursor: pointer; padding: 10px; user-select: none; }
+.g-nav:active { color: var(--cyan); }
+.g-car-name { font-family: "Orbitron"; font-size: 20px; color: var(--cyan); font-weight: bold; text-shadow: 0 0 10px rgba(0,229,255,0.5); }
+.stat-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-family: "Rajdhani"; font-size: 14px; color: #fff; }
+.stat-bar-bg { width: 65%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+.stat-bar-fill { height: 100%; background: var(--lime); border-radius: 4px; transition: width 0.3s ease, background 0.3s; }
+.g-price { font-family: "Orbitron"; font-size: 18px; color: var(--amber); margin: 20px 0; text-shadow: 0 0 10px rgba(255,184,77,0.5); }
+
 </style>
 </head>
 <body>
@@ -135,12 +125,10 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
       <div class="hud-label">MESAFE</div>
       <div class="hud-val" id="hud-score">0m</div>
     </div>
-    
     <div class="hud-tc">
       <div class="hud-label">HIZ</div>
       <div class="hud-val speed" id="hud-speed">0 <span>km/h</span></div>
     </div>
-
     <div class="hud-tr-rekor">
       <div class="hud-label">REKOR</div>
       <div class="hud-val best" id="hud-best">0m</div>
@@ -153,7 +141,6 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
       <div id="nitro-label">NOS</div>
       <div id="nitro-bar"><div id="nitro-fill"></div></div>
     </div>
-
     <div id="combo-wrap">
       <div class="hud-label" style="color:var(--amber);">KOMBO</div>
       <div id="combo-val">x1</div>
@@ -162,7 +149,6 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
   
   <div id="btn-left" class="control-btn">◀</div>
   <div id="btn-right" class="control-btn">▶</div>
-  
   <div id="btn-brake" class="control-btn">FREN</div>
   <div id="btn-nos" class="control-btn">NOS</div>
   <div id="btn-gas" class="control-btn">GAZ</div>
@@ -170,10 +156,44 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
   <div id="start-screen" class="screen on">
     <div class="panel">
       <div class="logo">TRAFİK<span>KAÇIŞI</span></div>
-      <div class="tagline">PROFESYONEL SÜRÜM</div>
-      <div class="best-row">REKOR: <b id="start-best">0m</b></div>
-      <button class="game-btn" id="btn-start">BAŞLA</button>
-      <div class="instructions">5 saniyelik kombo sistemi aktif!<br>Arkadan gelen araçlar artık sana çarpmamak için fren yapacak.</div>
+      <div class="tagline">GERÇEKÇİ FİZİK SÜRÜMÜ</div>
+      <div class="best-row">
+        REKOR: <b id="start-best">0m</b><br>
+        KASA: <b id="start-cash" style="color:var(--amber); font-size:14px;">999999 💰</b>
+      </div>
+      <button class="game-btn" id="btn-start">YARIŞA BAŞLA</button>
+      <button class="game-btn btn-blue" id="btn-garage-menu">GARAJ 🚘</button>
+    </div>
+  </div>
+
+  <div id="garage-screen" class="screen">
+    <div class="panel">
+      <div class="g-header">
+        <div class="g-nav" id="g-prev">◀</div>
+        <div class="g-car-name" id="g-name">Araç Adı</div>
+        <div class="g-nav" id="g-next">▶</div>
+      </div>
+      
+      <div id="garage-cash" style="font-family:'Orbitron',monospace; font-size:14px; color:var(--amber); margin-bottom:10px;">KASA: 0 💰</div>
+      
+      <canvas id="car-preview" width="160" height="140" style="margin: 0 auto 15px; display: block;"></canvas> 
+
+      <div class="stat-row">
+        <span>HIZ</span>
+        <div class="stat-bar-bg"><div class="stat-bar-fill" id="stat-spd"></div></div>
+      </div>
+      <div class="stat-row">
+        <span>YOL TUTUŞ</span>
+        <div class="stat-bar-bg"><div class="stat-bar-fill" id="stat-hnd"></div></div>
+      </div>
+      <div class="stat-row">
+        <span>FREN</span>
+        <div class="stat-bar-bg"><div class="stat-bar-fill" id="stat-brk"></div></div>
+      </div>
+
+      <div class="g-price" id="g-price">FİYAT: 0 💰</div>
+      <button class="game-btn" id="btn-g-action">SEÇİLDİ</button>
+      <button class="game-btn btn-red" id="btn-g-back">ANA MENÜ</button>
     </div>
   </div>
 
@@ -182,8 +202,10 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
       <div class="crash-title">ÇARPTIN!</div>
       <div class="crash-score" id="go-score">0m</div>
       <div class="crash-new-best" id="go-newbest">✨ YENİ REKOR! ✨</div>
+      <div class="earned-cash" id="go-earned">+0 💰</div>
       <div class="crash-sub">REKOR: <b id="go-best">0m</b></div>
       <button class="game-btn" id="btn-retry">TEKRAR DENE</button>
+      <button class="game-btn btn-blue" id="btn-go-garage">GARAJA GİT</button>
     </div>
   </div>
 </div>
@@ -194,8 +216,22 @@ const G = CV.getContext('2d');
 const W = 420, H = 760;
 CV.width = W; CV.height = H;
 
+const CARS = [
+  { id: 0, name: 'Standart Sedan', price: 0,     speed: 7.5,  nos: 11.5, steer: 4.5, brake: 0.20, color: '#3fa9f5', w: 30, h: 54, spdBar: 20, hndBar: 25, brkBar: 20 },
+  { id: 1, name: 'Kamiq Line',     price: 1500,  speed: 8.5,  nos: 13.0, steer: 5.5, brake: 0.35, color: '#ffffff', w: 32, h: 56, spdBar: 40, hndBar: 45, brkBar: 40 },
+  { id: 2, name: 'Taigo Cross',    price: 3000,  speed: 9.0,  nos: 14.5, steer: 7.5, brake: 0.45, color: '#f5c542', w: 28, h: 52, spdBar: 55, hndBar: 75, brkBar: 60 },
+  { id: 3, name: 'Omoda SUV',      price: 7500,  speed: 10.5, nos: 16.5, steer: 5.0, brake: 0.55, color: '#ff3b4e', w: 34, h: 60, spdBar: 75, hndBar: 35, brkBar: 75 },
+  { id: 4, name: 'A3 S-Line',      price: 15000, speed: 12.5, nos: 19.5, steer: 9.5, brake: 0.80, color: '#c6ff3d', w: 30, h: 56, spdBar: 100, hndBar: 100, brkBar: 100 }
+];
+
+let globalCash = 999999; 
+let unlockedCars = [0, 1, 2, 3, 4]; 
+let selectedCarId = parseInt(localStorage.getItem('trafikKacisiSelectedCar') || '0', 10);
+let viewingCarId = selectedCarId;
+
 const startScreen = document.getElementById('start-screen');
 const gameoverScreen = document.getElementById('gameover-screen');
+const garageScreen = document.getElementById('garage-screen');
 const hudScoreEl = document.getElementById('hud-score');
 const hudBestEl = document.getElementById('hud-best');
 const hudSpeedEl = document.getElementById('hud-speed');
@@ -208,119 +244,49 @@ const btnRight = document.getElementById('btn-right');
 const comboWrapEl = document.getElementById('combo-wrap');
 const comboValEl = document.getElementById('combo-val');
 
-/* ============== SES MOTORU VE DURAKLATMA ============== */
-let audioCtx = null;
-let engineOsc = null;
-let engineGain = null;
-let isMuted = false;
-let isPaused = false;
+/* ============== SES MOTORU ============== */
+let audioCtx = null, engineOsc = null, engineGain = null;
+let isMuted = false, isPaused = false;
 
 document.getElementById('btn-mute').addEventListener('click', (e)=>{
-  e.preventDefault(); e.target.blur();
-  isMuted = !isMuted;
+  e.preventDefault(); e.target.blur(); isMuted = !isMuted;
   document.getElementById('btn-mute').innerText = isMuted ? '🔇' : '🔊';
-  if (isMuted) stopEngine();
-  else if (state === 'play' && !isPaused) startEngine();
+  if (isMuted) stopEngine(); else if (state === 'play' && !isPaused) startEngine();
 });
 
 document.getElementById('btn-pause').addEventListener('click', (e)=>{
-  e.preventDefault(); e.target.blur();
-  if (state !== 'play') return;
-  isPaused = !isPaused;
-  document.getElementById('btn-pause').innerText = isPaused ? '▶' : '⏸';
+  e.preventDefault(); e.target.blur(); if (state !== 'play') return;
+  isPaused = !isPaused; document.getElementById('btn-pause').innerText = isPaused ? '▶' : '⏸';
   if (isPaused) {
-    stopEngine();
-    G.fillStyle = 'rgba(0,0,0,0.6)'; G.fillRect(0,0,W,H);
-    G.fillStyle = '#fff'; G.font = 'bold 30px Orbitron'; G.textAlign = 'center';
-    G.fillText('DURAKLATILDI', W/2, H/2);
-  } else {
-    if(!isMuted) startEngine();
-  }
+    stopEngine(); G.fillStyle = 'rgba(0,0,0,0.6)'; G.fillRect(0,0,W,H);
+    G.fillStyle = '#fff'; G.font = 'bold 30px Orbitron'; G.textAlign = 'center'; G.fillText('DURAKLATILDI', W/2, H/2);
+  } else { if(!isMuted) startEngine(); }
 });
 
-function getAudio(){
-  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if(audioCtx.state === 'suspended') audioCtx.resume();
-  return audioCtx;
-}
+function getAudio(){ if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if(audioCtx.state === 'suspended') audioCtx.resume(); return audioCtx; }
 function startEngine(){
-  if(isMuted) return;
-  if(!audioCtx) getAudio();
-  if(engineOsc) { engineOsc.stop(); engineOsc = null; }
-  engineOsc = audioCtx.createOscillator();
-  engineGain = audioCtx.createGain();
-  engineOsc.type = 'sawtooth';
-  engineOsc.frequency.value = 50; 
-  engineGain.gain.value = 0.05;
-  
-  const filter = audioCtx.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = 400;
-  
-  engineOsc.connect(filter);
-  filter.connect(engineGain);
-  engineGain.connect(audioCtx.destination);
-  engineOsc.start();
+  if(isMuted) return; if(!audioCtx) getAudio(); if(engineOsc) { engineOsc.stop(); engineOsc = null; }
+  engineOsc = audioCtx.createOscillator(); engineGain = audioCtx.createGain();
+  engineOsc.type = 'sawtooth'; engineOsc.frequency.value = 50; engineGain.gain.value = 0.05;
+  const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 400;
+  engineOsc.connect(filter); filter.connect(engineGain); engineGain.connect(audioCtx.destination); engineOsc.start();
 }
-function stopEngine(){
-  if(engineGain && audioCtx) engineGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
-  setTimeout(() => { if(engineOsc){ engineOsc.stop(); engineOsc=null;} }, 500);
-}
-
-function mkNoise(ctx, dur){
-  const b = ctx.createBuffer(1, ctx.sampleRate*dur, ctx.sampleRate);
-  const d = b.getChannelData(0);
-  for(let i=0;i<d.length;i++) d[i] = Math.random()*2-1;
-  const s = ctx.createBufferSource(); s.buffer = b; return s;
-}
-
+function stopEngine(){ if(engineGain && audioCtx) engineGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5); setTimeout(() => { if(engineOsc){ engineOsc.stop(); engineOsc=null;} }, 500); }
+function mkNoise(ctx, dur){ const b = ctx.createBuffer(1, ctx.sampleRate*dur, ctx.sampleRate); const d = b.getChannelData(0); for(let i=0;i<d.length;i++) d[i] = Math.random()*2-1; const s = ctx.createBufferSource(); s.buffer = b; return s; }
 function sfx(type){
-  if(!audioCtx || isMuted) return;
-  const ctx = audioCtx, t = ctx.currentTime, out = ctx.destination;
-  
-  if(type === 'nitro_start'){
-    const n = mkNoise(ctx, 0.5);
-    const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 1000;
-    const g = ctx.createGain(); g.gain.setValueAtTime(0.8, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.5);
-    n.connect(hp).connect(g).connect(out); n.start(t); n.stop(t+0.5);
-    
-    const osc = ctx.createOscillator(); osc.type='sine';
-    osc.frequency.setValueAtTime(120, t); osc.frequency.exponentialRampToValueAtTime(20, t+0.4);
-    const g2 = ctx.createGain(); g2.gain.setValueAtTime(0.9, t); g2.gain.exponentialRampToValueAtTime(0.01, t+0.4);
-    osc.connect(g2).connect(out); osc.start(t); osc.stop(t+0.45);
-  }
-  if(type === 'nearmiss'){
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = 'sine'; o.frequency.setValueAtTime(500, t); o.frequency.exponentialRampToValueAtTime(1200, t+0.12);
-    g.gain.setValueAtTime(0.18, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.15);
-    o.connect(g); g.connect(out); o.start(t); o.stop(t+0.16);
-  }
-  if(type === 'pickup'){
-    [660,880,1100].forEach((f,i)=>{
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.type='square'; o.frequency.value=f;
-      g.gain.setValueAtTime(0.14, t+i*0.05); g.gain.exponentialRampToValueAtTime(0.001, t+i*0.05+0.1);
-      o.connect(g); g.connect(out); o.start(t+i*0.05); o.stop(t+i*0.05+0.1);
-    });
-  }
-  if(type === 'crash'){
-    const n = mkNoise(ctx, 0.45);
-    const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(2200,t); lp.frequency.exponentialRampToValueAtTime(120,t+0.45);
-    const g = ctx.createGain(); g.gain.setValueAtTime(0.65,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.45);
-    n.connect(lp); lp.connect(g); g.connect(out); n.start(t); n.stop(t+0.45);
-    const o = ctx.createOscillator(), g2 = ctx.createGain();
-    o.type='sawtooth'; o.frequency.setValueAtTime(140,t); o.frequency.exponentialRampToValueAtTime(30,t+0.4);
-    g2.gain.setValueAtTime(0.45,t); g2.gain.exponentialRampToValueAtTime(0.001,t+0.4);
-    o.connect(g2); g2.connect(out); o.start(t); o.stop(t+0.41);
-  }
+  if(!audioCtx || isMuted) return; const ctx = audioCtx, t = ctx.currentTime, out = ctx.destination;
+  if(type === 'nitro_start'){ const n = mkNoise(ctx, 0.5); const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 1000; const g = ctx.createGain(); g.gain.setValueAtTime(0.8, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.5); n.connect(hp).connect(g).connect(out); n.start(t); n.stop(t+0.5); const osc = ctx.createOscillator(); osc.type='sine'; osc.frequency.setValueAtTime(120, t); osc.frequency.exponentialRampToValueAtTime(20, t+0.4); const g2 = ctx.createGain(); g2.gain.setValueAtTime(0.9, t); g2.gain.exponentialRampToValueAtTime(0.01, t+0.4); osc.connect(g2).connect(out); osc.start(t); osc.stop(t+0.45); }
+  if(type === 'nearmiss'){ const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(500, t); o.frequency.exponentialRampToValueAtTime(1200, t+0.12); g.gain.setValueAtTime(0.18, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.15); o.connect(g); g.connect(out); o.start(t); o.stop(t+0.16); }
+  if(type === 'pickup'){ [660,880,1100].forEach((f,i)=>{ const o = ctx.createOscillator(), g = ctx.createGain(); o.type='square'; o.frequency.value=f; g.gain.setValueAtTime(0.14, t+i*0.05); g.gain.exponentialRampToValueAtTime(0.001, t+i*0.05+0.1); o.connect(g); g.connect(out); o.start(t+i*0.05); o.stop(t+i*0.05+0.1); }); }
+  if(type === 'crash'){ const n = mkNoise(ctx, 0.45); const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(2200,t); lp.frequency.exponentialRampToValueAtTime(120,t+0.45); const g = ctx.createGain(); g.gain.setValueAtTime(0.65,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.45); n.connect(lp); lp.connect(g); g.connect(out); n.start(t); n.stop(t+0.45); const o = ctx.createOscillator(), g2 = ctx.createGain(); o.type='sawtooth'; o.frequency.setValueAtTime(140,t); o.frequency.exponentialRampToValueAtTime(30,t+0.4); g2.gain.setValueAtTime(0.45,t); g2.gain.exponentialRampToValueAtTime(0.001,t+0.4); o.connect(g2); g2.connect(out); o.start(t); o.stop(t+0.41); }
+  if(type === 'buy'){ const o = ctx.createOscillator(), g = ctx.createGain(); o.type='sine'; o.frequency.setValueAtTime(800, t); o.frequency.exponentialRampToValueAtTime(1600, t+0.2); g.gain.setValueAtTime(0.2, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.2); o.connect(g); g.connect(out); o.start(t); o.stop(t+0.25); }
 }
 
-/* ============== YOL / 4 ŞERİT ============== */
+/* ============== YOL VE OYUN FİZİĞİ ============== */
 const ROAD_X = 50, ROAD_W = 320;
 const LANE_W = ROAD_W / 4;
 const LANE_X = [ROAD_X + LANE_W*0.5, ROAD_X + LANE_W*1.5, ROAD_X + LANE_W*2.5, ROAD_X + LANE_W*3.5];
 
-/* ============== OYUN DURUMU & FİZİK ============== */
 let state = 'title'; 
 let tick = 0, score = 0, best = 0;
 let combo = 1, comboTimer = 0; 
@@ -331,133 +297,166 @@ let roadDashOffset = 0, bgOffset = 0;
 
 let currentSpeed = 0; 
 const COAST_SPEED = 1.5;   
-const GAS_SPEED = 8.5;     
-const NOS_SPEED = 14.0;    
+let GAS_SPEED = 8.5;     
+let NOS_SPEED = 14.0;    
+let STEER_SPEED = 6.0;
 const BRAKE_SPEED = 0.5;   
 const ACCEL = 0.12;        
 const DECEL = 0.025;       
-const BRAKE_DECEL = 0.35;  
+let BRAKE_DECEL = 0.35;  
 
 let gasHeld = false, brakeHeld = false, nosHeld = false, leftHeld = false, rightHeld = false;
 let wasNosHeld = false; 
 let nitroFuel = 100;
-const NITRO_DRAIN = 0.4; 
-const NITRO_AUTO_REGEN = 0.05; 
+const NITRO_DRAIN = 0.4, NITRO_AUTO_REGEN = 0.05; 
 
-const player = { x: LANE_X[2], y: H - 150, w: 30, h: 54, targetX: LANE_X[2] };
-
-const traffic = [];
-const pickups = []; 
-let spawnTimer = 40;
-let pickupTimer = 220;
-let wrongWayTimer = 0; 
+const player = { x: LANE_X[2], y: H - 150, w: 30, h: 54, targetX: LANE_X[2], color: '#3fa9f5' };
+const traffic = [], pickups = []; 
+let spawnTimer = 40, pickupTimer = 220, wrongWayTimer = 0; 
 
 const bgStars = [];
-for(let i=0; i<80; i++) {
-  bgStars.push({ x: Math.random()*W, y: Math.random()*H, s: Math.random()*1.5 + 0.5, a: Math.random() });
-}
-
+for(let i=0; i<80; i++) { bgStars.push({ x: Math.random()*W, y: Math.random()*H, s: Math.random()*1.5 + 0.5, a: Math.random() }); }
 const particles = [];
-function burst(x,y,col1,col2,n){
-  for(let i=0;i<n;i++){
-    const a = Math.random()*Math.PI*2, s = 1.5+Math.random()*6;
-    particles.push({ x,y, vx:Math.cos(a)*s, vy:Math.sin(a)*s-1, life:1, col: Math.random()>0.5?col1:col2, size:2+Math.random()*4, gravity:0.15+Math.random()*0.1 });
-  }
-}
-function updateParticles(){
-  for(let i=particles.length-1;i>=0;i--){
-    const p = particles[i];
-    p.x+=p.vx; p.y+=p.vy; p.vy+=p.gravity; p.vx*=0.97; p.life-=0.03;
-    if(p.life<=0) particles.splice(i,1);
-  }
-}
-function drawParticles(){
-  particles.forEach(p=>{
-    G.save(); G.globalAlpha=Math.max(0,p.life);
-    G.fillStyle=p.col; G.beginPath(); G.arc(p.x,p.y,p.size*p.life,0,Math.PI*2); G.fill();
-    G.restore();
-  });
-}
+function burst(x,y,col1,col2,n){ for(let i=0;i<n;i++){ const a = Math.random()*Math.PI*2, s = 1.5+Math.random()*6; particles.push({ x,y, vx:Math.cos(a)*s, vy:Math.sin(a)*s-1, life:1, col: Math.random()>0.5?col1:col2, size:2+Math.random()*4, gravity:0.15+Math.random()*0.1 }); } }
+function updateParticles(){ for(let i=particles.length-1;i>=0;i--){ const p = particles[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=p.gravity; p.vx*=0.97; p.life-=0.03; if(p.life<=0) particles.splice(i,1); } }
+function drawParticles(){ particles.forEach(p=>{ G.save(); G.globalAlpha=Math.max(0,p.life); G.fillStyle=p.col; G.beginPath(); G.arc(p.x,p.y,p.size*p.life,0,Math.PI*2); G.fill(); G.restore(); }); }
 
 let popups = []; 
 function popup(x,y,text,col){ popups.push({x,y,life:1,text,col}); }
-function updatePopups(){
-  for(let i=popups.length-1;i>=0;i--){ popups[i].life-=0.018; popups[i].y-=0.8; if(popups[i].life<=0) popups.splice(i,1); }
-}
-function drawPopups(){
-  popups.forEach(p=>{
-    G.save(); G.globalAlpha=Math.max(0,p.life); G.font='bold 14px Orbitron, monospace';
-    G.fillStyle=p.col; G.textAlign='center'; G.fillText(p.text, p.x, p.y); G.restore();
-  });
-}
-
+function updatePopups(){ for(let i=popups.length-1;i>=0;i--){ popups[i].life-=0.018; popups[i].y-=0.8; if(popups[i].life<=0) popups.splice(i,1); } }
+function drawPopups(){ popups.forEach(p=>{ G.save(); G.globalAlpha=Math.max(0,p.life); G.font='bold 14px Orbitron, monospace'; G.fillStyle=p.col; G.textAlign='center'; G.fillText(p.text, p.x, p.y); G.restore(); }); }
 function shake(amt){ shakeAmt = Math.max(shakeAmt, amt); }
 
 /* ============== GİRİŞ KONTROLLERİ ============== */
 function bindBtn(el, onDown, onUp) {
   const downHandler = (e) => { e.preventDefault(); onDown(); el.classList.add('active'); getAudio(); };
   const upHandler = (e) => { e.preventDefault(); onUp(); el.classList.remove('active'); };
-  
-  el.addEventListener('pointerdown', downHandler);
-  el.addEventListener('touchstart', downHandler, {passive: false});
-  
-  el.addEventListener('pointerup', upHandler);
-  el.addEventListener('pointerleave', upHandler);
-  el.addEventListener('pointercancel', upHandler);
-  el.addEventListener('touchend', upHandler);
+  el.addEventListener('pointerdown', downHandler); el.addEventListener('touchstart', downHandler, {passive: false});
+  el.addEventListener('pointerup', upHandler); el.addEventListener('pointerleave', upHandler); el.addEventListener('pointercancel', upHandler); el.addEventListener('touchend', upHandler);
+}
+bindBtn(btnGas, () => gasHeld = true, () => gasHeld = false); bindBtn(btnBrake, () => brakeHeld = true, () => brakeHeld = false);
+bindBtn(btnNos, () => nosHeld = true, () => nosHeld = false); bindBtn(btnLeft, () => leftHeld = true, () => leftHeld = false); bindBtn(btnRight, () => rightHeld = true, () => rightHeld = false);
+const keys = { left:false, right:false };
+window.addEventListener('keydown', (e)=>{ if(e.code==='ArrowLeft'||e.code==='KeyA') { keys.left = true; btnLeft.classList.add('active'); } if(e.code==='ArrowRight'||e.code==='KeyD') { keys.right = true; btnRight.classList.add('active'); } if(e.code==='ArrowUp'||e.code==='KeyW') { gasHeld = true; btnGas.classList.add('active'); } if(e.code==='ArrowDown'||e.code==='KeyS') { brakeHeld = true; btnBrake.classList.add('active'); } if(e.code==='Space'||e.code==='ShiftLeft') { nosHeld = true; btnNos.classList.add('active'); } });
+window.addEventListener('keyup', (e)=>{ if(e.code==='ArrowLeft'||e.code==='KeyA') { keys.left = false; btnLeft.classList.remove('active'); } if(e.code==='ArrowRight'||e.code==='KeyD') { keys.right = false; btnRight.classList.remove('active'); } if(e.code==='ArrowUp'||e.code==='KeyW') { gasHeld = false; btnGas.classList.remove('active'); } if(e.code==='ArrowDown'||e.code==='KeyS') { brakeHeld = false; btnBrake.classList.remove('active'); } if(e.code==='Space'||e.code==='ShiftLeft') { nosHeld = false; btnNos.classList.remove('active'); } });
+
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function getNightFactor() { let timePhase = (score % 12000) / 12000; if (timePhase > 0.4 && timePhase <= 0.5) return (timePhase - 0.4) * 10; if (timePhase > 0.5 && timePhase <= 0.9) return 1; if (timePhase > 0.9) return 1 - ((timePhase - 0.9) * 10); return 0; }
+
+function roundRectPath(ctx, x,y,w,h,r){
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
 }
 
-bindBtn(btnGas, () => gasHeld = true, () => gasHeld = false);
-bindBtn(btnBrake, () => brakeHeld = true, () => brakeHeld = false);
-bindBtn(btnNos, () => nosHeld = true, () => nosHeld = false);
-bindBtn(btnLeft, () => leftHeld = true, () => leftHeld = false);
-bindBtn(btnRight, () => rightHeld = true, () => rightHeld = false);
+/* ============== PARA EKRANI YÖNETİMİ ============== */
+function updateCashUI() {
+  if(document.getElementById('start-cash')) document.getElementById('start-cash').innerText = globalCash + ' 💰';
+  if(document.getElementById('garage-cash')) document.getElementById('garage-cash').innerText = 'KASA: ' + globalCash + ' 💰';
+}
+updateCashUI();
+if(document.getElementById('start-best')) document.getElementById('start-best').textContent = best + 'm'; 
 
-const keys = { left:false, right:false };
-window.addEventListener('keydown', (e)=>{
-  if(e.code==='ArrowLeft'||e.code==='KeyA') { keys.left = true; btnLeft.classList.add('active'); }
-  if(e.code==='ArrowRight'||e.code==='KeyD') { keys.right = true; btnRight.classList.add('active'); }
-  if(e.code==='ArrowUp'||e.code==='KeyW') { gasHeld = true; btnGas.classList.add('active'); }
-  if(e.code==='ArrowDown'||e.code==='KeyS') { brakeHeld = true; btnBrake.classList.add('active'); }
-  if(e.code==='Space'||e.code==='ShiftLeft') { nosHeld = true; btnNos.classList.add('active'); }
+function updateGarageUI() {
+  const c = CARS[viewingCarId];
+  document.getElementById('g-name').innerText = c.name;
+  document.getElementById('g-name').style.color = c.color;
+  document.getElementById('stat-spd').style.width = c.spdBar + '%';
+  document.getElementById('stat-hnd').style.width = c.hndBar + '%';
+  document.getElementById('stat-brk').style.width = c.brkBar + '%';
+  
+  const btnAction = document.getElementById('btn-g-action');
+  if (unlockedCars.includes(viewingCarId)) {
+    document.getElementById('g-price').innerText = 'SAHİPSİN';
+    document.getElementById('g-price').style.color = 'var(--lime)';
+    if (selectedCarId === viewingCarId) {
+      btnAction.innerText = 'SEÇİLDİ'; btnAction.style.borderColor = 'var(--lime)'; btnAction.style.color = 'var(--lime)';
+    } else {
+      btnAction.innerText = 'SEÇ'; btnAction.style.borderColor = 'var(--cyan)'; btnAction.style.color = 'var(--cyan)';
+    }
+  } else {
+    document.getElementById('g-price').innerText = 'FİYAT: ' + c.price + ' 💰';
+    document.getElementById('g-price').style.color = 'var(--amber)';
+    btnAction.innerText = 'SATIN AL'; btnAction.style.borderColor = 'var(--amber)'; btnAction.style.color = 'var(--amber)';
+  }
+
+  const pCV = document.getElementById('car-preview');
+  const pCtx = pCV.getContext('2d');
+  pCtx.clearRect(0,0,pCV.width, pCV.height);
+  pCtx.save();
+  pCtx.translate(pCV.width/2, pCV.height/2);
+  
+  let pw = c.w * 2.0; 
+  let ph = c.h * 2.0;
+  
+  pCtx.fillStyle = 'rgba(0,0,0,0.4)'; pCtx.beginPath(); pCtx.ellipse(0, ph/2+4, pw/2, 8, 0, 0, Math.PI*2); pCtx.fill();
+  pCtx.fillStyle = c.color; roundRectPath(pCtx, -pw/2, -ph/2, pw, ph, 8); pCtx.fill(); pCtx.strokeStyle='rgba(0,0,0,0.5)'; pCtx.lineWidth=2; pCtx.stroke();
+  pCtx.fillStyle = 'rgba(20,28,40,0.85)'; roundRectPath(pCtx, -pw/2+5, -ph/2+12, pw-10, ph*0.32, 5); pCtx.fill(); roundRectPath(pCtx, -pw/2+6, ph*0.1, pw-12, ph*0.15, 3); pCtx.fill();
+  pCtx.fillStyle = '#fff'; pCtx.shadowColor='#fff'; pCtx.shadowBlur=15; pCtx.fillRect(-pw/2+4, -ph/2-3, 8, 5); pCtx.fillRect(pw/2-12, -ph/2-3, 8, 5); pCtx.shadowBlur=0;
+  pCtx.fillStyle = '#880000'; pCtx.fillRect(-pw/2+4, ph/2-2, 8, 5); pCtx.fillRect(pw/2-12, ph/2-2, 8, 5);
+  pCtx.restore();
+}
+
+document.getElementById('btn-garage-menu').addEventListener('click', (e) => {
+  e.preventDefault(); getAudio(); viewingCarId = selectedCarId; updateGarageUI(); updateCashUI();
+  startScreen.classList.remove('on'); garageScreen.classList.add('on'); state = 'garage';
 });
-window.addEventListener('keyup', (e)=>{
-  if(e.code==='ArrowLeft'||e.code==='KeyA') { keys.left = false; btnLeft.classList.remove('active'); }
-  if(e.code==='ArrowRight'||e.code==='KeyD') { keys.right = false; btnRight.classList.remove('active'); }
-  if(e.code==='ArrowUp'||e.code==='KeyW') { gasHeld = false; btnGas.classList.remove('active'); }
-  if(e.code==='ArrowDown'||e.code==='KeyS') { brakeHeld = false; btnBrake.classList.remove('active'); }
-  if(e.code==='Space'||e.code==='ShiftLeft') { nosHeld = false; btnNos.classList.remove('active'); }
+document.getElementById('btn-g-back').addEventListener('click', (e) => {
+  e.preventDefault(); garageScreen.classList.remove('on'); startScreen.classList.add('on'); state = 'title';
+  updateCashUI();
+});
+document.getElementById('g-prev').addEventListener('click', () => { viewingCarId = (viewingCarId - 1 + CARS.length) % CARS.length; updateGarageUI(); });
+document.getElementById('g-next').addEventListener('click', () => { viewingCarId = (viewingCarId + 1) % CARS.length; updateGarageUI(); });
+
+document.getElementById('btn-g-action').addEventListener('click', () => {
+  getAudio();
+  if (unlockedCars.includes(viewingCarId)) {
+    selectedCarId = viewingCarId; localStorage.setItem('trafikKacisiSelectedCar', selectedCarId);
+  } else {
+    if (globalCash >= CARS[viewingCarId].price) {
+      globalCash -= CARS[viewingCarId].price; unlockedCars.push(viewingCarId);
+      localStorage.setItem('trafikKacisiCash', globalCash); localStorage.setItem('trafikKacisiUnlocked', JSON.stringify(unlockedCars));
+      selectedCarId = viewingCarId; localStorage.setItem('trafikKacisiSelectedCar', selectedCarId);
+      sfx('buy'); burst(W/2, H/2, '#ffb84d', '#fff', 30);
+      updateCashUI();
+    } else {
+      shake(10); 
+    }
+  }
+  updateGarageUI();
 });
 
 document.getElementById('btn-start').addEventListener('click', (e)=>{ e.preventDefault(); e.target.blur(); startGame(); });
 document.getElementById('btn-retry').addEventListener('click', (e)=>{ e.preventDefault(); e.target.blur(); startGame(); });
+document.getElementById('btn-go-garage').addEventListener('click', (e)=>{ 
+  e.preventDefault(); gameoverScreen.classList.remove('on'); 
+  viewingCarId = selectedCarId; updateGarageUI(); updateCashUI(); garageScreen.classList.add('on'); state = 'garage'; 
+});
 
-function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+/* ============== FPS SABİTLEYİCİ VE OYUN DÖNGÜSÜ ============== */
+let lastTime = 0;
+const FPS_LIMIT = 60;
+const frameInterval = 1000 / FPS_LIMIT;
 
-function getNightFactor() {
-  let timePhase = (score % 12000) / 12000;
-  if (timePhase > 0.4 && timePhase <= 0.5) return (timePhase - 0.4) * 10; 
-  if (timePhase > 0.5 && timePhase <= 0.9) return 1;                      
-  if (timePhase > 0.9) return 1 - ((timePhase - 0.9) * 10);               
-  return 0;                                                               
-}
-
-/* ============== OYUN AKIŞI ============== */
 function startGame(){
   getAudio(); startEngine();
   state = 'play'; score = 0; tick = 0; currentSpeed = 0;
   traffic.length = 0; pickups.length = 0; particles.length = 0; popups.length = 0;
   nitroFuel = 100; gasHeld = false; brakeHeld = false; nosHeld = false; leftHeld = false; rightHeld = false; wasNosHeld = false;
   combo = 1; comboTimer = 0;
+  
+  let myCar = CARS[selectedCarId];
+  GAS_SPEED = myCar.speed; NOS_SPEED = myCar.nos; STEER_SPEED = myCar.steer; BRAKE_DECEL = myCar.brake;
+  player.color = myCar.color; player.w = myCar.w; player.h = myCar.h;
   player.x = LANE_X[2]; player.targetX = LANE_X[2];
-  spawnTimer = 20; pickupTimer = 220; wrongWayTimer = 0;
-  shakeAmt = 0;
+
+  spawnTimer = 20; pickupTimer = 220; wrongWayTimer = 0; shakeAmt = 0;
   isPaused = false; document.getElementById('btn-pause').innerText = '⏸';
   
   btnGas.classList.remove('active'); btnBrake.classList.remove('active'); btnNos.classList.remove('active');
   btnLeft.classList.remove('active'); btnRight.classList.remove('active');
-  startScreen.classList.remove('on'); gameoverScreen.classList.remove('on');
+  startScreen.classList.remove('on'); gameoverScreen.classList.remove('on'); garageScreen.classList.remove('on');
   updateHud();
+  lastTime = performance.now();
 }
 
 function crash(){
@@ -465,13 +464,20 @@ function crash(){
   state = 'crash';
   stopEngine(); sfx('crash'); shake(14);
   burst(player.x, player.y, '#ff3b4e', '#ffb84d', 46);
+  
+  let earnedCash = Math.floor(score / 15) + (combo * 5); 
+  globalCash += earnedCash;
+  localStorage.setItem('trafikKacisiCash', globalCash);
+  updateCashUI();
+  document.getElementById('go-earned').innerText = '+' + earnedCash + ' 💰';
+
   if (Math.round(score) > best) {
-    best = Math.round(score);
-    try { localStorage.setItem('trafikKacisiBest', String(best)); } catch(e){}
-    document.getElementById('go-newbest').style.display = 'block';
-  } else {
-    document.getElementById('go-newbest').style.display = 'none';
+    best = Math.round(score); try { localStorage.setItem('trafikKacisiBest', String(best)); } catch(e){}
+    if(document.getElementById('go-newbest')) document.getElementById('go-newbest').style.display = 'block';
+  } else { 
+    if(document.getElementById('go-newbest')) document.getElementById('go-newbest').style.display = 'none'; 
   }
+  
   setTimeout(()=>{
     document.getElementById('go-score').textContent = Math.round(score) + 'm';
     document.getElementById('go-best').textContent = best + 'm';
@@ -482,7 +488,7 @@ function crash(){
 function updateHud(){
   hudScoreEl.textContent = Math.round(score) + 'm';
   hudBestEl.textContent = best + 'm';
-  document.getElementById('start-best').textContent = best + 'm';
+  if(document.getElementById('start-best')) document.getElementById('start-best').textContent = best + 'm'; 
   nitroFillEl.style.width = nitroFuel + '%';
   btnNos.style.opacity = nitroFuel > 2 ? '1' : '0.4';
 
@@ -490,112 +496,54 @@ function updateHud(){
   hudSpeedEl.innerHTML = displaySpeed + ' <span>km/h</span>';
 
   if (combo > 1) {
-    if (comboTimer < 60) {
-      comboWrapEl.style.opacity = (Math.floor(tick / 10) % 2 === 0) ? '1' : '0.3';
-    } else {
-      comboWrapEl.style.opacity = '1';
-    }
-  } else {
-    comboWrapEl.style.opacity = '0';
-  }
+    if (comboTimer < 60) { comboWrapEl.style.opacity = (Math.floor(tick / 10) % 2 === 0) ? '1' : '0.3'; } else { comboWrapEl.style.opacity = '1'; }
+  } else { comboWrapEl.style.opacity = '0'; }
   comboValEl.textContent = 'x' + combo;
 }
 
-/* ============== TRAFİK OLUŞTURMA & DİNAMİK YAPAY ZEKA ============== */
 const CAR_COLORS = ['#e0463c','#3fa9f5','#f5c542','#8e6bd8','#4caf6a','#f57f42', '#ffffff', '#222222'];
 function spawnTraffic(){
-  const lane = Math.floor(Math.random()*4);
-  const laneX = LANE_X[lane];
-  const isTruck = Math.random() < 0.20;
-  const w = isTruck ? 38 : 30, h = isTruck ? 88 : 52;
+  const lane = Math.floor(Math.random()*4); const laneX = LANE_X[lane];
+  const isTruck = Math.random() < 0.20; const w = isTruck ? 38 : 30, h = isTruck ? 88 : 52;
   const oncoming = lane < 2; 
-  
   let ownSpeed, spawnY;
   
-  if (oncoming) {
-    ownSpeed = -(3.0 + Math.random()*2.5);
-    spawnY = -150;
-  } else {
-    ownSpeed = 1.5 + Math.random()*3.5;
-    if (ownSpeed > currentSpeed + 0.5) {
-      spawnY = H + 200; 
-    } else {
-      spawnY = -150; 
-    }
-  }
-
-  const tooClose = traffic.some(c => c.lane === lane && Math.abs(c.y - spawnY) < 220);
-  if (tooClose) return;
+  if (oncoming) { ownSpeed = -(3.0 + Math.random()*2.5); spawnY = -150; } 
+  else { ownSpeed = 1.5 + Math.random()*3.5; if (ownSpeed > currentSpeed + 0.5) spawnY = H + 200; else spawnY = -150; }
+  if (traffic.some(c => c.lane === lane && Math.abs(c.y - spawnY) < 220)) return;
 
   let crazyRatio = Math.min(0.15 + (score / 15000), 0.60);
-
   traffic.push({
-    x: laneX, y: spawnY, w, h, lane, ownSpeed,
-    color: CAR_COLORS[Math.floor(Math.random()*CAR_COLORS.length)],
-    oncoming, passed: false, nearMissAwarded: false, isTruck,
-    isCrazy: !isTruck && Math.random() < crazyRatio, 
-    aiState: 'wait', 
-    aiTimer: 60 + Math.random() * 100, 
-    turnSignal: 0, 
-    targetLaneX: laneX,
-    targetLane: lane
+    x: laneX, y: spawnY, w, h, lane, ownSpeed, color: CAR_COLORS[Math.floor(Math.random()*CAR_COLORS.length)],
+    oncoming, passed: false, nearMissAwarded: false, isTruck, isCrazy: !isTruck && Math.random() < crazyRatio, 
+    aiState: 'wait', aiTimer: 60 + Math.random() * 100, turnSignal: 0, targetLaneX: laneX, targetLane: lane
   });
 }
+function spawnPickup(){ const lane = Math.floor(Math.random()*4); pickups.push({ x: LANE_X[lane], y: -60, r: 12, collected: false }); }
 
-function spawnPickup(){
-  const lane = Math.floor(Math.random()*4);
-  pickups.push({ x: LANE_X[lane], y: -60, r: 12, collected: false });
-}
-
-/* ============== GÜNCELLEME ============== */
 function updatePhysics() {
   let targetSpeed = COAST_SPEED;
-  
-  if (nosHeld && nitroFuel > 0) {
-    if (!wasNosHeld) { sfx('nitro_start'); wasNosHeld = true; } 
-    targetSpeed = NOS_SPEED; 
-    nitroFuel -= NITRO_DRAIN;
-  } else {
-    wasNosHeld = false;
-    nitroFuel = Math.min(100, nitroFuel + NITRO_AUTO_REGEN); 
-    if (gasHeld) {
-      targetSpeed = GAS_SPEED; 
-    }
-  }
-
+  if (nosHeld && nitroFuel > 0) { if (!wasNosHeld) { sfx('nitro_start'); wasNosHeld = true; } targetSpeed = NOS_SPEED; nitroFuel -= NITRO_DRAIN; } 
+  else { wasNosHeld = false; nitroFuel = Math.min(100, nitroFuel + NITRO_AUTO_REGEN); if (gasHeld) targetSpeed = GAS_SPEED; }
   if (brakeHeld) targetSpeed = BRAKE_SPEED;
 
-  if (currentSpeed < targetSpeed) {
-    currentSpeed += ACCEL;
-  } else if (currentSpeed > targetSpeed) {
-    currentSpeed -= brakeHeld ? BRAKE_DECEL : DECEL;
-  }
-  
-  if(engineOsc && audioCtx){
-    let pitch = 40 + (currentSpeed * 7);
-    if(nosHeld && nitroFuel > 0) pitch += 50; 
-    engineOsc.frequency.setValueAtTime(pitch, audioCtx.currentTime);
-  }
+  if (currentSpeed < targetSpeed) currentSpeed += ACCEL; else if (currentSpeed > targetSpeed) currentSpeed -= brakeHeld ? BRAKE_DECEL : DECEL;
+  if(engineOsc && audioCtx){ let pitch = 40 + (currentSpeed * 7); if(nosHeld && nitroFuel > 0) pitch += 50; engineOsc.frequency.setValueAtTime(pitch, audioCtx.currentTime); }
 }
 
 function updatePlayer(){
-  const steerSpeed = 6.0; 
-  if (keys.left || leftHeld) player.targetX -= steerSpeed;
-  if (keys.right || rightHeld) player.targetX += steerSpeed;
-  
+  if (keys.left || leftHeld) player.targetX -= STEER_SPEED;
+  if (keys.right || rightHeld) player.targetX += STEER_SPEED;
   player.targetX = clamp(player.targetX, ROAD_X+24, ROAD_X+ROAD_W-24);
-  player.x += (player.targetX - player.x) * 0.25;
+  
+  let handlingResponsiveness = STEER_SPEED * 0.035; 
+  player.x += (player.targetX - player.x) * handlingResponsiveness;
 
   const isWrongWay = player.x < (ROAD_X + ROAD_W/2);
   if (isWrongWay && currentSpeed > 4) {
     wrongWayTimer++;
     if (wrongWayTimer > 45) {
-      comboTimer = 300; // Kombo süresi 5 saniyeye (300 tick) çıkarıldı
-      let pts = 50 * combo;
-      score += pts; 
-      popup(player.x, player.y - 40, '+' + pts + ' TERS YÖN x' + combo, '#ff3b4e'); 
-      wrongWayTimer = 0;
-      combo++;
+      comboTimer = 300; let pts = 50 * combo; score += pts; popup(player.x, player.y - 40, '+' + pts + ' TERS YÖN x' + combo, '#ff3b4e'); wrongWayTimer = 0; combo++;
     }
   } else { wrongWayTimer = 0; }
 }
@@ -603,120 +551,56 @@ function updatePlayer(){
 function updateTraffic(){
   for (let i = traffic.length - 1; i >= 0; i--) {
     const c = traffic[i];
-    
     if (c.isCrazy && c.aiState === 'wait') {
       c.aiTimer--;
       if (c.aiTimer <= 0) {
-        if (Math.random() < 0.4) {
-          c.aiState = 'braking';
-          c.ownSpeed = c.oncoming ? -1.5 : 1.5; 
-        } else {
+        if (Math.random() < 0.4) { c.aiState = 'braking'; c.ownSpeed = c.oncoming ? -1.5 : 1.5; } 
+        else {
           let possibleLanes = [];
-          if (c.oncoming) {
-            if (c.lane === 1) possibleLanes.push(0);
-            if (c.lane === 0) possibleLanes.push(1);
-          } else {
-            if (c.lane === 2) possibleLanes.push(3);
-            if (c.lane === 3) possibleLanes.push(2);
-          }
+          if (c.oncoming) { if (c.lane === 1) possibleLanes.push(0); if (c.lane === 0) possibleLanes.push(1); } 
+          else { if (c.lane === 2) possibleLanes.push(3); if (c.lane === 3) possibleLanes.push(2); }
           if (possibleLanes.length > 0) {
             let newLane = possibleLanes[0];
             let isSafe = !traffic.some(other => other !== c && other.lane === newLane && Math.abs(other.y - c.y) < 160);
-            if (isSafe) {
-              c.aiState = 'signaling';
-              c.aiTimer = 45; 
-              c.targetLane = newLane;
-              c.targetLaneX = LANE_X[newLane];
-              c.turnSignal = newLane > c.lane ? 1 : -1;
-            } else {
-              c.aiState = 'braking'; 
-              c.ownSpeed = c.oncoming ? -1.0 : 1.0; 
-            }
+            if (isSafe) { c.aiState = 'signaling'; c.aiTimer = 45; c.targetLane = newLane; c.targetLaneX = LANE_X[newLane]; c.turnSignal = newLane > c.lane ? 1 : -1; } 
+            else { c.aiState = 'braking'; c.ownSpeed = c.oncoming ? -1.0 : 1.0; }
           }
         }
       }
-    } else if (c.aiState === 'signaling') {
-      c.aiTimer--;
-      if (c.aiTimer <= 0) {
-        c.aiState = 'changing';
-        c.lane = c.targetLane; 
-      }
-    } else if (c.aiState === 'changing') {
-      c.x += (c.targetLaneX - c.x) * 0.05;
-      if (Math.abs(c.x - c.targetLaneX) < 2) {
-        c.x = c.targetLaneX;
-        c.aiState = 'done';
-        c.turnSignal = 0;
-      }
-    }
+    } else if (c.aiState === 'signaling') { c.aiTimer--; if (c.aiTimer <= 0) { c.aiState = 'changing'; c.lane = c.targetLane; }
+    } else if (c.aiState === 'changing') { c.x += (c.targetLaneX - c.x) * 0.05; if (Math.abs(c.x - c.targetLaneX) < 2) { c.x = c.targetLaneX; c.aiState = 'done'; c.turnSignal = 0; } }
 
     for (let j = 0; j < traffic.length; j++) {
-      if (i === j) continue;
-      const other = traffic[j];
+      if (i === j) continue; const other = traffic[j];
       if (c.lane === other.lane && c.aiState !== 'changing' && other.aiState !== 'changing') {
-        if (!c.oncoming && !other.oncoming) {
-          if (c.y > other.y && c.y - other.y < 85) {
-            if (c.ownSpeed > other.ownSpeed) c.ownSpeed = other.ownSpeed;
-          }
-        } else if (c.oncoming && other.oncoming) {
-          if (c.y < other.y && other.y - c.y < 85) {
-            if (c.ownSpeed < other.ownSpeed) c.ownSpeed = other.ownSpeed;
-          }
-        }
+        if (!c.oncoming && !other.oncoming) { if (c.y > other.y && c.y - other.y < 85) if (c.ownSpeed > other.ownSpeed) c.ownSpeed = other.ownSpeed; } 
+        else if (c.oncoming && other.oncoming) { if (c.y < other.y && other.y - c.y < 85) if (c.ownSpeed < other.ownSpeed) c.ownSpeed = other.ownSpeed; }
       }
     }
 
-    // YENİ: Oyuncuya arkadan çarpmayı engelleme (Takip Mesafesi ve Yavaşlama)
     if (!c.oncoming && Math.abs(c.x - player.x) <= LANE_W * 0.8) {
-      if (c.y > player.y && c.y - player.y < 110) {
-        if (c.ownSpeed > currentSpeed) {
-          c.ownSpeed = currentSpeed;
-          c.aiState = 'braking'; 
-        }
-      }
+      if (c.y > player.y && c.y - player.y < 110) { if (c.ownSpeed > currentSpeed) { c.ownSpeed = currentSpeed; c.aiState = 'braking'; } }
     }
 
     c.y += (currentSpeed - c.ownSpeed); 
-
-    if (Math.abs(c.x - player.x) < (c.w+player.w)/2 + 12 && Math.abs(c.y - player.y) < (c.h+player.h)/2 - 5) {
-      crash();
-    }
+    if (Math.abs(c.x - player.x) < (c.w+player.w)/2 + 12 && Math.abs(c.y - player.y) < (c.h+player.h)/2 - 5) crash();
 
     if (!c.passed && c.y > player.y + 40) {
       c.passed = true;
-      if (!c.oncoming && Math.abs(c.x - player.x) <= LANE_W * 1.2) { 
-        comboTimer = 300;
-        let pts = 15 * combo;
-        score += pts; 
-        popup(c.x, player.y-30, '+' + pts + ' SOLLAMA x' + combo, '#c6ff3d');
-        combo++;
-      }
+      if (!c.oncoming && Math.abs(c.x - player.x) <= LANE_W * 1.2) { comboTimer = 300; let pts = 15 * combo; score += pts; popup(c.x, player.y-30, '+' + pts + ' SOLLAMA x' + combo, '#c6ff3d'); combo++; }
     }
     if (!c.nearMissAwarded && Math.abs(c.y - player.y) < 35 && currentSpeed > 4) {
       const gap = Math.abs(c.x - player.x) - (c.w+player.w)/2;
-      if (gap > 0 && gap < 18) {
-        c.nearMissAwarded = true; 
-        comboTimer = 300;
-        let pts = 40 * combo;
-        score += pts; 
-        popup(player.x, player.y-50, '+' + pts + ' MAKAS! x' + combo, '#00e5ff'); 
-        sfx('nearmiss');
-        combo++;
-      }
+      if (gap > 0 && gap < 18) { c.nearMissAwarded = true; comboTimer = 300; let pts = 40 * combo; score += pts; popup(player.x, player.y-50, '+' + pts + ' MAKAS! x' + combo, '#00e5ff'); sfx('nearmiss'); combo++; }
     }
-
     if (c.y > H + 300 || c.y < -400) traffic.splice(i,1);
   }
 }
 
 function updatePickups(){
   for (let i = pickups.length - 1; i >= 0; i--) {
-    const p = pickups[i];
-    p.y += currentSpeed;
-    if (!p.collected && Math.abs(p.x-player.x) < 28 && Math.abs(p.y-player.y) < 38) {
-      p.collected = true; score += 30; nitroFuel = Math.min(100, nitroFuel + 40);
-      popup(p.x, p.y-20, '+NOS', '#ffb84d'); sfx('pickup');
-    }
+    const p = pickups[i]; p.y += currentSpeed;
+    if (!p.collected && Math.abs(p.x-player.x) < 28 && Math.abs(p.y-player.y) < 38) { p.collected = true; score += 30; nitroFuel = Math.min(100, nitroFuel + 40); popup(p.x, p.y-20, '+NOS', '#ffb84d'); sfx('pickup'); }
     if (p.collected || p.y > H+60) pickups.splice(i,1);
   }
 }
@@ -724,238 +608,115 @@ function updatePickups(){
 /* ============== ÇİZİM ============== */
 function drawBackground(){
   let nightFactor = getNightFactor(); 
-
   const g = G.createLinearGradient(0,0,0,H);
-  let topR = Math.round(77 - 71 * nightFactor);   
-  let topG = Math.round(166 - 150 * nightFactor); 
-  let topB = Math.round(255 - 223 * nightFactor); 
-  g.addColorStop(0, `rgb(${topR},${topG},${topB})`);
-  g.addColorStop(0.5, '#0d1526'); 
-  g.addColorStop(1, '#05070a');
-  G.fillStyle = g; G.fillRect(0,0,W,H);
+  g.addColorStop(0, `rgb(${Math.round(77 - 71*nightFactor)},${Math.round(166 - 150*nightFactor)},${Math.round(255 - 223*nightFactor)})`);
+  g.addColorStop(0.5, '#0d1526'); g.addColorStop(1, '#05070a'); G.fillStyle = g; G.fillRect(0,0,W,H);
 
   if (nightFactor > 0.1) {
-    G.save();
-    G.fillStyle = '#fff';
-    bgStars.forEach(s => {
-      G.globalAlpha = (Math.sin(tick*0.05 + s.a*10) * 0.5 + 0.5) * nightFactor;
-      G.beginPath(); G.arc(s.x, s.y, s.s, 0, Math.PI*2); G.fill();
-      s.y += currentSpeed * 0.01; 
-      if(s.y > H) { s.y = 0; s.x = Math.random()*W; }
-    });
+    G.save(); G.fillStyle = '#fff';
+    bgStars.forEach(s => { G.globalAlpha = (Math.sin(tick*0.05 + s.a*10) * 0.5 + 0.5) * nightFactor; G.beginPath(); G.arc(s.x, s.y, s.s, 0, Math.PI*2); G.fill(); s.y += currentSpeed * 0.01; if(s.y > H) { s.y = 0; s.x = Math.random()*W; } });
     G.restore();
   }
 
   bgOffset += currentSpeed * 0.25;
   G.save(); G.globalAlpha = 0.5 - (nightFactor * 0.2);
-  for (let i=0;i<9;i++){
-    const hx = (i*130 - (bgOffset % 130));
-    G.fillStyle = i%2===0 ? '#141f38' : '#101a30';
-    G.beginPath(); G.moveTo(hx, 160); G.lineTo(hx+65, 120); G.lineTo(hx+130, 160); G.closePath(); G.fill();
-  }
+  for (let i=0;i<9;i++){ const hx = (i*130 - (bgOffset % 130)); G.fillStyle = i%2===0 ? '#141f38' : '#101a30'; G.beginPath(); G.moveTo(hx, 160); G.lineTo(hx+65, 120); G.lineTo(hx+130, 160); G.closePath(); G.fill(); }
   G.restore();
 
-  let grassR = Math.round(42 - 42 * nightFactor);
-  let grassG = Math.round(77 - 77 * nightFactor);
-  let grassB = Math.round(46 - 46 * nightFactor);
-  G.fillStyle = `rgb(${grassR},${grassG},${grassB})`;
-  
-  G.fillRect(0, 0, ROAD_X, H);
-  G.fillRect(ROAD_X+ROAD_W, 0, W-(ROAD_X+ROAD_W), H);
+  G.fillStyle = `rgb(${Math.round(42 - 42*nightFactor)},${Math.round(77 - 77*nightFactor)},${Math.round(46 - 46*nightFactor)})`;
+  G.fillRect(0, 0, ROAD_X, H); G.fillRect(ROAD_X+ROAD_W, 0, W-(ROAD_X+ROAD_W), H);
 }
 
 function drawRoad(){
-  G.fillStyle = '#262933';
-  G.fillRect(ROAD_X, 0, ROAD_W, H);
-
-  roadDashOffset += currentSpeed;
-  const stripeH = 26;
-  [ROAD_X-8, ROAD_X+ROAD_W-4].forEach((sx)=>{
-    for (let y = -stripeH + (roadDashOffset % (stripeH*2)); y < H; y += stripeH*2) {
-      G.fillStyle = '#ddd'; G.fillRect(sx, y, 8, stripeH);
-      G.fillStyle = '#c0392b'; G.fillRect(sx, y+stripeH, 8, stripeH);
-    }
-  });
-
-  const dashLen = 35, gapLen = 25;
+  G.fillStyle = '#262933'; G.fillRect(ROAD_X, 0, ROAD_W, H);
+  roadDashOffset += currentSpeed; const stripeH = 26;
+  [ROAD_X-8, ROAD_X+ROAD_W-4].forEach((sx)=>{ for (let y = -stripeH + (roadDashOffset % (stripeH*2)); y < H; y += stripeH*2) { G.fillStyle = '#ddd'; G.fillRect(sx, y, 8, stripeH); G.fillStyle = '#c0392b'; G.fillRect(sx, y+stripeH, 8, stripeH); } });
   
-  let divX1 = ROAD_X + LANE_W;
-  G.strokeStyle = 'rgba(255,255,255,0.7)'; G.lineWidth = 3;
-  for (let y = -dashLen + (roadDashOffset % (dashLen+gapLen)); y < H; y += dashLen+gapLen) {
-    G.beginPath(); G.moveTo(divX1, y); G.lineTo(divX1, y+dashLen); G.stroke();
-  }
-
-  let divX2 = ROAD_X + LANE_W * 2;
-  G.strokeStyle = '#f5c542'; G.lineWidth = 2.5;
-  G.beginPath(); G.moveTo(divX2-3,0); G.lineTo(divX2-3,H); G.stroke();
-  G.beginPath(); G.moveTo(divX2+3,0); G.lineTo(divX2+3,H); G.stroke();
-
-  let divX3 = ROAD_X + LANE_W * 3;
-  G.strokeStyle = 'rgba(255,255,255,0.7)'; G.lineWidth = 3;
-  for (let y = -dashLen + (roadDashOffset % (dashLen+gapLen)); y < H; y += dashLen+gapLen) {
-    G.beginPath(); G.moveTo(divX3, y); G.lineTo(divX3, y+dashLen); G.stroke();
-  }
+  const dashLen = 35, gapLen = 25;
+  let divX1 = ROAD_X + LANE_W; G.strokeStyle = 'rgba(255,255,255,0.7)'; G.lineWidth = 3;
+  for (let y = -dashLen + (roadDashOffset % (dashLen+gapLen)); y < H; y += dashLen+gapLen) { G.beginPath(); G.moveTo(divX1, y); G.lineTo(divX1, y+dashLen); G.stroke(); }
+  let divX2 = ROAD_X + LANE_W * 2; G.strokeStyle = '#f5c542'; G.lineWidth = 2.5; G.beginPath(); G.moveTo(divX2-3,0); G.lineTo(divX2-3,H); G.stroke(); G.beginPath(); G.moveTo(divX2+3,0); G.lineTo(divX2+3,H); G.stroke();
+  let divX3 = ROAD_X + LANE_W * 3; G.strokeStyle = 'rgba(255,255,255,0.7)'; G.lineWidth = 3;
+  for (let y = -dashLen + (roadDashOffset % (dashLen+gapLen)); y < H; y += dashLen+gapLen) { G.beginPath(); G.moveTo(divX3, y); G.lineTo(divX3, y+dashLen); G.stroke(); }
 }
 
 function drawCar(x,y,w,h,color,facingDown,isPlayer, botBraking=false, turnSignal=0){
-  let nightFactor = getNightFactor();
+  let nightFactor = state === 'garage' ? 0 : getNightFactor();
 
   G.save(); G.translate(x,y);
   G.fillStyle = 'rgba(0,0,0,0.4)'; G.beginPath(); G.ellipse(0,h/2+4,w/2,6,0,0,Math.PI*2); G.fill();
-
-  G.fillStyle = color;
-  roundRectPath(-w/2, -h/2, w, h, 6); G.fill();
-  G.strokeStyle = 'rgba(0,0,0,0.5)'; G.lineWidth = 1.5; G.stroke();
-
-  G.fillStyle = 'rgba(20,28,40,0.85)';
-  roundRectPath(-w/2+4, facingDown ? -h/2+8 : h*0.02, w-8, h*0.32, 4); G.fill();
-  roundRectPath(-w/2+5, facingDown ? h*0.1 : -h/2+6, w-10, h*0.15, 2);
+  G.fillStyle = color; roundRectPath(G, -w/2, -h/2, w, h, 6); G.fill(); G.strokeStyle = 'rgba(0,0,0,0.5)'; G.lineWidth = 1.5; G.stroke();
+  G.fillStyle = 'rgba(20,28,40,0.85)'; roundRectPath(G, -w/2+4, facingDown ? -h/2+8 : h*0.02, w-8, h*0.32, 4); G.fill(); roundRectPath(G, -w/2+5, facingDown ? h*0.1 : -h/2+6, w-10, h*0.15, 2); G.fill();
 
   if (isPlayer) {
-    G.fillStyle = '#fff'; G.shadowColor='#fff'; G.shadowBlur= 10 + (nightFactor*15); 
-    G.fillRect(-w/2+3, -h/2-2, 6, 4); G.fillRect(w/2-9, -h/2-2, 6, 4);
-    G.shadowBlur=0;
-    G.fillStyle = brakeHeld ? '#ff0000' : '#880000'; 
-    if(brakeHeld || nightFactor > 0.2) { G.shadowColor='#ff0000'; G.shadowBlur=15; }
+    G.fillStyle = '#fff'; G.shadowColor='#fff'; G.shadowBlur= 10 + (nightFactor*15); G.fillRect(-w/2+3, -h/2-2, 6, 4); G.fillRect(w/2-9, -h/2-2, 6, 4); G.shadowBlur=0;
+    G.fillStyle = brakeHeld ? '#ff0000' : '#880000'; if(brakeHeld || nightFactor > 0.2) { G.shadowColor='#ff0000'; G.shadowBlur=15; }
     G.fillRect(-w/2+3, h/2-2, 6, 4); G.fillRect(w/2-9, h/2-2, 6, 4);
   } else if (facingDown) {
-    G.fillStyle = '#fff2b0'; G.shadowColor='#fff2b0'; G.shadowBlur = nightFactor > 0.2 ? 15 : 5;
-    G.fillRect(-w/2+3, h/2-2, 6, 4); G.fillRect(w/2-9, h/2-2, 6, 4);
-    G.shadowBlur=0;
+    G.fillStyle = '#fff2b0'; G.shadowColor='#fff2b0'; G.shadowBlur = nightFactor > 0.2 ? 15 : 5; G.fillRect(-w/2+3, h/2-2, 6, 4); G.fillRect(w/2-9, h/2-2, 6, 4); G.shadowBlur=0;
   } else {
-    G.fillStyle = botBraking ? '#ff0000' : '#ff3333'; 
-    G.shadowColor = botBraking ? '#ff0000' : '#ff3333'; 
-    G.shadowBlur = (botBraking || nightFactor > 0.2) ? 15 : 0;
-    G.fillRect(-w/2+3, -h/2-2, 6, 4); G.fillRect(w/2-9, -h/2-2, 6, 4);
-    G.shadowBlur=0;
+    G.fillStyle = botBraking ? '#ff0000' : '#ff3333'; G.shadowColor = botBraking ? '#ff0000' : '#ff3333'; G.shadowBlur = (botBraking || nightFactor > 0.2) ? 15 : 0;
+    G.fillRect(-w/2+3, -h/2-2, 6, 4); G.fillRect(w/2-9, -h/2-2, 6, 4); G.shadowBlur=0;
   }
-
-  if (turnSignal !== 0 && Math.floor(tick / 15) % 2 === 0) {
-    G.fillStyle = '#ffb84d'; G.shadowColor = '#ffb84d'; G.shadowBlur = 12;
-    let sigX = turnSignal === 1 ? w/2-9 : -w/2+3; 
-    let sigY = facingDown ? h/2-2 : -h/2-2;       
-    G.fillRect(sigX, sigY, 6, 4);
-    G.shadowBlur = 0;
-  }
-
+  if (turnSignal !== 0 && Math.floor(tick / 15) % 2 === 0) { G.fillStyle = '#ffb84d'; G.shadowColor = '#ffb84d'; G.shadowBlur = 12; let sigX = turnSignal === 1 ? w/2-9 : -w/2+3; let sigY = facingDown ? h/2-2 : -h/2-2; G.fillRect(sigX, sigY, 6, 4); G.shadowBlur = 0; }
   G.restore();
 
-  // YENİ: Sadece İleriyi (Önü) Aydınlatan Konik Farlar (Araç yönüne göre hesaplandı)
   if (nightFactor > 0.1) {
-    G.save();
-    G.translate(x,y);
-    G.globalAlpha = nightFactor;
-    
-    let beamLen = isPlayer ? 280 : 200; 
-    let spread = isPlayer ? 70 : 50;
-    let yStart = facingDown ? h/2 : -h/2;
-    let yEnd = facingDown ? h/2 + beamLen : -h/2 - beamLen;
-
-    let beamGrad = G.createLinearGradient(0, yStart, 0, yEnd);
-    beamGrad.addColorStop(0, 'rgba(255, 255, 240, 0.7)'); 
-    beamGrad.addColorStop(1, 'rgba(255, 255, 240, 0)');
-    
-    G.fillStyle = beamGrad;
-    G.beginPath();
-    G.moveTo(-w/2 + 6, yStart);
-    G.lineTo(w/2 - 6, yStart);
-    G.lineTo(w/2 + spread, yEnd);
-    G.lineTo(-w/2 - spread, yEnd);
-    G.closePath();
-    G.fill();
-    G.restore();
+    G.save(); G.translate(x,y); G.globalAlpha = nightFactor;
+    let beamLen = isPlayer ? 280 : 200; let spread = isPlayer ? 70 : 50; let yStart = facingDown ? h/2 : -h/2; let yEnd = facingDown ? h/2 + beamLen : -h/2 - beamLen;
+    let beamGrad = G.createLinearGradient(0, yStart, 0, yEnd); beamGrad.addColorStop(0, 'rgba(255, 255, 240, 0.7)'); beamGrad.addColorStop(1, 'rgba(255, 255, 240, 0)');
+    G.fillStyle = beamGrad; G.beginPath(); G.moveTo(-w/2 + 6, yStart); G.lineTo(w/2 - 6, yStart); G.lineTo(w/2 + spread, yEnd); G.lineTo(-w/2 - spread, yEnd); G.closePath(); G.fill(); G.restore();
   }
 }
-function roundRectPath(x,y,w,h,r){
-  G.beginPath();
-  G.moveTo(x+r,y); G.arcTo(x+w,y,x+w,y+h,r); G.arcTo(x+w,y+h,x,y+h,r);
-  G.arcTo(x,y+h,x,y,r); G.arcTo(x,y,x+w,y,r); G.closePath();
-}
 
-function drawPickups(){
-  pickups.forEach(p=>{
-    if(p.collected) return;
-    const bob = Math.sin(Date.now()/220 + p.x)*4;
-    G.save(); G.translate(p.x, p.y+bob);
-    G.shadowColor = '#00e5ff'; G.shadowBlur = 12;
-    G.fillStyle = '#00e5ff'; G.beginPath(); G.arc(0,0,p.r,0,Math.PI*2); G.fill();
-    G.shadowBlur = 0;
-    G.fillStyle = '#000'; G.font = 'bold 12px Orbitron, monospace'; G.textAlign='center'; G.textBaseline='middle';
-    G.fillText('N', 0, 1);
-    G.restore();
-  });
-}
+function drawPickups(){ pickups.forEach(p=>{ if(p.collected) return; const bob = Math.sin(Date.now()/220 + p.x)*4; G.save(); G.translate(p.x, p.y+bob); G.shadowColor = '#00e5ff'; G.shadowBlur = 12; G.fillStyle = '#00e5ff'; G.beginPath(); G.arc(0,0,p.r,0,Math.PI*2); G.fill(); G.shadowBlur = 0; G.fillStyle = '#000'; G.font = 'bold 12px Orbitron, monospace'; G.textAlign='center'; G.textBaseline='middle'; G.fillText('N', 0, 1); G.restore(); }); }
 
 function drawPlayer(){
   G.save();
-  if (nosHeld && nitroFuel > 0) {
-    G.fillStyle = 'rgba(0,229,255,0.7)';
-    G.beginPath(); G.moveTo(player.x-6, player.y+player.h/2);
-    G.lineTo(player.x+6, player.y+player.h/2);
-    G.lineTo(player.x, player.y+player.h/2+35+Math.random()*15);
-    G.closePath(); G.fill();
-  }
+  if (nosHeld && nitroFuel > 0 && state === 'play') { G.fillStyle = 'rgba(0,229,255,0.7)'; G.beginPath(); G.moveTo(player.x-6, player.y+player.h/2); G.lineTo(player.x+6, player.y+player.h/2); G.lineTo(player.x, player.y+player.h/2+35+Math.random()*15); G.closePath(); G.fill(); }
   G.restore();
-  drawCar(player.x, player.y, player.w, player.h, '#00e5ff', false, true, false, 0);
+  drawCar(player.x, player.y, player.w, player.h, player.color, false, true, false, 0);
 }
 
-function loop(){
+function loop(timestamp){
   requestAnimationFrame(loop);
   if (isPaused) return; 
+
+  if (!timestamp) timestamp = performance.now();
+  let deltaTime = timestamp - lastTime;
+
+  // FPS Sabitleyici Kontrolü (60 FPS için ~16.6ms beklenmeli)
+  if (deltaTime < frameInterval) return;
+  lastTime = timestamp - (deltaTime % frameInterval);
 
   tick++;
   G.clearRect(0,0,W,H);
 
-  if (shakeAmt > 0.3) { shakeX=(Math.random()-0.5)*shakeAmt*2; shakeY=(Math.random()-0.5)*shakeAmt*2; shakeAmt*=0.85; }
-  else { shakeX=0; shakeY=0; shakeAmt=0; }
-
+  if (shakeAmt > 0.3) { shakeX=(Math.random()-0.5)*shakeAmt*2; shakeY=(Math.random()-0.5)*shakeAmt*2; shakeAmt*=0.85; } else { shakeX=0; shakeY=0; shakeAmt=0; }
   G.save(); G.translate(shakeX, shakeY);
 
   if (state === 'play') {
-    updatePhysics();
-    updatePlayer();
-    updateTraffic();
-    updatePickups();
-
-    if (comboTimer > 0) {
-      comboTimer--;
-      if (comboTimer <= 0) combo = 1;
-    }
-
+    updatePhysics(); updatePlayer(); updateTraffic(); updatePickups();
+    if (comboTimer > 0) { comboTimer--; if (comboTimer <= 0) combo = 1; }
     spawnTimer--;
-    if (spawnTimer <= 0) {
-      spawnTraffic();
-      
-      let baslangicYogunluk = 0.30; 
-      let artisMiktari = (score / 800) * 0.05; 
-      let ciftArabaIhtimali = Math.min(baslangicYogunluk + artisMiktari, 0.80); 
-      
-      if(Math.random() < ciftArabaIhtimali) spawnTraffic(); 
-      
-      spawnTimer = Math.max(15, 60 - currentSpeed*3 + Math.random()*15); 
-    }
-    
-    pickupTimer--;
-    if (pickupTimer <= 0) { spawnPickup(); pickupTimer = 200 + Math.floor(Math.random()*100); }
-
-    score += (currentSpeed * 0.1);
-    updateHud();
+    if (spawnTimer <= 0) { spawnTraffic(); let baslangicYogunluk = 0.30; let artisMiktari = (score / 800) * 0.05; let ciftArabaIhtimali = Math.min(baslangicYogunluk + artisMiktari, 0.80); if(Math.random() < ciftArabaIhtimali) spawnTraffic(); spawnTimer = Math.max(15, 60 - currentSpeed*3 + Math.random()*15); }
+    pickupTimer--; if (pickupTimer <= 0) { spawnPickup(); pickupTimer = 200 + Math.floor(Math.random()*100); }
+    score += (currentSpeed * 0.1); updateHud();
+  } else if (state === 'garage') {
+    currentSpeed = 3; roadDashOffset += currentSpeed; bgOffset += currentSpeed * 0.25;
   }
 
-  drawBackground();
-  drawRoad();
+  drawBackground(); drawRoad();
   
-  traffic.forEach(c => drawCar(c.x, c.y, c.w, c.h, c.color, c.oncoming, false, c.aiState === 'braking', c.turnSignal));
-  drawPickups();
-  if (state === 'play' || state === 'crash') drawPlayer();
-  
-  updateParticles(); drawParticles();
-  updatePopups(); drawPopups();
+  if (state === 'play' || state === 'crash') {
+    traffic.forEach(c => drawCar(c.x, c.y, c.w, c.h, c.color, c.oncoming, false, c.aiState === 'braking', c.turnSignal));
+    drawPickups(); drawPlayer(); updateParticles(); drawParticles(); updatePopups(); drawPopups();
+  }
 
   G.restore();
 }
 
-loop();
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>
