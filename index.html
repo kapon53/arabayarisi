@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Trafik Kaçışı - Profesyonel Sürüm</title>
+<title>Trafik Kaçışı</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap">
 <style>
 :root{
@@ -94,26 +94,11 @@ button.game-btn{
   transition:background .2s,box-shadow .2s,color .2s; width: 80%;
 }
 button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px rgba(198,255,61,0.5); }
-button.btn-blue { border-color: var(--cyan); color: var(--cyan); }
-button.btn-blue:active { background: var(--cyan); color:#000; box-shadow:0 0 30px rgba(0,229,255,0.5); }
-button.btn-red { border-color: var(--red); color: var(--red); }
-button.btn-red:active { background: var(--red); color:#000; box-shadow:0 0 30px rgba(255,59,78,0.5); }
 
 .crash-title{ color:var(--red); font-size:1.5em; text-shadow:0 0 18px rgba(255,59,78,0.7); font-family:"Orbitron",monospace; font-weight:900; margin-bottom:6px; }
 .crash-score{ font-family:"Orbitron",monospace; font-size:30px; color:#fff; margin:10px 0 4px; }
 .crash-new-best{ font-family:"Rajdhani",sans-serif; color:var(--amber); font-size:13px; letter-spacing:2px; margin-bottom:10px; display:none; }
 .crash-sub{ font-family:"Rajdhani",sans-serif; color:rgba(255,255,255,0.5); font-size:12px; margin-bottom:8px; letter-spacing:1px; }
-.earned-cash{ font-family:"Orbitron",monospace; color:var(--amber); font-size:18px; margin-bottom: 20px; text-shadow:0 0 10px rgba(255,184,77,0.5); }
-
-/* GARAJ ARAYÜZÜ */
-.g-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.g-nav { font-family: "Orbitron"; font-size: 24px; color: #fff; cursor: pointer; padding: 10px; user-select: none; }
-.g-nav:active { color: var(--cyan); }
-.g-car-name { font-family: "Orbitron"; font-size: 20px; color: var(--cyan); font-weight: bold; text-shadow: 0 0 10px rgba(0,229,255,0.5); }
-.stat-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-family: "Rajdhani"; font-size: 14px; color: #fff; }
-.stat-bar-bg { width: 65%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
-.stat-bar-fill { height: 100%; background: var(--lime); border-radius: 4px; transition: width 0.3s ease, background 0.3s; }
-.g-price { font-family: "Orbitron"; font-size: 18px; color: var(--amber); margin: 20px 0; text-shadow: 0 0 10px rgba(255,184,77,0.5); }
 
 </style>
 </head>
@@ -153,59 +138,26 @@ button.btn-red:active { background: var(--red); color:#000; box-shadow:0 0 30px 
   <div id="btn-nos" class="control-btn">NOS</div>
   <div id="btn-gas" class="control-btn">GAZ</div>
 
+  <!-- ANA EKRAN -->
   <div id="start-screen" class="screen on">
     <div class="panel">
       <div class="logo">TRAFİK<span>KAÇIŞI</span></div>
-      <div class="tagline">GERÇEKÇİ FİZİK SÜRÜMÜ</div>
+      <div class="tagline">SADE SÜRÜM - FPS SABİTLİ</div>
       <div class="best-row">
-        REKOR: <b id="start-best">0m</b><br>
-        KASA: <b id="start-cash" style="color:var(--amber); font-size:14px;">999999 💰</b>
+        REKOR: <b id="start-best">0m</b>
       </div>
       <button class="game-btn" id="btn-start">YARIŞA BAŞLA</button>
-      <button class="game-btn btn-blue" id="btn-garage-menu">GARAJ 🚘</button>
     </div>
   </div>
 
-  <div id="garage-screen" class="screen">
-    <div class="panel">
-      <div class="g-header">
-        <div class="g-nav" id="g-prev">◀</div>
-        <div class="g-car-name" id="g-name">Araç Adı</div>
-        <div class="g-nav" id="g-next">▶</div>
-      </div>
-      
-      <div id="garage-cash" style="font-family:'Orbitron',monospace; font-size:14px; color:var(--amber); margin-bottom:10px;">KASA: 0 💰</div>
-      
-      <canvas id="car-preview" width="160" height="140" style="margin: 0 auto 15px; display: block;"></canvas> 
-
-      <div class="stat-row">
-        <span>HIZ</span>
-        <div class="stat-bar-bg"><div class="stat-bar-fill" id="stat-spd"></div></div>
-      </div>
-      <div class="stat-row">
-        <span>YOL TUTUŞ</span>
-        <div class="stat-bar-bg"><div class="stat-bar-fill" id="stat-hnd"></div></div>
-      </div>
-      <div class="stat-row">
-        <span>FREN</span>
-        <div class="stat-bar-bg"><div class="stat-bar-fill" id="stat-brk"></div></div>
-      </div>
-
-      <div class="g-price" id="g-price">FİYAT: 0 💰</div>
-      <button class="game-btn" id="btn-g-action">SEÇİLDİ</button>
-      <button class="game-btn btn-red" id="btn-g-back">ANA MENÜ</button>
-    </div>
-  </div>
-
+  <!-- OYUN SONU -->
   <div id="gameover-screen" class="screen">
     <div class="panel">
       <div class="crash-title">ÇARPTIN!</div>
       <div class="crash-score" id="go-score">0m</div>
       <div class="crash-new-best" id="go-newbest">✨ YENİ REKOR! ✨</div>
-      <div class="earned-cash" id="go-earned">+0 💰</div>
       <div class="crash-sub">REKOR: <b id="go-best">0m</b></div>
       <button class="game-btn" id="btn-retry">TEKRAR DENE</button>
-      <button class="game-btn btn-blue" id="btn-go-garage">GARAJA GİT</button>
     </div>
   </div>
 </div>
@@ -216,22 +168,8 @@ const G = CV.getContext('2d');
 const W = 420, H = 760;
 CV.width = W; CV.height = H;
 
-const CARS = [
-  { id: 0, name: 'Standart Sedan', price: 0,     speed: 7.5,  nos: 11.5, steer: 4.5, brake: 0.20, color: '#3fa9f5', w: 30, h: 54, spdBar: 20, hndBar: 25, brkBar: 20 },
-  { id: 1, name: 'Kamiq Line',     price: 1500,  speed: 8.5,  nos: 13.0, steer: 5.5, brake: 0.35, color: '#ffffff', w: 32, h: 56, spdBar: 40, hndBar: 45, brkBar: 40 },
-  { id: 2, name: 'Taigo Cross',    price: 3000,  speed: 9.0,  nos: 14.5, steer: 7.5, brake: 0.45, color: '#f5c542', w: 28, h: 52, spdBar: 55, hndBar: 75, brkBar: 60 },
-  { id: 3, name: 'Omoda SUV',      price: 7500,  speed: 10.5, nos: 16.5, steer: 5.0, brake: 0.55, color: '#ff3b4e', w: 34, h: 60, spdBar: 75, hndBar: 35, brkBar: 75 },
-  { id: 4, name: 'A3 S-Line',      price: 15000, speed: 12.5, nos: 19.5, steer: 9.5, brake: 0.80, color: '#c6ff3d', w: 30, h: 56, spdBar: 100, hndBar: 100, brkBar: 100 }
-];
-
-let globalCash = 999999; 
-let unlockedCars = [0, 1, 2, 3, 4]; 
-let selectedCarId = parseInt(localStorage.getItem('trafikKacisiSelectedCar') || '0', 10);
-let viewingCarId = selectedCarId;
-
 const startScreen = document.getElementById('start-screen');
 const gameoverScreen = document.getElementById('gameover-screen');
-const garageScreen = document.getElementById('garage-screen');
 const hudScoreEl = document.getElementById('hud-score');
 const hudBestEl = document.getElementById('hud-best');
 const hudSpeedEl = document.getElementById('hud-speed');
@@ -279,7 +217,6 @@ function sfx(type){
   if(type === 'nearmiss'){ const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(500, t); o.frequency.exponentialRampToValueAtTime(1200, t+0.12); g.gain.setValueAtTime(0.18, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.15); o.connect(g); g.connect(out); o.start(t); o.stop(t+0.16); }
   if(type === 'pickup'){ [660,880,1100].forEach((f,i)=>{ const o = ctx.createOscillator(), g = ctx.createGain(); o.type='square'; o.frequency.value=f; g.gain.setValueAtTime(0.14, t+i*0.05); g.gain.exponentialRampToValueAtTime(0.001, t+i*0.05+0.1); o.connect(g); g.connect(out); o.start(t+i*0.05); o.stop(t+i*0.05+0.1); }); }
   if(type === 'crash'){ const n = mkNoise(ctx, 0.45); const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(2200,t); lp.frequency.exponentialRampToValueAtTime(120,t+0.45); const g = ctx.createGain(); g.gain.setValueAtTime(0.65,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.45); n.connect(lp); lp.connect(g); g.connect(out); n.start(t); n.stop(t+0.45); const o = ctx.createOscillator(), g2 = ctx.createGain(); o.type='sawtooth'; o.frequency.setValueAtTime(140,t); o.frequency.exponentialRampToValueAtTime(30,t+0.4); g2.gain.setValueAtTime(0.45,t); g2.gain.exponentialRampToValueAtTime(0.001,t+0.4); o.connect(g2); g2.connect(out); o.start(t); o.stop(t+0.41); }
-  if(type === 'buy'){ const o = ctx.createOscillator(), g = ctx.createGain(); o.type='sine'; o.frequency.setValueAtTime(800, t); o.frequency.exponentialRampToValueAtTime(1600, t+0.2); g.gain.setValueAtTime(0.2, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.2); o.connect(g); g.connect(out); o.start(t); o.stop(t+0.25); }
 }
 
 /* ============== YOL VE OYUN FİZİĞİ ============== */
@@ -297,20 +234,20 @@ let roadDashOffset = 0, bgOffset = 0;
 
 let currentSpeed = 0; 
 const COAST_SPEED = 1.5;   
-let GAS_SPEED = 8.5;     
-let NOS_SPEED = 14.0;    
-let STEER_SPEED = 6.0;
+let GAS_SPEED = 9.5;     
+let NOS_SPEED = 15.0;    
+let STEER_SPEED = 7.0;
 const BRAKE_SPEED = 0.5;   
 const ACCEL = 0.12;        
 const DECEL = 0.025;       
-let BRAKE_DECEL = 0.35;  
+let BRAKE_DECEL = 0.40;  
 
 let gasHeld = false, brakeHeld = false, nosHeld = false, leftHeld = false, rightHeld = false;
 let wasNosHeld = false; 
 let nitroFuel = 100;
 const NITRO_DRAIN = 0.4, NITRO_AUTO_REGEN = 0.05; 
 
-const player = { x: LANE_X[2], y: H - 150, w: 30, h: 54, targetX: LANE_X[2], color: '#3fa9f5' };
+const player = { x: LANE_X[2], y: H - 150, w: 30, h: 54, targetX: LANE_X[2], color: '#00e5ff' };
 const traffic = [], pickups = []; 
 let spawnTimer = 40, pickupTimer = 220, wrongWayTimer = 0; 
 
@@ -348,89 +285,10 @@ function roundRectPath(ctx, x,y,w,h,r){
   ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
 }
 
-/* ============== PARA EKRANI YÖNETİMİ ============== */
-function updateCashUI() {
-  if(document.getElementById('start-cash')) document.getElementById('start-cash').innerText = globalCash + ' 💰';
-  if(document.getElementById('garage-cash')) document.getElementById('garage-cash').innerText = 'KASA: ' + globalCash + ' 💰';
-}
-updateCashUI();
 if(document.getElementById('start-best')) document.getElementById('start-best').textContent = best + 'm'; 
-
-function updateGarageUI() {
-  const c = CARS[viewingCarId];
-  document.getElementById('g-name').innerText = c.name;
-  document.getElementById('g-name').style.color = c.color;
-  document.getElementById('stat-spd').style.width = c.spdBar + '%';
-  document.getElementById('stat-hnd').style.width = c.hndBar + '%';
-  document.getElementById('stat-brk').style.width = c.brkBar + '%';
-  
-  const btnAction = document.getElementById('btn-g-action');
-  if (unlockedCars.includes(viewingCarId)) {
-    document.getElementById('g-price').innerText = 'SAHİPSİN';
-    document.getElementById('g-price').style.color = 'var(--lime)';
-    if (selectedCarId === viewingCarId) {
-      btnAction.innerText = 'SEÇİLDİ'; btnAction.style.borderColor = 'var(--lime)'; btnAction.style.color = 'var(--lime)';
-    } else {
-      btnAction.innerText = 'SEÇ'; btnAction.style.borderColor = 'var(--cyan)'; btnAction.style.color = 'var(--cyan)';
-    }
-  } else {
-    document.getElementById('g-price').innerText = 'FİYAT: ' + c.price + ' 💰';
-    document.getElementById('g-price').style.color = 'var(--amber)';
-    btnAction.innerText = 'SATIN AL'; btnAction.style.borderColor = 'var(--amber)'; btnAction.style.color = 'var(--amber)';
-  }
-
-  const pCV = document.getElementById('car-preview');
-  const pCtx = pCV.getContext('2d');
-  pCtx.clearRect(0,0,pCV.width, pCV.height);
-  pCtx.save();
-  pCtx.translate(pCV.width/2, pCV.height/2);
-  
-  let pw = c.w * 2.0; 
-  let ph = c.h * 2.0;
-  
-  pCtx.fillStyle = 'rgba(0,0,0,0.4)'; pCtx.beginPath(); pCtx.ellipse(0, ph/2+4, pw/2, 8, 0, 0, Math.PI*2); pCtx.fill();
-  pCtx.fillStyle = c.color; roundRectPath(pCtx, -pw/2, -ph/2, pw, ph, 8); pCtx.fill(); pCtx.strokeStyle='rgba(0,0,0,0.5)'; pCtx.lineWidth=2; pCtx.stroke();
-  pCtx.fillStyle = 'rgba(20,28,40,0.85)'; roundRectPath(pCtx, -pw/2+5, -ph/2+12, pw-10, ph*0.32, 5); pCtx.fill(); roundRectPath(pCtx, -pw/2+6, ph*0.1, pw-12, ph*0.15, 3); pCtx.fill();
-  pCtx.fillStyle = '#fff'; pCtx.shadowColor='#fff'; pCtx.shadowBlur=15; pCtx.fillRect(-pw/2+4, -ph/2-3, 8, 5); pCtx.fillRect(pw/2-12, -ph/2-3, 8, 5); pCtx.shadowBlur=0;
-  pCtx.fillStyle = '#880000'; pCtx.fillRect(-pw/2+4, ph/2-2, 8, 5); pCtx.fillRect(pw/2-12, ph/2-2, 8, 5);
-  pCtx.restore();
-}
-
-document.getElementById('btn-garage-menu').addEventListener('click', (e) => {
-  e.preventDefault(); getAudio(); viewingCarId = selectedCarId; updateGarageUI(); updateCashUI();
-  startScreen.classList.remove('on'); garageScreen.classList.add('on'); state = 'garage';
-});
-document.getElementById('btn-g-back').addEventListener('click', (e) => {
-  e.preventDefault(); garageScreen.classList.remove('on'); startScreen.classList.add('on'); state = 'title';
-  updateCashUI();
-});
-document.getElementById('g-prev').addEventListener('click', () => { viewingCarId = (viewingCarId - 1 + CARS.length) % CARS.length; updateGarageUI(); });
-document.getElementById('g-next').addEventListener('click', () => { viewingCarId = (viewingCarId + 1) % CARS.length; updateGarageUI(); });
-
-document.getElementById('btn-g-action').addEventListener('click', () => {
-  getAudio();
-  if (unlockedCars.includes(viewingCarId)) {
-    selectedCarId = viewingCarId; localStorage.setItem('trafikKacisiSelectedCar', selectedCarId);
-  } else {
-    if (globalCash >= CARS[viewingCarId].price) {
-      globalCash -= CARS[viewingCarId].price; unlockedCars.push(viewingCarId);
-      localStorage.setItem('trafikKacisiCash', globalCash); localStorage.setItem('trafikKacisiUnlocked', JSON.stringify(unlockedCars));
-      selectedCarId = viewingCarId; localStorage.setItem('trafikKacisiSelectedCar', selectedCarId);
-      sfx('buy'); burst(W/2, H/2, '#ffb84d', '#fff', 30);
-      updateCashUI();
-    } else {
-      shake(10); 
-    }
-  }
-  updateGarageUI();
-});
 
 document.getElementById('btn-start').addEventListener('click', (e)=>{ e.preventDefault(); e.target.blur(); startGame(); });
 document.getElementById('btn-retry').addEventListener('click', (e)=>{ e.preventDefault(); e.target.blur(); startGame(); });
-document.getElementById('btn-go-garage').addEventListener('click', (e)=>{ 
-  e.preventDefault(); gameoverScreen.classList.remove('on'); 
-  viewingCarId = selectedCarId; updateGarageUI(); updateCashUI(); garageScreen.classList.add('on'); state = 'garage'; 
-});
 
 /* ============== FPS SABİTLEYİCİ VE OYUN DÖNGÜSÜ ============== */
 let lastTime = 0;
@@ -444,9 +302,6 @@ function startGame(){
   nitroFuel = 100; gasHeld = false; brakeHeld = false; nosHeld = false; leftHeld = false; rightHeld = false; wasNosHeld = false;
   combo = 1; comboTimer = 0;
   
-  let myCar = CARS[selectedCarId];
-  GAS_SPEED = myCar.speed; NOS_SPEED = myCar.nos; STEER_SPEED = myCar.steer; BRAKE_DECEL = myCar.brake;
-  player.color = myCar.color; player.w = myCar.w; player.h = myCar.h;
   player.x = LANE_X[2]; player.targetX = LANE_X[2];
 
   spawnTimer = 20; pickupTimer = 220; wrongWayTimer = 0; shakeAmt = 0;
@@ -454,7 +309,7 @@ function startGame(){
   
   btnGas.classList.remove('active'); btnBrake.classList.remove('active'); btnNos.classList.remove('active');
   btnLeft.classList.remove('active'); btnRight.classList.remove('active');
-  startScreen.classList.remove('on'); gameoverScreen.classList.remove('on'); garageScreen.classList.remove('on');
+  startScreen.classList.remove('on'); gameoverScreen.classList.remove('on');
   updateHud();
   lastTime = performance.now();
 }
@@ -464,12 +319,6 @@ function crash(){
   state = 'crash';
   stopEngine(); sfx('crash'); shake(14);
   burst(player.x, player.y, '#ff3b4e', '#ffb84d', 46);
-  
-  let earnedCash = Math.floor(score / 15) + (combo * 5); 
-  globalCash += earnedCash;
-  localStorage.setItem('trafikKacisiCash', globalCash);
-  updateCashUI();
-  document.getElementById('go-earned').innerText = '+' + earnedCash + ' 💰';
 
   if (Math.round(score) > best) {
     best = Math.round(score); try { localStorage.setItem('trafikKacisiBest', String(best)); } catch(e){}
@@ -641,7 +490,7 @@ function drawRoad(){
 }
 
 function drawCar(x,y,w,h,color,facingDown,isPlayer, botBraking=false, turnSignal=0){
-  let nightFactor = state === 'garage' ? 0 : getNightFactor();
+  let nightFactor = getNightFactor();
 
   G.save(); G.translate(x,y);
   G.fillStyle = 'rgba(0,0,0,0.4)'; G.beginPath(); G.ellipse(0,h/2+4,w/2,6,0,0,Math.PI*2); G.fill();
@@ -685,7 +534,6 @@ function loop(timestamp){
   if (!timestamp) timestamp = performance.now();
   let deltaTime = timestamp - lastTime;
 
-  // FPS Sabitleyici Kontrolü (60 FPS için ~16.6ms beklenmeli)
   if (deltaTime < frameInterval) return;
   lastTime = timestamp - (deltaTime % frameInterval);
 
@@ -702,8 +550,6 @@ function loop(timestamp){
     if (spawnTimer <= 0) { spawnTraffic(); let baslangicYogunluk = 0.30; let artisMiktari = (score / 800) * 0.05; let ciftArabaIhtimali = Math.min(baslangicYogunluk + artisMiktari, 0.80); if(Math.random() < ciftArabaIhtimali) spawnTraffic(); spawnTimer = Math.max(15, 60 - currentSpeed*3 + Math.random()*15); }
     pickupTimer--; if (pickupTimer <= 0) { spawnPickup(); pickupTimer = 200 + Math.floor(Math.random()*100); }
     score += (currentSpeed * 0.1); updateHud();
-  } else if (state === 'garage') {
-    currentSpeed = 3; roadDashOffset += currentSpeed; bgOffset += currentSpeed * 0.25;
   }
 
   drawBackground(); drawRoad();
