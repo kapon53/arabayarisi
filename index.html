@@ -173,7 +173,7 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
       <div class="tagline">PROFESYONEL SÜRÜM</div>
       <div class="best-row">REKOR: <b id="start-best">0m</b></div>
       <button class="game-btn" id="btn-start">BAŞLA</button>
-      <div class="instructions">Gerçekçi sollama, dinamik uzun farlar ve zamanlı kombo sistemi eklendi.<br>Sürekli hareket halinde kal!</div>
+      <div class="instructions">5 saniyelik kombo sistemi aktif!<br>Arkadan gelen araçlar artık sana çarpmamak için fren yapacak.</div>
     </div>
   </div>
 
@@ -489,7 +489,6 @@ function updateHud(){
   let displaySpeed = Math.round(currentSpeed * 14.5); 
   hudSpeedEl.innerHTML = displaySpeed + ' <span>km/h</span>';
 
-  // YENİ: Kombo yazısının süresi bitmeye yakın yanıp sönmesi
   if (combo > 1) {
     if (comboTimer < 60) {
       comboWrapEl.style.opacity = (Math.floor(tick / 10) % 2 === 0) ? '1' : '0.3';
@@ -591,7 +590,7 @@ function updatePlayer(){
   if (isWrongWay && currentSpeed > 4) {
     wrongWayTimer++;
     if (wrongWayTimer > 45) {
-      comboTimer = 180; 
+      comboTimer = 300; // Kombo süresi 5 saniyeye (300 tick) çıkarıldı
       let pts = 50 * combo;
       score += pts; 
       popup(player.x, player.y - 40, '+' + pts + ' TERS YÖN x' + combo, '#ff3b4e'); 
@@ -667,18 +666,26 @@ function updateTraffic(){
       }
     }
 
+    // YENİ: Oyuncuya arkadan çarpmayı engelleme (Takip Mesafesi ve Yavaşlama)
+    if (!c.oncoming && Math.abs(c.x - player.x) <= LANE_W * 0.8) {
+      if (c.y > player.y && c.y - player.y < 110) {
+        if (c.ownSpeed > currentSpeed) {
+          c.ownSpeed = currentSpeed;
+          c.aiState = 'braking'; 
+        }
+      }
+    }
+
     c.y += (currentSpeed - c.ownSpeed); 
 
     if (Math.abs(c.x - player.x) < (c.w+player.w)/2 + 12 && Math.abs(c.y - player.y) < (c.h+player.h)/2 - 5) {
       crash();
     }
 
-    // YENİ: Sollama Mantığı (Sadece yakın şeritlerdeki araçları geçersen puan verir)
     if (!c.passed && c.y > player.y + 40) {
       c.passed = true;
-      // Araba ile aramızdaki yatay mesafe (X) en fazla 1.2 şerit genişliği kadarsa (yakından geçtiysek)
       if (!c.oncoming && Math.abs(c.x - player.x) <= LANE_W * 1.2) { 
-        comboTimer = 180;
+        comboTimer = 300;
         let pts = 15 * combo;
         score += pts; 
         popup(c.x, player.y-30, '+' + pts + ' SOLLAMA x' + combo, '#c6ff3d');
@@ -689,7 +696,7 @@ function updateTraffic(){
       const gap = Math.abs(c.x - player.x) - (c.w+player.w)/2;
       if (gap > 0 && gap < 18) {
         c.nearMissAwarded = true; 
-        comboTimer = 180;
+        comboTimer = 300;
         let pts = 40 * combo;
         score += pts; 
         popup(player.x, player.y-50, '+' + pts + ' MAKAS! x' + combo, '#00e5ff'); 
@@ -804,31 +811,6 @@ function drawCar(x,y,w,h,color,facingDown,isPlayer, botBraking=false, turnSignal
   roundRectPath(-w/2+4, facingDown ? -h/2+8 : h*0.02, w-8, h*0.32, 4); G.fill();
   roundRectPath(-w/2+5, facingDown ? h*0.1 : -h/2+6, w-10, h*0.15, 2);
 
-  // YENİ UZUN FARLAR (Konik Aydınlatma)
-  if (nightFactor > 0.1) {
-    G.save();
-    G.globalAlpha = nightFactor;
-    
-    let beamLen = isPlayer ? 280 : 200; 
-    let spread = isPlayer ? 70 : 50;
-    let yStart = facingDown ? h/2 : -h/2;
-    let yEnd = facingDown ? h/2 + beamLen : -h/2 - beamLen;
-
-    let beamGrad = G.createLinearGradient(0, yStart, 0, yEnd);
-    beamGrad.addColorStop(0, 'rgba(255, 255, 240, 0.7)'); 
-    beamGrad.addColorStop(1, 'rgba(255, 255, 240, 0)');
-    
-    G.fillStyle = beamGrad;
-    G.beginPath();
-    G.moveTo(-w/2 + 6, yStart);
-    G.lineTo(w/2 - 6, yStart);
-    G.lineTo(w/2 + spread, yEnd);
-    G.lineTo(-w/2 - spread, yEnd);
-    G.closePath();
-    G.fill();
-    G.restore();
-  }
-
   if (isPlayer) {
     G.fillStyle = '#fff'; G.shadowColor='#fff'; G.shadowBlur= 10 + (nightFactor*15); 
     G.fillRect(-w/2+3, -h/2-2, 6, 4); G.fillRect(w/2-9, -h/2-2, 6, 4);
@@ -857,6 +839,32 @@ function drawCar(x,y,w,h,color,facingDown,isPlayer, botBraking=false, turnSignal
   }
 
   G.restore();
+
+  // YENİ: Sadece İleriyi (Önü) Aydınlatan Konik Farlar (Araç yönüne göre hesaplandı)
+  if (nightFactor > 0.1) {
+    G.save();
+    G.translate(x,y);
+    G.globalAlpha = nightFactor;
+    
+    let beamLen = isPlayer ? 280 : 200; 
+    let spread = isPlayer ? 70 : 50;
+    let yStart = facingDown ? h/2 : -h/2;
+    let yEnd = facingDown ? h/2 + beamLen : -h/2 - beamLen;
+
+    let beamGrad = G.createLinearGradient(0, yStart, 0, yEnd);
+    beamGrad.addColorStop(0, 'rgba(255, 255, 240, 0.7)'); 
+    beamGrad.addColorStop(1, 'rgba(255, 255, 240, 0)');
+    
+    G.fillStyle = beamGrad;
+    G.beginPath();
+    G.moveTo(-w/2 + 6, yStart);
+    G.lineTo(w/2 - 6, yStart);
+    G.lineTo(w/2 + spread, yEnd);
+    G.lineTo(-w/2 - spread, yEnd);
+    G.closePath();
+    G.fill();
+    G.restore();
+  }
 }
 function roundRectPath(x,y,w,h,r){
   G.beginPath();
