@@ -151,7 +151,7 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
       <div class="tagline">GECE/GÜNDÜZ DÖNGÜSÜ EKLENDİ</div>
       <div class="best-row">REKOR: <b id="start-best">0m</b></div>
       <button class="game-btn" id="btn-start">BAŞLA</button>
-      <div class="instructions">Sol tuşlarla şerit değiştir, sağ tuşlarla hızlan/frenle.<br>Mesafe ilerledikçe hava kararacak ve farlar açılacak!</div>
+      <div class="instructions">Sol tuşlarla şerit değiştir, sağ tuşlarla hızlan/frenle.<br>Mesafe ilerledikçe karanlık çöker ve farlar yolları aydınlatır!</div>
     </div>
   </div>
 
@@ -561,7 +561,7 @@ function updatePickups(){
   }
 }
 
-/* ============== ÇİZİM (AYDINLIK GÜNDÜZ & GECE DÖNGÜSÜ & SOKAK LAMBALARI) ============== */
+/* ============== ÇİZİM (SİYAH ÇİMENLER VE GÜÇLÜ FARLAR) ============== */
 function drawBackground(){
   let nightFactor = Math.min(score / 15000, 1); 
 
@@ -570,7 +570,7 @@ function drawBackground(){
   let topG = Math.round(166 - 150 * nightFactor); 
   let topB = Math.round(255 - 223 * nightFactor); 
   g.addColorStop(0, `rgb(${topR},${topG},${topB})`);
-  g.addColorStop(0.5, nightFactor > 0.5 ? '#0d1526' : '#2a4d2e'); 
+  g.addColorStop(0.5, '#0d1526'); 
   g.addColorStop(1, '#05070a');
   G.fillStyle = g; G.fillRect(0,0,W,H);
 
@@ -583,50 +583,14 @@ function drawBackground(){
   }
   G.restore();
 
-  // Çim / Toprak alanlar (Gündüz doğal yeşil, gece koyu)
-  G.fillStyle = nightFactor > 0.5 ? '#0b1610' : '#2a4d2e'; 
+  // Çim / Toprak alanlar (Gündüz yeşil -> Gece zifiri siyah geçişi)
+  let grassR = Math.round(42 - 42 * nightFactor);
+  let grassG = Math.round(77 - 77 * nightFactor);
+  let grassB = Math.round(46 - 46 * nightFactor);
+  G.fillStyle = `rgb(${grassR},${grassG},${grassB})`;
+  
   G.fillRect(0, 0, ROAD_X, H);
   G.fillRect(ROAD_X+ROAD_W, 0, W-(ROAD_X+ROAD_W), H);
-
-  // SOKAK LAMBALARI ÇİZİMİ
-  let lampSpacing = 450; 
-  let lampOffset = (bgOffset * 1.5) % lampSpacing;
-  
-  for (let y = -20; y < H + 80; y += lampSpacing) {
-    let currentY = y + lampOffset;
-    drawStreetLamp(18, currentY, nightFactor);
-    drawStreetLamp(W - 18, currentY, nightFactor);
-  }
-}
-
-function drawStreetLamp(x, y, nightFactor) {
-  G.save();
-  G.strokeStyle = '#333';
-  G.lineWidth = 4;
-  G.beginPath();
-  G.moveTo(x, y);
-  G.lineTo(x + (x < W/2 ? 15 : -15), y - 10);
-  G.stroke();
-
-  let bulbX = x + (x < W/2 ? 15 : -15);
-  let bulbY = y - 10;
-  
-  G.fillStyle = nightFactor > 0.3 ? '#ffff66' : '#cccccc';
-  G.beginPath();
-  G.arc(bulbX, bulbY, 4, 0, Math.PI*2);
-  G.fill();
-
-  if (nightFactor > 0.2) {
-    G.globalAlpha = nightFactor * 0.5;
-    let lGrad = G.createRadialGradient(bulbX, bulbY, 2, bulbX, bulbY, 70);
-    lGrad.addColorStop(0, 'rgba(255, 255, 120, 0.8)');
-    lGrad.addColorStop(1, 'rgba(255, 255, 120, 0)');
-    G.fillStyle = lGrad;
-    G.beginPath();
-    G.arc(bulbX, bulbY, 70, 0, Math.PI*2);
-    G.fill();
-  }
-  G.restore();
 }
 
 function drawRoad(){
@@ -676,32 +640,35 @@ function drawCar(x,y,w,h,color,facingDown,isPlayer){
   roundRectPath(-w/2+4, facingDown ? -h/2+8 : h*0.02, w-8, h*0.32, 4); G.fill();
   roundRectPath(-w/2+5, facingDown ? h*0.1 : -h/2+6, w-10, h*0.15, 2);
 
-  if (nightFactor > 0.2) {
+  // GÜÇLENDİRİLMİŞ FAR IŞIK HÜZMESİ (Sadece Gece)
+  if (nightFactor > 0.1) {
     G.save();
     G.globalAlpha = nightFactor;
-    let beamGrad = G.createRadialGradient(0, facingDown ? h/2 : -h/2, 2, 0, facingDown ? h/2 : -h/2, 120);
-    beamGrad.addColorStop(0, 'rgba(255,255,220,0.4)');
-    beamGrad.addColorStop(1, 'rgba(255,255,220,0)');
+    let beamGrad = G.createRadialGradient(0, facingDown ? h/2 : -h/2, 2, 0, facingDown ? h/2 : -h/2, 180);
+    beamGrad.addColorStop(0, 'rgba(255, 255, 230, 0.8)'); // Daha parlak ve güçlü merkez
+    beamGrad.addColorStop(0.4, 'rgba(255, 255, 230, 0.3)');
+    beamGrad.addColorStop(1, 'rgba(255, 255, 230, 0)');
     G.fillStyle = beamGrad;
     G.beginPath();
-    G.arc(0, facingDown ? h/2 : -h/2, 110, 0, Math.PI*2);
+    G.arc(0, facingDown ? h/2 : -h/2, 180, 0, Math.PI*2); // Aydınlatma mesafesi uzatıldı
     G.fill();
     G.restore();
   }
 
+  // ARAÇ ÜZERİNDEKİ IŞIK NOKTALARI
   if (isPlayer) {
-    G.fillStyle = '#fff'; G.shadowColor='#fff'; G.shadowBlur= 8 + (nightFactor*8);
+    G.fillStyle = '#fff'; G.shadowColor='#fff'; G.shadowBlur= 10 + (nightFactor*15); // Far parlaması artırıldı
     G.fillRect(-w/2+3, -h/2-2, 6, 4); G.fillRect(w/2-9, -h/2-2, 6, 4);
     G.shadowBlur=0;
     G.fillStyle = brakeHeld ? '#ff0000' : '#880000'; 
-    if(brakeHeld || nightFactor > 0.2) { G.shadowColor='#ff0000'; G.shadowBlur=10; }
+    if(brakeHeld || nightFactor > 0.2) { G.shadowColor='#ff0000'; G.shadowBlur=15; }
     G.fillRect(-w/2+3, h/2-2, 6, 4); G.fillRect(w/2-9, h/2-2, 6, 4);
   } else if (facingDown) {
-    G.fillStyle = '#fff2b0'; G.shadowColor='#fff2b0'; G.shadowBlur = nightFactor > 0.2 ? 10 : 5;
+    G.fillStyle = '#fff2b0'; G.shadowColor='#fff2b0'; G.shadowBlur = nightFactor > 0.2 ? 15 : 5;
     G.fillRect(-w/2+3, h/2-2, 6, 4); G.fillRect(w/2-9, h/2-2, 6, 4);
     G.shadowBlur=0;
   } else {
-    G.fillStyle = '#ff3333'; G.shadowColor='#ff3333'; G.shadowBlur = nightFactor > 0.2 ? 10 : 0;
+    G.fillStyle = '#ff3333'; G.shadowColor='#ff3333'; G.shadowBlur = nightFactor > 0.2 ? 15 : 0;
     G.fillRect(-w/2+3, -h/2-2, 6, 4); G.fillRect(w/2-9, -h/2-2, 6, 4);
   }
   G.restore();
