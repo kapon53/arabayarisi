@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Trafik Kaçışı - Yeni Araç Modelleri</title>
+<title>Trafik Kaçışı - Tüm Kilitler Açık Sürüm</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap">
 <style>
 :root{ --lime:#c6ff3d; --cyan:#00e5ff; --amber:#ffb84d; --red:#ff3b4e; --bg:#05070a; }
@@ -28,15 +28,15 @@ canvas{ display:block; width:100%; height:100%; border-radius:14px; box-shadow:0
 #combo-wrap{ position:absolute; left:14px; top:150px; opacity:0; }
 #combo-val{ font-family:"Orbitron"; font-weight:900; font-size:24px; color:var(--amber); text-shadow:0 0 15px var(--amber); }
 
-/* KONTROLLER */
-.control-btn { position:absolute; bottom:16px; width:60px; height:60px; border-radius:50%; font-family:"Orbitron"; font-weight:900; font-size:12px; display:flex; align-items:center; justify-content:center; pointer-events:auto; transition: transform 0.1s; color:#fff; border:2px solid; }
+/* KONTROLLER (Küçük Ekranlar İçin Optimize Edildi) */
+.control-btn { position:absolute; bottom:16px; width:55px; height:55px; border-radius:50%; font-family:"Orbitron"; font-weight:900; font-size:10px; display:flex; align-items:center; justify-content:center; pointer-events:auto; transition: transform 0.1s; color:#fff; border:2px solid; }
 .control-btn:active { transform:scale(0.9); }
-#btn-left { left: 10px; border-color:rgba(255,255,255,0.4); }
-#btn-right { left: 78px; border-color:rgba(255,255,255,0.4); }
-#btn-horn { left: 146px; border-color:var(--amber); box-shadow:0 0 20px rgba(255,184,77,0.3); font-size:10px; }
-#btn-brake { right: 95px; border-color:var(--red); box-shadow:0 0 25px rgba(255,59,78,0.3); }
-#btn-gas { right: 10px; width: 75px; height: 75px; border-color:var(--lime); box-shadow:0 0 25px rgba(198,255,61,0.3); }
-#btn-nos { right: 18px; bottom: 100px; width: 55px; height: 55px; border-color:var(--cyan); box-shadow:0 0 20px rgba(0,229,255,0.3); }
+#btn-left { left: 8px; border-color:rgba(255,255,255,0.4); }
+#btn-right { left: 70px; border-color:rgba(255,255,255,0.4); }
+#btn-horn { left: 132px; border-color:var(--amber); box-shadow:0 0 20px rgba(255,184,77,0.3); }
+#btn-brake { right: 88px; border-color:var(--red); box-shadow:0 0 25px rgba(255,59,78,0.3); }
+#btn-gas { right: 8px; width: 70px; height: 70px; border-color:var(--lime); box-shadow:0 0 25px rgba(198,255,61,0.3); font-size:12px; }
+#btn-nos { right: 15px; bottom: 95px; width: 50px; height: 50px; border-color:var(--cyan); box-shadow:0 0 20px rgba(0,229,255,0.3); }
 
 /* EKRANLAR */
 .screen{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s; background:rgba(5,7,10,0.85); backdrop-filter:blur(8px); z-index: 20; }
@@ -65,7 +65,7 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
 .g-car-name { font-family: "Orbitron"; font-size: 18px; color: var(--cyan); font-weight: bold; }
 .stat-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-family: "Rajdhani"; font-size: 13px; color: #fff; }
 .stat-bar-bg { width: 50%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-left: 10px; }
-.stat-bar-fill { height: 100%; background: var(--lime); }
+.stat-bar-fill { height: 100%; background: var(--lime); transition:width .2s ease; }
 .upg-btn { background: var(--amber); color: #000; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-weight: bold; margin-left: 5px; font-size:12px; }
 .g-price { font-family: "Orbitron"; font-size: 16px; color: var(--amber); margin: 10px 0; }
 .color-picker { display:flex; justify-content:center; gap:5px; margin-bottom:10px; }
@@ -155,9 +155,8 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
 const CV = document.getElementById('c'), G = CV.getContext('2d'), W = 420, H = 760;
 CV.width = W; CV.height = H;
 
-// VERİTABANI & EKONOMİ
-let globalCash = parseInt(localStorage.getItem('trafikKacisiCash') || '50000', 10); // Test için 50k bakiye
-// YENİ ARAÇ MODELLERİ (model property'si eklendi)
+// VERİTABANI & EKONOMİ (Tüm Arabalar Açık ve Para Full)
+let globalCash = 999999; 
 const BASE_CARS = [
   { id: 0, name: 'Eski Sedan', model: 'sedan', price: 0, speed: 7.5, nos: 11.5, steer: 4.5, brake: 0.20, color: '#3fa9f5', w: 30, h: 54, spdMax: 10, hndMax: 7, brkMax: 0.4 },
   { id: 1, name: 'Hatchback', model: 'hatchback', price: 2000, speed: 8.5, nos: 13.0, steer: 5.5, brake: 0.35, color: '#ffffff', w: 28, h: 50, spdMax: 11, hndMax: 8, brkMax: 0.5 },
@@ -167,10 +166,15 @@ const BASE_CARS = [
 ];
 const COLORS = ['#3fa9f5', '#ffffff', '#f5c542', '#ff3b4e', '#c6ff3d', '#222', '#8e6bd8'];
 
-let myGarage = JSON.parse(localStorage.getItem('trafikGarageData')) || { 
-  0: { unlocked: true, spdLvl: 0, hndLvl: 0, brkLvl: 0, color: '#3fa9f5' }
-};
+// Hata vermemesi için her araç baştan garaja ekleniyor!
+let myGarage = {};
+BASE_CARS.forEach(c => {
+  myGarage[c.id] = { unlocked: true, spdLvl: 0, hndLvl: 0, brkLvl: 0, color: c.color };
+});
+
 let selectedCarId = parseInt(localStorage.getItem('trafikKacisiSelectedCar') || '0', 10);
+// Eğer eski kayıttaki araç ID'si 4'ten büyükse sıfırla ki çökmesin
+if(selectedCarId > 4 || isNaN(selectedCarId)) selectedCarId = 0; 
 let viewingCarId = selectedCarId;
 let best = parseInt(localStorage.getItem('trafikKacisiBest') || '0', 10);
 
@@ -223,9 +227,20 @@ function sfx(type){
   if(type==='crash'){ const n=audioCtx.createBufferSource(); const b=audioCtx.createBuffer(1,audioCtx.sampleRate*0.4,audioCtx.sampleRate); const d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; n.buffer=b; const f=audioCtx.createBiquadFilter(); f.type='lowpass'; f.frequency.setValueAtTime(2000,t); f.frequency.exponentialRampToValueAtTime(100,t+0.4); const g=audioCtx.createGain(); g.gain.setValueAtTime(0.5,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.4); n.connect(f); f.connect(g); g.connect(out); n.start(t); n.stop(t+0.4); }
 }
 
-function bindBtn(el, d, u) { el.addEventListener('pointerdown', (e)=>{e.preventDefault(); d(); el.classList.add('active'); getAudio();}); el.addEventListener('pointerup', (e)=>{e.preventDefault(); u(); el.classList.remove('active');}); el.addEventListener('pointerleave', (e)=>{u(); el.classList.remove('active');}); }
-bindBtn(document.getElementById('btn-gas'), ()=>gasHeld=true, ()=>gasHeld=false); bindBtn(document.getElementById('btn-brake'), ()=>brakeHeld=true, ()=>brakeHeld=false); bindBtn(document.getElementById('btn-nos'), ()=>nosHeld=true, ()=>nosHeld=false); bindBtn(document.getElementById('btn-left'), ()=>leftHeld=true, ()=>leftHeld=false); bindBtn(document.getElementById('btn-right'), ()=>rightHeld=true, ()=>rightHeld=false);
+// YENİ: MOBİL İÇİN OPTİMİZE EDİLMİŞ POINTER EVENTLERİ
+function bindBtn(el, d, u) { 
+  el.onpointerdown = (e)=>{e.preventDefault(); d(); el.classList.add('active'); getAudio();}; 
+  el.onpointerup = (e)=>{e.preventDefault(); u(); el.classList.remove('active');}; 
+  el.onpointerleave = (e)=>{u(); el.classList.remove('active');}; 
+  el.onpointercancel = (e)=>{u(); el.classList.remove('active');}; 
+}
+bindBtn(document.getElementById('btn-gas'), ()=>gasHeld=true, ()=>gasHeld=false); 
+bindBtn(document.getElementById('btn-brake'), ()=>brakeHeld=true, ()=>brakeHeld=false); 
+bindBtn(document.getElementById('btn-nos'), ()=>nosHeld=true, ()=>nosHeld=false); 
+bindBtn(document.getElementById('btn-left'), ()=>leftHeld=true, ()=>leftHeld=false); 
+bindBtn(document.getElementById('btn-right'), ()=>rightHeld=true, ()=>rightHeld=false);
 bindBtn(document.getElementById('btn-horn'), ()=>honkHorn(), ()=>{});
+
 window.addEventListener('keydown', (e)=>{ 
   if(e.code==='ArrowLeft'||e.code==='KeyA') leftHeld=true; 
   if(e.code==='ArrowRight'||e.code==='KeyD') rightHeld=true; 
@@ -277,14 +292,13 @@ function updateGarageUI() {
     b.onclick=()=>{ if(globalCash>=c.price){ globalCash-=c.price; myGarage[viewingCarId]={unlocked:true, spdLvl:0, hndLvl:0, brkLvl:0, color:c.color}; selectedCarId=viewingCarId; saveG(); updateGarageUI(); sfx('horn');} else shake(10); }
   }
 
-  // Draw Preview on Canvas
+  // Draw Preview
   const pCV = document.getElementById('car-preview'), pCtx = pCV.getContext('2d'); pCtx.clearRect(0,0,pCV.width, pCV.height); pCtx.save(); pCtx.translate(pCV.width/2, pCV.height/2);
   let pw = c.w * 2, ph = c.h * 2;
-  // Burada Garaj önizlemesi için drawCar çağrılıyor
   drawCarRaw(pCtx, 0, 10, pw, ph, u ? u.color : c.color, false, false, false, 0, false, c.model);
   pCtx.restore();
 }
-function saveG(){ localStorage.setItem('trafikGarageData', JSON.stringify(myGarage)); localStorage.setItem('trafikKacisiCash', globalCash); localStorage.setItem('trafikKacisiSelectedCar', selectedCarId); updateCashUI(); }
+function saveG(){ localStorage.setItem('trafikKacisiSelectedCar', selectedCarId); updateCashUI(); }
 document.getElementById('btn-garage-menu').onclick = (e)=>{ e.preventDefault(); getAudio(); viewingCarId=selectedCarId; updateGarageUI(); document.getElementById('start-screen').classList.remove('on'); document.getElementById('garage-screen').classList.add('on'); state='garage'; };
 document.getElementById('btn-g-back').onclick = (e)=>{ e.preventDefault(); document.getElementById('garage-screen').classList.remove('on'); document.getElementById('start-screen').classList.add('on'); state='title'; };
 document.getElementById('g-prev').onclick = ()=>{ viewingCarId = (viewingCarId - 1 + BASE_CARS.length) % BASE_CARS.length; updateGarageUI(); }; document.getElementById('g-next').onclick = ()=>{ viewingCarId = (viewingCarId + 1) % BASE_CARS.length; updateGarageUI(); };
@@ -321,7 +335,7 @@ function startGame(){
   let base = BASE_CARS[selectedCarId]; let stat = getCarStat(selectedCarId); let u = myGarage[selectedCarId];
   GAS_SPEED = stat.speed; NOS_SPEED = base.nos + (u.spdLvl*0.5); STEER_SPEED = stat.hnd; BRAKE_DECEL = stat.brk;
   player.color = u.color; player.w = base.w; player.h = base.h; player.lane = 2; player.x = LANE_X[2]; player.targetX = LANE_X[2];
-  player.model = base.model; // Seçili araç modeli
+  player.model = base.model; 
 
   spawnTimer = 20; isPaused = false; document.getElementById('btn-pause').innerText = '⏸';
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
@@ -354,7 +368,6 @@ function spawnTraffic(){
   let spawnY = oncoming ? -200 : (ownSpeed > currentSpeed ? H + 200 : -200);
   if (traffic.some(c => c.lane === lane && Math.abs(c.y - spawnY) < 250)) return;
 
-  // NPC'ler rastgele bir modele sahip olur (tır değilse)
   let tModel = isTruck ? 'truck' : NPC_MODELS[Math.floor(Math.random()*NPC_MODELS.length)];
 
   traffic.push({ 
@@ -446,81 +459,52 @@ function drawScene(){
   else { for (let y = -35 + (roadDashOffset % 60); y < H; y += 60) { G.beginPath(); G.moveTo(ROAD_X+LANE_W*2, y); G.lineTo(ROAD_X+LANE_W*2, y+35); G.stroke(); } }
 }
 
-// YENİ: ARAÇLARIN ÖZEL TASARIM VE DETAYLARI BURADA ÇİZİLİYOR
 function drawCarRaw(ctx, x, y, w, h, col, facingDown, isP, brk, sig, isT, model) {
   ctx.save(); ctx.translate(x,y);
   
-  // Gölge
   ctx.fillStyle='rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(0,h/2+4,w/2,6,0,0,Math.PI*2); ctx.fill();
   
   if (isT) {
-    // TIR (Çekici + Dorse)
     ctx.fillStyle = '#eee'; roundRectPath(ctx, -w/2, facingDown ? -h/2+35 : -h/2, w, h-35, 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = col; roundRectPath(ctx, -w/2, facingDown ? -h/2 : h/2-30, w, 30, 4); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#111'; roundRectPath(ctx, -w/2+2, facingDown ? -h/2+10 : h/2-25, w-4, 15, 2); ctx.fill();
   } else {
-    // STANDART ARAÇ GÖVDESİ
     ctx.fillStyle=col; roundRectPath(ctx, -w/2, -h/2, w, h, 6); ctx.fill(); ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=1.5; ctx.stroke();
-    
-    // MODEL DETAYLARI
     ctx.fillStyle='rgba(20,28,40,0.85)'; 
     let winFrontY = facingDown ? -h/2+8 : h*0.02;
     let winRearY  = facingDown ? h*0.1 : -h/2+6;
     
-    // Pickup kasası
     if (model === 'pickup') {
       ctx.fillStyle = 'rgba(0,0,0,0.7)';
       roundRectPath(ctx, -w/2+2, facingDown ? -h/2+2 : h/2 - (h*0.4), w-4, h*0.4 - 2, 2); ctx.fill();
       ctx.fillStyle='rgba(20,28,40,0.85)'; 
-      winRearY = facingDown ? h*0.1 : -h/2+(h*0.4); // Arka camı öne al
+      winRearY = facingDown ? h*0.1 : -h/2+(h*0.4); 
     }
     
-    // Hatchback arka camı (daha küt ve geride)
-    if (model === 'hatchback') {
-      winRearY = facingDown ? h/2 - 10 : -h/2 + 2;
-    }
+    if (model === 'hatchback') { winRearY = facingDown ? h/2 - 10 : -h/2 + 2; }
 
-    // Ön Cam
     roundRectPath(ctx, -w/2+4, winFrontY, w-8, h*0.32, 4); ctx.fill(); 
-    // Arka Cam
     roundRectPath(ctx, -w/2+5, winRearY, w-10, h*0.15, 2); ctx.fill();
 
-    // SUV Tavan Çıtaları
-    if (model === 'suv') {
-      ctx.fillStyle = '#555';
-      ctx.fillRect(-w/2+2, -h/2+15, 3, h-30);
-      ctx.fillRect(w/2-5, -h/2+15, 3, h-30);
-    }
+    if (model === 'suv') { ctx.fillStyle = '#555'; ctx.fillRect(-w/2+2, -h/2+15, 3, h-30); ctx.fillRect(w/2-5, -h/2+15, 3, h-30); }
 
-    // Spor Araç Çizgileri ve Spoiler
     if (model === 'sport') {
-      // Çizgiler
-      ctx.fillStyle = 'rgba(255,255,255,0.7)';
-      ctx.fillRect(-3, -h/2, 2, h); ctx.fillRect(1, -h/2, 2, h);
-      // Rüzgarlık (Spoiler)
-      ctx.fillStyle = '#111';
-      roundRectPath(ctx, -w/2-2, facingDown ? -h/2+2 : h/2-6, w+4, 4, 1); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillRect(-3, -h/2, 2, h); ctx.fillRect(1, -h/2, 2, h);
+      ctx.fillStyle = '#111'; roundRectPath(ctx, -w/2-2, facingDown ? -h/2+2 : h/2-6, w+4, 4, 1); ctx.fill();
     }
   }
   
-  // FARLAR VE FRENLER
   let night = state==='garage'?0:getNightFactor();
   if (isP) { 
     ctx.fillStyle='#fff'; ctx.shadowColor='#fff'; ctx.shadowBlur=10+(night*15); ctx.fillRect(-w/2+3, -h/2-2, 6, 4); ctx.fillRect(w/2-9, -h/2-2, 6, 4); ctx.shadowBlur=0; 
     ctx.fillStyle=brakeHeld?'#ff0000':'#880000'; if(brakeHeld||night>0.2) {ctx.shadowColor='#ff0000'; ctx.shadowBlur=15;} ctx.fillRect(-w/2+3, h/2-2, 6, 4); ctx.fillRect(w/2-9, h/2-2, 6, 4); 
   } 
-  else if (facingDown) { 
-    ctx.fillStyle='#fff2b0'; ctx.shadowColor='#fff2b0'; ctx.shadowBlur=night>0.2?15:5; ctx.fillRect(-w/2+3, h/2-2, 6, 4); ctx.fillRect(w/2-9, h/2-2, 6, 4); ctx.shadowBlur=0; 
-  } 
-  else { 
-    ctx.fillStyle=brk?'#ff0000':'#ff3333'; ctx.shadowColor=brk?'#ff0000':'#ff3333'; ctx.shadowBlur=(brk||night>0.2)?15:0; ctx.fillRect(-w/2+3, -h/2-2, 6, 4); ctx.fillRect(w/2-9, -h/2-2, 6, 4); ctx.shadowBlur=0; 
-  }
+  else if (facingDown) { ctx.fillStyle='#fff2b0'; ctx.shadowColor='#fff2b0'; ctx.shadowBlur=night>0.2?15:5; ctx.fillRect(-w/2+3, h/2-2, 6, 4); ctx.fillRect(w/2-9, h/2-2, 6, 4); ctx.shadowBlur=0; } 
+  else { ctx.fillStyle=brk?'#ff0000':'#ff3333'; ctx.shadowColor=brk?'#ff0000':'#ff3333'; ctx.shadowBlur=(brk||night>0.2)?15:0; ctx.fillRect(-w/2+3, -h/2-2, 6, 4); ctx.fillRect(w/2-9, -h/2-2, 6, 4); ctx.shadowBlur=0; }
   
-  // SİNYAL
   if (sig!==0 && Math.floor(tick/15)%2===0) { ctx.fillStyle='#ffb84d'; ctx.shadowColor='#ffb84d'; ctx.shadowBlur=12; ctx.fillRect(sig===1?w/2-9:-w/2+3, facingDown?h/2-2:-h/2-2, 6, 4); ctx.shadowBlur = 0; }
   ctx.restore();
 
-  // UZUN FAR AYDINLATMASI (Gece)
   if (night>0.1) {
     ctx.save(); ctx.translate(x,y); ctx.globalAlpha = night;
     let bLen = isP?280:200, sp = isP?70:50, ys = facingDown?h/2:-h/2, ye = facingDown?h/2+bLen:-h/2-bLen;
