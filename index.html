@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Trafik Kaçışı - Kusursuz Sürüm</title>
+<title>Trafik Kaçışı - Profesyonel Sürüm</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap">
 <style>
 :root{
@@ -25,12 +25,22 @@ canvas{
 }
 #hud{ position:absolute; inset:0; pointer-events:none; border-radius:14px; overflow:hidden; }
 
-.hud-tl, .hud-tr, .hud-tc {
+.hud-tl, .hud-tc {
   position:absolute; top:16px; font-family:"Orbitron",monospace; color:#fff;
 }
 .hud-tl{ left:18px; } 
-.hud-tr{ right:18px; text-align:right; }
 .hud-tc{ width:100%; text-align:center; top:16px; }
+.hud-tr-rekor { position:absolute; top: 60px; right: 18px; text-align:right; font-family:"Orbitron",monospace; color:#fff; }
+
+.top-btn {
+  position: absolute; top: 16px; width: 36px; height: 36px;
+  background: rgba(5,7,10,0.6); border: 1px solid rgba(0,229,255,0.4); color: #fff;
+  border-radius: 8px; font-size: 16px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; pointer-events: auto; transition: transform 0.1s;
+}
+.top-btn:active { transform: scale(0.9); }
+#btn-pause { right: 62px; }
+#btn-mute { right: 18px; }
 
 .hud-label{ font-size:10px; letter-spacing:2px; color:rgba(255,255,255,0.55); }
 .hud-val{ font-size:20px; font-weight:900; color:var(--lime); text-shadow:0 0 12px rgba(198,255,61,0.6); }
@@ -44,6 +54,9 @@ canvas{
 #nitro-label{ font-family:"Orbitron",monospace; font-size:9px; letter-spacing:2px; color:rgba(255,255,255,0.5); margin-bottom:4px; }
 #nitro-bar{ width:100%; height:8px; background:rgba(255,255,255,0.12); border-radius:4px; overflow:hidden; border:1px solid rgba(255,255,255,0.2); }
 #nitro-fill{ height:100%; width:100%; background:linear-gradient(90deg,#00e5ff,#c6ff3d); border-radius:4px; transition:width .05s linear; }
+
+#combo-wrap{ position:absolute; left:14px; top:110px; transition:opacity 0.2s; opacity:0; }
+#combo-val{ font-family:"Orbitron",monospace; font-weight:900; font-size:24px; color:var(--amber); text-shadow:0 0 15px var(--amber); }
 
 /* KONTROLLER */
 .control-btn {
@@ -128,13 +141,22 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
       <div class="hud-val speed" id="hud-speed">0 <span>km/h</span></div>
     </div>
 
-    <div class="hud-tr">
+    <div class="hud-tr-rekor">
       <div class="hud-label">REKOR</div>
       <div class="hud-val best" id="hud-best">0m</div>
     </div>
+
+    <div id="btn-pause" class="top-btn">⏸</div>
+    <div id="btn-mute" class="top-btn">🔊</div>
+
     <div id="nitro-wrap">
       <div id="nitro-label">NOS</div>
       <div id="nitro-bar"><div id="nitro-fill"></div></div>
+    </div>
+
+    <div id="combo-wrap">
+      <div class="hud-label" style="color:var(--amber);">KOMBO</div>
+      <div id="combo-val">x1</div>
     </div>
   </div>
   
@@ -148,10 +170,10 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
   <div id="start-screen" class="screen on">
     <div class="panel">
       <div class="logo">TRAFİK<span>KAÇIŞI</span></div>
-      <div class="tagline">KUSURSUZ SÜRÜM</div>
+      <div class="tagline">PROFESYONEL SÜRÜM</div>
       <div class="best-row">REKOR: <b id="start-best">0m</b></div>
       <button class="game-btn" id="btn-start">BAŞLA</button>
-      <div class="instructions">Artık botlar şerit değiştirmeden önce net sinyal veriyor!<br>Gece ve gündüz döngüsü sonsuza dek akacak. Bol şans.</div>
+      <div class="instructions">Peş peşe makas atarak kombo çarpanını yükselt!<br>Geceleri gökyüzünü izlerken dikkatli ol. Bol şans.</div>
     </div>
   </div>
 
@@ -183,11 +205,38 @@ const btnBrake = document.getElementById('btn-brake');
 const btnNos = document.getElementById('btn-nos');
 const btnLeft = document.getElementById('btn-left');
 const btnRight = document.getElementById('btn-right');
+const comboWrapEl = document.getElementById('combo-wrap');
+const comboValEl = document.getElementById('combo-val');
 
-/* ============== SES MOTORU ============== */
+/* ============== SES MOTORU VE DURAKLATMA ============== */
 let audioCtx = null;
 let engineOsc = null;
 let engineGain = null;
+let isMuted = false;
+let isPaused = false;
+
+document.getElementById('btn-mute').addEventListener('click', (e)=>{
+  e.preventDefault(); e.target.blur();
+  isMuted = !isMuted;
+  document.getElementById('btn-mute').innerText = isMuted ? '🔇' : '🔊';
+  if (isMuted) stopEngine();
+  else if (state === 'play' && !isPaused) startEngine();
+});
+
+document.getElementById('btn-pause').addEventListener('click', (e)=>{
+  e.preventDefault(); e.target.blur();
+  if (state !== 'play') return;
+  isPaused = !isPaused;
+  document.getElementById('btn-pause').innerText = isPaused ? '▶' : '⏸';
+  if (isPaused) {
+    stopEngine();
+    G.fillStyle = 'rgba(0,0,0,0.6)'; G.fillRect(0,0,W,H);
+    G.fillStyle = '#fff'; G.font = 'bold 30px Orbitron'; G.textAlign = 'center';
+    G.fillText('DURAKLATILDI', W/2, H/2);
+  } else {
+    if(!isMuted) startEngine();
+  }
+});
 
 function getAudio(){
   if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -195,6 +244,7 @@ function getAudio(){
   return audioCtx;
 }
 function startEngine(){
+  if(isMuted) return;
   if(!audioCtx) getAudio();
   if(engineOsc) { engineOsc.stop(); engineOsc = null; }
   engineOsc = audioCtx.createOscillator();
@@ -213,7 +263,7 @@ function startEngine(){
   engineOsc.start();
 }
 function stopEngine(){
-  if(engineGain) engineGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+  if(engineGain && audioCtx) engineGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
   setTimeout(() => { if(engineOsc){ engineOsc.stop(); engineOsc=null;} }, 500);
 }
 
@@ -225,7 +275,7 @@ function mkNoise(ctx, dur){
 }
 
 function sfx(type){
-  if(!audioCtx) return;
+  if(!audioCtx || isMuted) return;
   const ctx = audioCtx, t = ctx.currentTime, out = ctx.destination;
   
   if(type === 'nitro_start'){
@@ -273,6 +323,7 @@ const LANE_X = [ROAD_X + LANE_W*0.5, ROAD_X + LANE_W*1.5, ROAD_X + LANE_W*2.5, R
 /* ============== OYUN DURUMU & FİZİK ============== */
 let state = 'title'; 
 let tick = 0, score = 0, best = 0;
+let combo = 1, comboTimer = 0; // KOMBO SİSTEMİ
 try { best = parseInt(localStorage.getItem('trafikKacisiBest') || '0', 10) || 0; } catch(e){}
 
 let shakeAmt = 0, shakeX = 0, shakeY = 0;
@@ -290,7 +341,8 @@ const BRAKE_DECEL = 0.35;
 let gasHeld = false, brakeHeld = false, nosHeld = false, leftHeld = false, rightHeld = false;
 let wasNosHeld = false; 
 let nitroFuel = 100;
-const NITRO_DRAIN = 0.4; // NOS 3 KAT DAHA YAVAŞ BİTECEK
+const NITRO_DRAIN = 0.4; // 3 kat daha yavaş tükenir
+const NITRO_AUTO_REGEN = 0.05; // Otomatik dolum eklendi
 
 const player = { x: LANE_X[2], y: H - 150, w: 30, h: 54, targetX: LANE_X[2] };
 
@@ -299,6 +351,12 @@ const pickups = [];
 let spawnTimer = 40;
 let pickupTimer = 220;
 let wrongWayTimer = 0; 
+
+// Gece gökyüzü için yıldızlar array'i
+const bgStars = [];
+for(let i=0; i<80; i++) {
+  bgStars.push({ x: Math.random()*W, y: Math.random()*H, s: Math.random()*1.5 + 0.5, a: Math.random() });
+}
 
 const particles = [];
 function burst(x,y,col1,col2,n){
@@ -377,14 +435,12 @@ document.getElementById('btn-retry').addEventListener('click', (e)=>{ e.preventD
 
 function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
 
-/* ============== GECE/GÜNDÜZ DÖNGÜSÜ FONKSİYONU ============== */
-// Döngü her 12000 skorda bir baştan sona tamamlanacak.
 function getNightFactor() {
   let timePhase = (score % 12000) / 12000;
-  if (timePhase > 0.4 && timePhase <= 0.5) return (timePhase - 0.4) * 10; // Gün batımı (kararma)
-  if (timePhase > 0.5 && timePhase <= 0.9) return 1;                      // Gece
-  if (timePhase > 0.9) return 1 - ((timePhase - 0.9) * 10);               // Gün doğumu (aydınlanma)
-  return 0;                                                               // Gündüz
+  if (timePhase > 0.4 && timePhase <= 0.5) return (timePhase - 0.4) * 10; 
+  if (timePhase > 0.5 && timePhase <= 0.9) return 1;                      
+  if (timePhase > 0.9) return 1 - ((timePhase - 0.9) * 10);               
+  return 0;                                                               
 }
 
 /* ============== OYUN AKIŞI ============== */
@@ -393,9 +449,11 @@ function startGame(){
   state = 'play'; score = 0; tick = 0; currentSpeed = 0;
   traffic.length = 0; pickups.length = 0; particles.length = 0; popups.length = 0;
   nitroFuel = 100; gasHeld = false; brakeHeld = false; nosHeld = false; leftHeld = false; rightHeld = false; wasNosHeld = false;
+  combo = 1; comboTimer = 0;
   player.x = LANE_X[2]; player.targetX = LANE_X[2];
   spawnTimer = 20; pickupTimer = 220; wrongWayTimer = 0;
   shakeAmt = 0;
+  isPaused = false; document.getElementById('btn-pause').innerText = '⏸';
   
   btnGas.classList.remove('active'); btnBrake.classList.remove('active'); btnNos.classList.remove('active');
   btnLeft.classList.remove('active'); btnRight.classList.remove('active');
@@ -431,9 +489,12 @@ function updateHud(){
 
   let displaySpeed = Math.round(currentSpeed * 14.5); 
   hudSpeedEl.innerHTML = displaySpeed + ' <span>km/h</span>';
+
+  comboWrapEl.style.opacity = combo > 1 ? '1' : '0';
+  comboValEl.textContent = 'x' + combo;
 }
 
-/* ============== TRAFİK OLUŞTURMA & YENİ YAPAY ZEKA ============== */
+/* ============== TRAFİK OLUŞTURMA & DİNAMİK YAPAY ZEKA ============== */
 const CAR_COLORS = ['#e0463c','#3fa9f5','#f5c542','#8e6bd8','#4caf6a','#f57f42', '#ffffff', '#222222'];
 function spawnTraffic(){
   const lane = Math.floor(Math.random()*4);
@@ -459,12 +520,15 @@ function spawnTraffic(){
   const tooClose = traffic.some(c => c.lane === lane && Math.abs(c.y - spawnY) < 220);
   if (tooClose) return;
 
+  // Skor arttıkça çılgın bot oranı artar
+  let crazyRatio = Math.min(0.15 + (score / 15000), 0.60);
+
   traffic.push({
     x: laneX, y: spawnY, w, h, lane, ownSpeed,
     color: CAR_COLORS[Math.floor(Math.random()*CAR_COLORS.length)],
     oncoming, passed: false, nearMissAwarded: false, isTruck,
-    isCrazy: !isTruck && Math.random() < 0.25, 
-    aiState: 'wait', // wait, signaling, changing, braking, done
+    isCrazy: !isTruck && Math.random() < crazyRatio, 
+    aiState: 'wait', 
     aiTimer: 60 + Math.random() * 100, 
     turnSignal: 0, 
     targetLaneX: laneX,
@@ -487,6 +551,7 @@ function updatePhysics() {
     nitroFuel -= NITRO_DRAIN;
   } else {
     wasNosHeld = false;
+    nitroFuel = Math.min(100, nitroFuel + NITRO_AUTO_REGEN); // Otomatik NOS dolumu
     if (gasHeld) {
       targetSpeed = GAS_SPEED; 
     }
@@ -519,7 +584,12 @@ function updatePlayer(){
   if (isWrongWay && currentSpeed > 4) {
     wrongWayTimer++;
     if (wrongWayTimer > 45) {
-      score += 50; popup(player.x, player.y - 40, '+50 TERS YÖN', '#ff3b4e'); wrongWayTimer = 0;
+      comboTimer = 180; // 3 Saniye
+      let pts = 50 * combo;
+      score += pts; 
+      popup(player.x, player.y - 40, '+' + pts + ' TERS YÖN x' + combo, '#ff3b4e'); 
+      wrongWayTimer = 0;
+      combo++;
     }
   } else { wrongWayTimer = 0; }
 }
@@ -528,7 +598,6 @@ function updateTraffic(){
   for (let i = traffic.length - 1; i >= 0; i--) {
     const c = traffic[i];
     
-    // YENİ BOT YAPAY ZEKASI (Sinyal -> Şerit Kontrolü -> Harekete Geçiş)
     if (c.isCrazy && c.aiState === 'wait') {
       c.aiTimer--;
       if (c.aiTimer <= 0) {
@@ -546,16 +615,15 @@ function updateTraffic(){
           }
           if (possibleLanes.length > 0) {
             let newLane = possibleLanes[0];
-            // YENİ: Geçmek istediği şeritte geniş çaplı araç taraması yap (İç içe geçmeyi engeller)
             let isSafe = !traffic.some(other => other !== c && other.lane === newLane && Math.abs(other.y - c.y) < 160);
             if (isSafe) {
               c.aiState = 'signaling';
-              c.aiTimer = 45; // 0.75 saniye sinyal bekleme süresi
+              c.aiTimer = 45; 
               c.targetLane = newLane;
               c.targetLaneX = LANE_X[newLane];
               c.turnSignal = newLane > c.lane ? 1 : -1;
             } else {
-              c.aiState = 'braking'; // Şerit doluysa mecburen fren yap
+              c.aiState = 'braking'; 
               c.ownSpeed = c.oncoming ? -1.0 : 1.0; 
             }
           }
@@ -565,7 +633,7 @@ function updateTraffic(){
       c.aiTimer--;
       if (c.aiTimer <= 0) {
         c.aiState = 'changing';
-        c.lane = c.targetLane; // Arabayı sistemsel olarak diğer şeride taşı
+        c.lane = c.targetLane; 
       }
     } else if (c.aiState === 'changing') {
       c.x += (c.targetLaneX - c.x) * 0.05;
@@ -576,7 +644,6 @@ function updateTraffic(){
       }
     }
 
-    // Botların kendi aralarındaki konvoy mantığı
     for (let j = 0; j < traffic.length; j++) {
       if (i === j) continue;
       const other = traffic[j];
@@ -595,19 +662,30 @@ function updateTraffic(){
 
     c.y += (currentSpeed - c.ownSpeed); 
 
-    // DÜZELTME: Şeridin tam ortasından geçerken çarpışmayı yakalamak için hitbox genişletildi (+12 piksel)
     if (Math.abs(c.x - player.x) < (c.w+player.w)/2 + 12 && Math.abs(c.y - player.y) < (c.h+player.h)/2 - 5) {
       crash();
     }
 
     if (!c.passed && c.y > player.y + 40) {
       c.passed = true;
-      if (!c.oncoming) { score += 15; popup(c.x, player.y-30, '+15 SOLLAMA', '#c6ff3d'); }
+      if (!c.oncoming) { 
+        comboTimer = 180;
+        let pts = 15 * combo;
+        score += pts; 
+        popup(c.x, player.y-30, '+' + pts + ' SOLLAMA x' + combo, '#c6ff3d');
+        combo++;
+      }
     }
     if (!c.nearMissAwarded && Math.abs(c.y - player.y) < 35 && currentSpeed > 4) {
       const gap = Math.abs(c.x - player.x) - (c.w+player.w)/2;
       if (gap > 0 && gap < 18) {
-        c.nearMissAwarded = true; score += 40; popup(player.x, player.y-50, '+40 MAKAS!', '#00e5ff'); sfx('nearmiss');
+        c.nearMissAwarded = true; 
+        comboTimer = 180;
+        let pts = 40 * combo;
+        score += pts; 
+        popup(player.x, player.y-50, '+' + pts + ' MAKAS! x' + combo, '#00e5ff'); 
+        sfx('nearmiss');
+        combo++;
       }
     }
 
@@ -629,7 +707,7 @@ function updatePickups(){
 
 /* ============== ÇİZİM ============== */
 function drawBackground(){
-  let nightFactor = getNightFactor(); // Döngüsel Gece Faktörü 
+  let nightFactor = getNightFactor(); 
 
   const g = G.createLinearGradient(0,0,0,H);
   let topR = Math.round(77 - 71 * nightFactor);   
@@ -639,6 +717,19 @@ function drawBackground(){
   g.addColorStop(0.5, '#0d1526'); 
   g.addColorStop(1, '#05070a');
   G.fillStyle = g; G.fillRect(0,0,W,H);
+
+  // YILDIZLAR VE GECE ATMOSFERİ EKLENDİ
+  if (nightFactor > 0.1) {
+    G.save();
+    G.fillStyle = '#fff';
+    bgStars.forEach(s => {
+      G.globalAlpha = (Math.sin(tick*0.05 + s.a*10) * 0.5 + 0.5) * nightFactor;
+      G.beginPath(); G.arc(s.x, s.y, s.s, 0, Math.PI*2); G.fill();
+      s.y += currentSpeed * 0.01; 
+      if(s.y > H) { s.y = 0; s.x = Math.random()*W; }
+    });
+    G.restore();
+  }
 
   bgOffset += currentSpeed * 0.25;
   G.save(); G.globalAlpha = 0.5 - (nightFactor * 0.2);
@@ -782,6 +873,9 @@ function drawPlayer(){
 }
 
 function loop(){
+  requestAnimationFrame(loop);
+  if (isPaused) return; 
+
   tick++;
   G.clearRect(0,0,W,H);
 
@@ -796,12 +890,17 @@ function loop(){
     updateTraffic();
     updatePickups();
 
+    if (comboTimer > 0) {
+      comboTimer--;
+      if (comboTimer <= 0) combo = 1;
+    }
+
     spawnTimer--;
     if (spawnTimer <= 0) {
       spawnTraffic();
       
       let baslangicYogunluk = 0.30; 
-      let artisMiktari = Math.floor(score / 800) * 0.05; 
+      let artisMiktari = (score / 800) * 0.05; 
       let ciftArabaIhtimali = Math.min(baslangicYogunluk + artisMiktari, 0.80); 
       
       if(Math.random() < ciftArabaIhtimali) spawnTraffic(); 
@@ -827,7 +926,6 @@ function loop(){
   updatePopups(); drawPopups();
 
   G.restore();
-  requestAnimationFrame(loop);
 }
 
 loop();
