@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Trafik Kaçışı - Akıllı Trafik Modu</title>
+<title>Trafik Kaçışı - Kusursuz Sürüm</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap">
 <style>
 :root{
@@ -148,10 +148,10 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
   <div id="start-screen" class="screen on">
     <div class="panel">
       <div class="logo">TRAFİK<span>KAÇIŞI</span></div>
-      <div class="tagline">AKILLI VE TEHLİKELİ TRAFİK</div>
+      <div class="tagline">KUSURSUZ SÜRÜM</div>
       <div class="best-row">REKOR: <b id="start-best">0m</b></div>
       <button class="game-btn" id="btn-start">BAŞLA</button>
-      <div class="instructions">Dikkatli ol! Bazı arabalar aniden sinyal verip şerit değiştirebilir<br>veya sebepsizce sert fren yapabilirler. Gözünü yoldan ayırma!</div>
+      <div class="instructions">Artık botlar şerit değiştirmeden önce net sinyal veriyor!<br>Gece ve gündüz döngüsü sonsuza dek akacak. Bol şans.</div>
     </div>
   </div>
 
@@ -290,7 +290,7 @@ const BRAKE_DECEL = 0.35;
 let gasHeld = false, brakeHeld = false, nosHeld = false, leftHeld = false, rightHeld = false;
 let wasNosHeld = false; 
 let nitroFuel = 100;
-const NITRO_DRAIN = 1.2;
+const NITRO_DRAIN = 0.4; // NOS 3 KAT DAHA YAVAŞ BİTECEK
 
 const player = { x: LANE_X[2], y: H - 150, w: 30, h: 54, targetX: LANE_X[2] };
 
@@ -377,6 +377,16 @@ document.getElementById('btn-retry').addEventListener('click', (e)=>{ e.preventD
 
 function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
 
+/* ============== GECE/GÜNDÜZ DÖNGÜSÜ FONKSİYONU ============== */
+// Döngü her 12000 skorda bir baştan sona tamamlanacak.
+function getNightFactor() {
+  let timePhase = (score % 12000) / 12000;
+  if (timePhase > 0.4 && timePhase <= 0.5) return (timePhase - 0.4) * 10; // Gün batımı (kararma)
+  if (timePhase > 0.5 && timePhase <= 0.9) return 1;                      // Gece
+  if (timePhase > 0.9) return 1 - ((timePhase - 0.9) * 10);               // Gün doğumu (aydınlanma)
+  return 0;                                                               // Gündüz
+}
+
 /* ============== OYUN AKIŞI ============== */
 function startGame(){
   getAudio(); startEngine();
@@ -423,7 +433,7 @@ function updateHud(){
   hudSpeedEl.innerHTML = displaySpeed + ' <span>km/h</span>';
 }
 
-/* ============== TRAFİK OLUŞTURMA & YAPAY ZEKA ============== */
+/* ============== TRAFİK OLUŞTURMA & YENİ YAPAY ZEKA ============== */
 const CAR_COLORS = ['#e0463c','#3fa9f5','#f5c542','#8e6bd8','#4caf6a','#f57f42', '#ffffff', '#222222'];
 function spawnTraffic(){
   const lane = Math.floor(Math.random()*4);
@@ -449,18 +459,16 @@ function spawnTraffic(){
   const tooClose = traffic.some(c => c.lane === lane && Math.abs(c.y - spawnY) < 220);
   if (tooClose) return;
 
-  // Akıllı/Tehlikeli bot özellikleri eklendi
   traffic.push({
     x: laneX, y: spawnY, w, h, lane, ownSpeed,
     color: CAR_COLORS[Math.floor(Math.random()*CAR_COLORS.length)],
     oncoming, passed: false, nearMissAwarded: false, isTruck,
-    isCrazy: !isTruck && Math.random() < 0.25, // %25 ihtimalle deli şoför
-    crazyAction: Math.random() < 0.5 ? 'brake' : 'lane_change',
-    actionTimer: 60 + Math.random() * 120, // Ne zaman aksiyon alacağı (tick sayısı)
-    isBraking: false,
-    isChangingLane: false,
+    isCrazy: !isTruck && Math.random() < 0.25, 
+    aiState: 'wait', // wait, signaling, changing, braking, done
+    aiTimer: 60 + Math.random() * 100, 
+    turnSignal: 0, 
     targetLaneX: laneX,
-    turnSignal: 0 // -1: sol, 1: sağ
+    targetLane: lane
   });
 }
 
@@ -504,7 +512,6 @@ function updatePlayer(){
   if (keys.left || leftHeld) player.targetX -= steerSpeed;
   if (keys.right || rightHeld) player.targetX += steerSpeed;
   
-  // DÜZELTME 1: Araba artık asfalt sınırlarının dışına çıkıp saklanamaz
   player.targetX = clamp(player.targetX, ROAD_X+24, ROAD_X+ROAD_W-24);
   player.x += (player.targetX - player.x) * 0.25;
 
@@ -521,14 +528,14 @@ function updateTraffic(){
   for (let i = traffic.length - 1; i >= 0; i--) {
     const c = traffic[i];
     
-    // AKILLI/TEHLİKELİ BOT DAVRANIŞLARI
-    if (c.isCrazy && c.actionTimer > 0) {
-      c.actionTimer--;
-      if (c.actionTimer <= 0) {
-        if (c.crazyAction === 'brake') {
-          c.isBraking = true;
-          c.ownSpeed = c.oncoming ? -1.5 : 1.5; // Aniden fren yapıp yavaşlar
-        } else if (c.crazyAction === 'lane_change') {
+    // YENİ BOT YAPAY ZEKASI (Sinyal -> Şerit Kontrolü -> Harekete Geçiş)
+    if (c.isCrazy && c.aiState === 'wait') {
+      c.aiTimer--;
+      if (c.aiTimer <= 0) {
+        if (Math.random() < 0.4) {
+          c.aiState = 'braking';
+          c.ownSpeed = c.oncoming ? -1.5 : 1.5; 
+        } else {
           let possibleLanes = [];
           if (c.oncoming) {
             if (c.lane === 1) possibleLanes.push(0);
@@ -538,22 +545,34 @@ function updateTraffic(){
             if (c.lane === 3) possibleLanes.push(2);
           }
           if (possibleLanes.length > 0) {
-            c.isChangingLane = true;
             let newLane = possibleLanes[0];
-            c.targetLaneX = LANE_X[newLane];
-            c.turnSignal = newLane > c.lane ? 1 : -1;
-            c.lane = newLane; // Çarpışma algılayıcısını yeni şeride günceller
+            // YENİ: Geçmek istediği şeritte geniş çaplı araç taraması yap (İç içe geçmeyi engeller)
+            let isSafe = !traffic.some(other => other !== c && other.lane === newLane && Math.abs(other.y - c.y) < 160);
+            if (isSafe) {
+              c.aiState = 'signaling';
+              c.aiTimer = 45; // 0.75 saniye sinyal bekleme süresi
+              c.targetLane = newLane;
+              c.targetLaneX = LANE_X[newLane];
+              c.turnSignal = newLane > c.lane ? 1 : -1;
+            } else {
+              c.aiState = 'braking'; // Şerit doluysa mecburen fren yap
+              c.ownSpeed = c.oncoming ? -1.0 : 1.0; 
+            }
           }
         }
       }
-    }
-
-    if (c.isChangingLane) {
-      c.x += (c.targetLaneX - c.x) * 0.04;
+    } else if (c.aiState === 'signaling') {
+      c.aiTimer--;
+      if (c.aiTimer <= 0) {
+        c.aiState = 'changing';
+        c.lane = c.targetLane; // Arabayı sistemsel olarak diğer şeride taşı
+      }
+    } else if (c.aiState === 'changing') {
+      c.x += (c.targetLaneX - c.x) * 0.05;
       if (Math.abs(c.x - c.targetLaneX) < 2) {
         c.x = c.targetLaneX;
-        c.isChangingLane = false;
-        c.turnSignal = 0; // Sinyali kapat
+        c.aiState = 'done';
+        c.turnSignal = 0;
       }
     }
 
@@ -561,8 +580,7 @@ function updateTraffic(){
     for (let j = 0; j < traffic.length; j++) {
       if (i === j) continue;
       const other = traffic[j];
-      
-      if (c.lane === other.lane && !c.isChangingLane && !other.isChangingLane) {
+      if (c.lane === other.lane && c.aiState !== 'changing' && other.aiState !== 'changing') {
         if (!c.oncoming && !other.oncoming) {
           if (c.y > other.y && c.y - other.y < 85) {
             if (c.ownSpeed > other.ownSpeed) c.ownSpeed = other.ownSpeed;
@@ -577,8 +595,8 @@ function updateTraffic(){
 
     c.y += (currentSpeed - c.ownSpeed); 
 
-    // DÜZELTME 2: Çizgi ortasında durma hilesi kapatıldı (-2 piksel tolerans)
-    if (Math.abs(c.x - player.x) < (c.w+player.w)/2 - 2 && Math.abs(c.y - player.y) < (c.h+player.h)/2 - 5) {
+    // DÜZELTME: Şeridin tam ortasından geçerken çarpışmayı yakalamak için hitbox genişletildi (+12 piksel)
+    if (Math.abs(c.x - player.x) < (c.w+player.w)/2 + 12 && Math.abs(c.y - player.y) < (c.h+player.h)/2 - 5) {
       crash();
     }
 
@@ -611,7 +629,7 @@ function updatePickups(){
 
 /* ============== ÇİZİM ============== */
 function drawBackground(){
-  let nightFactor = Math.min(score / 15000, 1); 
+  let nightFactor = getNightFactor(); // Döngüsel Gece Faktörü 
 
   const g = G.createLinearGradient(0,0,0,H);
   let topR = Math.round(77 - 71 * nightFactor);   
@@ -674,7 +692,7 @@ function drawRoad(){
 }
 
 function drawCar(x,y,w,h,color,facingDown,isPlayer, botBraking=false, turnSignal=0){
-  let nightFactor = Math.min(score / 15000, 1);
+  let nightFactor = getNightFactor();
 
   G.save(); G.translate(x,y);
   G.fillStyle = 'rgba(0,0,0,0.4)'; G.beginPath(); G.ellipse(0,h/2+4,w/2,6,0,0,Math.PI*2); G.fill();
@@ -701,7 +719,6 @@ function drawCar(x,y,w,h,color,facingDown,isPlayer, botBraking=false, turnSignal
     G.restore();
   }
 
-  // FREN VE FAR IŞIKLARI
   if (isPlayer) {
     G.fillStyle = '#fff'; G.shadowColor='#fff'; G.shadowBlur= 10 + (nightFactor*15); 
     G.fillRect(-w/2+3, -h/2-2, 6, 4); G.fillRect(w/2-9, -h/2-2, 6, 4);
@@ -714,7 +731,6 @@ function drawCar(x,y,w,h,color,facingDown,isPlayer, botBraking=false, turnSignal
     G.fillRect(-w/2+3, h/2-2, 6, 4); G.fillRect(w/2-9, h/2-2, 6, 4);
     G.shadowBlur=0;
   } else {
-    // BOT PANİK FRENİ EFEKTİ
     G.fillStyle = botBraking ? '#ff0000' : '#ff3333'; 
     G.shadowColor = botBraking ? '#ff0000' : '#ff3333'; 
     G.shadowBlur = (botBraking || nightFactor > 0.2) ? 15 : 0;
@@ -722,11 +738,10 @@ function drawCar(x,y,w,h,color,facingDown,isPlayer, botBraking=false, turnSignal
     G.shadowBlur=0;
   }
 
-  // SİNYAL LAMBASI EFEKTİ (Yalnızca şerit değiştiren botlarda)
   if (turnSignal !== 0 && Math.floor(tick / 15) % 2 === 0) {
     G.fillStyle = '#ffb84d'; G.shadowColor = '#ffb84d'; G.shadowBlur = 12;
-    let sigX = turnSignal === 1 ? w/2-9 : -w/2+3; // Sağa veya sola dönme yönü
-    let sigY = facingDown ? h/2-2 : -h/2-2;       // Bize doğru mu aynı yönde mi
+    let sigX = turnSignal === 1 ? w/2-9 : -w/2+3; 
+    let sigY = facingDown ? h/2-2 : -h/2-2;       
     G.fillRect(sigX, sigY, 6, 4);
     G.shadowBlur = 0;
   }
@@ -781,7 +796,6 @@ function loop(){
     updateTraffic();
     updatePickups();
 
-    // TRAFİK YOĞUNLUĞU HIZLANDIRILDI
     spawnTimer--;
     if (spawnTimer <= 0) {
       spawnTraffic();
@@ -805,7 +819,7 @@ function loop(){
   drawBackground();
   drawRoad();
   
-  traffic.forEach(c => drawCar(c.x, c.y, c.w, c.h, c.color, c.oncoming, false, c.isBraking, c.turnSignal));
+  traffic.forEach(c => drawCar(c.x, c.y, c.w, c.h, c.color, c.oncoming, false, c.aiState === 'braking', c.turnSignal));
   drawPickups();
   if (state === 'play' || state === 'crash') drawPlayer();
   
