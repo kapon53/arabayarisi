@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Trafik Kaçışı - Ultimate Sürüm</title>
+<title>Trafik Kaçışı - Yeni Araç Modelleri</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap">
 <style>
 :root{ --lime:#c6ff3d; --cyan:#00e5ff; --amber:#ffb84d; --red:#ff3b4e; --bg:#05070a; }
@@ -155,19 +155,18 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
 const CV = document.getElementById('c'), G = CV.getContext('2d'), W = 420, H = 760;
 CV.width = W; CV.height = H;
 
-// VERİTABANI & EKONOMİ (Yükseltme mantığı eklendi)
-let globalCash = parseInt(localStorage.getItem('trafikKacisiCash') || '0', 10);
-// Araç Veritabanı
+// VERİTABANI & EKONOMİ
+let globalCash = parseInt(localStorage.getItem('trafikKacisiCash') || '50000', 10); // Test için 50k bakiye
+// YENİ ARAÇ MODELLERİ (model property'si eklendi)
 const BASE_CARS = [
-  { id: 0, name: 'Sedan', price: 0, speed: 7.5, nos: 11.5, steer: 4.5, brake: 0.20, color: '#3fa9f5', w: 30, h: 54, spdMax: 10, hndMax: 7, brkMax: 0.4 },
-  { id: 1, name: 'Crossover', price: 2000, speed: 8.5, nos: 13.0, steer: 5.5, brake: 0.35, color: '#ffffff', w: 32, h: 56, spdMax: 11, hndMax: 8, brkMax: 0.5 },
-  { id: 2, name: 'Hatchback', price: 5000, speed: 9.0, nos: 14.5, steer: 7.5, brake: 0.45, color: '#f5c542', w: 28, h: 50, spdMax: 11.5, hndMax: 10, brkMax: 0.6 },
-  { id: 3, name: 'Ağır SUV', price: 10000, speed: 10.5, nos: 16.5, steer: 5.0, brake: 0.55, color: '#ff3b4e', w: 34, h: 60, spdMax: 13, hndMax: 7.5, brkMax: 0.7 },
-  { id: 4, name: 'Spor S-Line', price: 25000, speed: 12.5, nos: 19.5, steer: 9.5, brake: 0.80, color: '#c6ff3d', w: 30, h: 56, spdMax: 15, hndMax: 12, brkMax: 1.0 }
+  { id: 0, name: 'Eski Sedan', model: 'sedan', price: 0, speed: 7.5, nos: 11.5, steer: 4.5, brake: 0.20, color: '#3fa9f5', w: 30, h: 54, spdMax: 10, hndMax: 7, brkMax: 0.4 },
+  { id: 1, name: 'Hatchback', model: 'hatchback', price: 2000, speed: 8.5, nos: 13.0, steer: 5.5, brake: 0.35, color: '#ffffff', w: 28, h: 50, spdMax: 11, hndMax: 8, brkMax: 0.5 },
+  { id: 2, name: 'Kamyonet', model: 'pickup', price: 5000, speed: 9.0, nos: 14.5, steer: 7.5, brake: 0.45, color: '#ff3b4e', w: 32, h: 56, spdMax: 11.5, hndMax: 10, brkMax: 0.6 },
+  { id: 3, name: 'Ağır SUV', model: 'suv', price: 10000, speed: 10.5, nos: 16.5, steer: 5.0, brake: 0.55, color: '#f5c542', w: 34, h: 60, spdMax: 13, hndMax: 7.5, brkMax: 0.7 },
+  { id: 4, name: 'Spor S-Line', model: 'sport', price: 25000, speed: 12.5, nos: 19.5, steer: 9.5, brake: 0.80, color: '#c6ff3d', w: 30, h: 56, spdMax: 15, hndMax: 12, brkMax: 1.0 }
 ];
 const COLORS = ['#3fa9f5', '#ffffff', '#f5c542', '#ff3b4e', '#c6ff3d', '#222', '#8e6bd8'];
 
-// Yükseltmeleri yerel depolamadan çek
 let myGarage = JSON.parse(localStorage.getItem('trafikGarageData')) || { 
   0: { unlocked: true, spdLvl: 0, hndLvl: 0, brkLvl: 0, color: '#3fa9f5' }
 };
@@ -176,8 +175,8 @@ let viewingCarId = selectedCarId;
 let best = parseInt(localStorage.getItem('trafikKacisiBest') || '0', 10);
 
 // Ayarlar
-let isTwoWay = false; // Mod Seçimi
-let curTheme = 'forest'; // forest, desert, snow
+let isTwoWay = false; 
+let curTheme = 'forest'; 
 
 const THEMES = {
   forest: { bg1: 77, bg2: 166, bg3: 255, ground: [42,77,46], road: '#262933', line: '#f5c542' },
@@ -194,7 +193,7 @@ let gasHeld=false, brakeHeld=false, nosHeld=false, leftHeld=false, rightHeld=fal
 let nitroFuel = 100;
 const ROAD_X = 50, ROAD_W = 320, LANE_W = ROAD_W / 4;
 const LANE_X = [ROAD_X + LANE_W*0.5, ROAD_X + LANE_W*1.5, ROAD_X + LANE_W*2.5, ROAD_X + LANE_W*3.5];
-const player = { x: LANE_X[2], y: H - 150, w: 30, h: 54, targetX: LANE_X[2], color: '#3fa9f5' };
+const player = { x: LANE_X[2], y: H - 150, w: 30, h: 54, targetX: LANE_X[2], color: '#3fa9f5', model: 'sedan' };
 const traffic = [], pickups = [], particles = []; 
 let spawnTimer = 40, pickupTimer = 220, wrongWayTimer = 0; 
 
@@ -278,12 +277,12 @@ function updateGarageUI() {
     b.onclick=()=>{ if(globalCash>=c.price){ globalCash-=c.price; myGarage[viewingCarId]={unlocked:true, spdLvl:0, hndLvl:0, brkLvl:0, color:c.color}; selectedCarId=viewingCarId; saveG(); updateGarageUI(); sfx('horn');} else shake(10); }
   }
 
-  // Draw Preview
+  // Draw Preview on Canvas
   const pCV = document.getElementById('car-preview'), pCtx = pCV.getContext('2d'); pCtx.clearRect(0,0,pCV.width, pCV.height); pCtx.save(); pCtx.translate(pCV.width/2, pCV.height/2);
-  let pw = c.w * 2, ph = c.h * 2; pCtx.fillStyle = 'rgba(0,0,0,0.4)'; pCtx.beginPath(); pCtx.ellipse(0, ph/2+4, pw/2, 8, 0, 0, Math.PI*2); pCtx.fill();
-  pCtx.fillStyle = u ? u.color : c.color; roundRectPath(pCtx, -pw/2, -ph/2, pw, ph, 8); pCtx.fill(); pCtx.strokeStyle='rgba(0,0,0,0.5)'; pCtx.lineWidth=2; pCtx.stroke();
-  pCtx.fillStyle = 'rgba(20,28,40,0.85)'; roundRectPath(pCtx, -pw/2+5, -ph/2+12, pw-10, ph*0.32, 5); pCtx.fill(); roundRectPath(pCtx, -pw/2+6, ph*0.1, pw-12, ph*0.15, 3); pCtx.fill();
-  pCtx.fillStyle = '#fff'; pCtx.fillRect(-pw/2+4, -ph/2-3, 8, 5); pCtx.fillRect(pw/2-12, -ph/2-3, 8, 5); pCtx.fillStyle = '#880000'; pCtx.fillRect(-pw/2+4, ph/2-2, 8, 5); pCtx.fillRect(pw/2-12, ph/2-2, 8, 5); pCtx.restore();
+  let pw = c.w * 2, ph = c.h * 2;
+  // Burada Garaj önizlemesi için drawCar çağrılıyor
+  drawCarRaw(pCtx, 0, 10, pw, ph, u ? u.color : c.color, false, false, false, 0, false, c.model);
+  pCtx.restore();
 }
 function saveG(){ localStorage.setItem('trafikGarageData', JSON.stringify(myGarage)); localStorage.setItem('trafikKacisiCash', globalCash); localStorage.setItem('trafikKacisiSelectedCar', selectedCarId); updateCashUI(); }
 document.getElementById('btn-garage-menu').onclick = (e)=>{ e.preventDefault(); getAudio(); viewingCarId=selectedCarId; updateGarageUI(); document.getElementById('start-screen').classList.remove('on'); document.getElementById('garage-screen').classList.add('on'); state='garage'; };
@@ -296,10 +295,9 @@ function honkHorn() {
   if(state !== 'play') return;
   sfx('horn');
   traffic.forEach(c => {
-    // Sadece aynı yönde, oyuncunun önünde ve yakınsa
     if (!c.oncoming && c.lane === player.lane && c.y < player.y && player.y - c.y < 300) {
       let possibleLanes = [];
-      if (c.lane > 2 && isTwoWay) possibleLanes.push(3); // Çift yönse sadece sağ şeritlere kaçabilir
+      if (c.lane > 2 && isTwoWay) possibleLanes.push(3); 
       else if (c.lane > 0) possibleLanes.push(c.lane - 1);
       if (c.lane < 3) possibleLanes.push(c.lane + 1);
       
@@ -323,6 +321,7 @@ function startGame(){
   let base = BASE_CARS[selectedCarId]; let stat = getCarStat(selectedCarId); let u = myGarage[selectedCarId];
   GAS_SPEED = stat.speed; NOS_SPEED = base.nos + (u.spdLvl*0.5); STEER_SPEED = stat.hnd; BRAKE_DECEL = stat.brk;
   player.color = u.color; player.w = base.w; player.h = base.h; player.lane = 2; player.x = LANE_X[2]; player.targetX = LANE_X[2];
+  player.model = base.model; // Seçili araç modeli
 
   spawnTimer = 20; isPaused = false; document.getElementById('btn-pause').innerText = '⏸';
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
@@ -344,17 +343,26 @@ document.getElementById('btn-go-garage').onclick = (e)=>{ e.preventDefault(); do
 
 /* FİZİK & TRAFİK */
 const CAR_COLORS = ['#3fa9f5','#ffffff','#f5c542','#8e6bd8','#4caf6a','#ff3b4e','#222'];
+const NPC_MODELS = ['sedan', 'hatchback', 'suv', 'pickup'];
 function spawnTraffic(){
   const lane = Math.floor(Math.random()*4); const laneX = LANE_X[lane];
-  // Kamyonlar eklendi (Büyük ve yavaş)
-  const isTruck = Math.random() < 0.25; const w = isTruck ? 36 : 30, h = isTruck ? 95 : 54;
-  const oncoming = isTwoWay ? (lane < 2) : false; // Tek yön/Çift yön ayrımı
+  const isTruck = Math.random() < 0.20; 
+  const w = isTruck ? 36 : 30, h = isTruck ? 110 : 54;
+  const oncoming = isTwoWay ? (lane < 2) : false; 
   
   let ownSpeed = oncoming ? -(2.5 + Math.random()*2) : (isTruck ? 1.5 + Math.random() : 2.0 + Math.random()*3);
-  let spawnY = oncoming ? -150 : (ownSpeed > currentSpeed ? H + 200 : -150);
+  let spawnY = oncoming ? -200 : (ownSpeed > currentSpeed ? H + 200 : -200);
   if (traffic.some(c => c.lane === lane && Math.abs(c.y - spawnY) < 250)) return;
 
-  traffic.push({ x: laneX, y: spawnY, w, h, lane, ownSpeed, color: CAR_COLORS[Math.floor(Math.random()*CAR_COLORS.length)], oncoming, passed: false, nearMissAwarded: false, isTruck, isCrazy: !isTruck && Math.random() < Math.min(0.2 + score/15000, 0.6), aiState: 'wait', aiTimer: 60 + Math.random() * 100, turnSignal: 0, targetLaneX: laneX, targetLane: lane });
+  // NPC'ler rastgele bir modele sahip olur (tır değilse)
+  let tModel = isTruck ? 'truck' : NPC_MODELS[Math.floor(Math.random()*NPC_MODELS.length)];
+
+  traffic.push({ 
+    x: laneX, y: spawnY, w, h, lane, ownSpeed, color: CAR_COLORS[Math.floor(Math.random()*CAR_COLORS.length)], 
+    oncoming, passed: false, nearMissAwarded: false, isTruck, model: tModel,
+    isCrazy: !isTruck && Math.random() < Math.min(0.2 + score/15000, 0.6), 
+    aiState: 'wait', aiTimer: 60 + Math.random() * 100, turnSignal: 0, targetLaneX: laneX, targetLane: lane 
+  });
 }
 
 function updatePhysics() {
@@ -366,7 +374,7 @@ function updatePhysics() {
   
   if (keys.left || leftHeld) player.targetX -= STEER_SPEED; if (keys.right || rightHeld) player.targetX += STEER_SPEED;
   player.targetX = clamp(player.targetX, ROAD_X+20, ROAD_X+ROAD_W-20);
-  player.x += (player.targetX - player.x) * (STEER_SPEED * 0.035); // Yumuşaklık direksiyon seviyesine bağlı
+  player.x += (player.targetX - player.x) * (STEER_SPEED * 0.035); 
   player.lane = Math.floor((player.x - ROAD_X) / LANE_W);
 
   if (isTwoWay && player.x < ROAD_X + ROAD_W/2 && currentSpeed > 4) {
@@ -378,7 +386,6 @@ function updateTraffic(){
   for (let i = traffic.length - 1; i >= 0; i--) {
     const c = traffic[i];
     
-    // Gelişmiş Şerit ve İç İçe Geçme Koruması
     if (c.aiState === 'wait' && c.isCrazy && --c.aiTimer <= 0) {
       let opts = [];
       if (c.oncoming) { if(c.lane===1)opts.push(0); if(c.lane===0)opts.push(1); } else { if(c.lane===2 && isTwoWay)opts.push(3); else if(!isTwoWay){ if(c.lane>0)opts.push(c.lane-1); if(c.lane<3)opts.push(c.lane+1); } else { if(c.lane===3)opts.push(2); } }
@@ -390,7 +397,6 @@ function updateTraffic(){
     } else if (c.aiState === 'signaling' && --c.aiTimer <= 0) { c.aiState = 'changing'; c.lane = c.targetLane;
     } else if (c.aiState === 'changing') { c.x += (c.targetLaneX - c.x) * 0.05; if (Math.abs(c.x - c.targetLaneX)<2) { c.x=c.targetLaneX; c.aiState='wait'; c.turnSignal=0; c.aiTimer=120;} }
 
-    // Çarpışma Önleyici Takip Mesafesi (İç İçe Geçmemesi İçin Zorunlu Hız Sabitleme)
     for (let j = 0; j < traffic.length; j++) {
       if (i===j) continue; const o = traffic[j];
       if (c.lane === o.lane && c.aiState !== 'changing' && o.aiState !== 'changing' && c.oncoming === o.oncoming) {
@@ -402,7 +408,6 @@ function updateTraffic(){
     if (!c.oncoming && Math.abs(c.x - player.x) <= LANE_W*0.8 && c.y > player.y && c.y - player.y < 120 && c.ownSpeed > currentSpeed) { c.ownSpeed = currentSpeed; c.aiState='braking'; }
     c.y += (currentSpeed - c.ownSpeed); 
     
-    // ÇARPIŞMA (Hitbox Toleransı Kamyonlar için büyütüldü)
     if (Math.abs(c.x - player.x) < (c.w+player.w)/2 - 2 && Math.abs(c.y - player.y) < (c.h+player.h)/2 - 5) crash();
 
     if (!c.passed && c.y > player.y + 40) { c.passed=true; if(!c.oncoming && Math.abs(c.x-player.x) <= LANE_W*1.5) { comboTimer=300; score+=15*combo; popup(c.x, player.y-30, '+'+15*combo, '#c6ff3d'); combo++; } }
@@ -429,7 +434,6 @@ function drawScene(){
   G.globalAlpha=1; G.fillStyle = `rgb(${Math.round(t.ground[0] - t.ground[0]*0.8*night)},${Math.round(t.ground[1] - t.ground[1]*0.8*night)},${Math.round(t.ground[2] - t.ground[2]*0.8*night)})`;
   G.fillRect(0,0,ROAD_X,H); G.fillRect(ROAD_X+ROAD_W,0,W,H);
 
-  // Yol ve Çizgiler (Karlı tema buz efekti)
   G.fillStyle = curTheme==='snow' ? (night>0.5 ? '#2a2f38' : '#8fa5b8') : t.road; G.fillRect(ROAD_X, 0, ROAD_W, H);
   roadDashOffset += currentSpeed; 
   [ROAD_X-8, ROAD_X+ROAD_W-4].forEach((sx)=>{ for (let y = -26 + (roadDashOffset % 52); y < H; y += 52) { G.fillStyle = curTheme==='snow'?'#fff':'#ddd'; G.fillRect(sx, y, 8, 26); G.fillStyle = '#c0392b'; G.fillRect(sx, y+26, 8, 26); } });
@@ -437,32 +441,96 @@ function drawScene(){
   G.strokeStyle = 'rgba(255,255,255,0.7)'; G.lineWidth = 3;
   for (let y = -35 + (roadDashOffset % 60); y < H; y += 60) { G.beginPath(); G.moveTo(ROAD_X+LANE_W, y); G.lineTo(ROAD_X+LANE_W, y+35); G.stroke(); G.beginPath(); G.moveTo(ROAD_X+LANE_W*3, y); G.lineTo(ROAD_X+LANE_W*3, y+35); G.stroke(); }
   
-  // Çift/Tek Yön Orta Çizgisi
   G.strokeStyle = isTwoWay ? t.line : 'rgba(255,255,255,0.7)'; G.lineWidth = isTwoWay ? 2.5 : 3;
   if(isTwoWay) { G.beginPath(); G.moveTo(ROAD_X+LANE_W*2-3,0); G.lineTo(ROAD_X+LANE_W*2-3,H); G.stroke(); G.beginPath(); G.moveTo(ROAD_X+LANE_W*2+3,0); G.lineTo(ROAD_X+LANE_W*2+3,H); G.stroke(); }
   else { for (let y = -35 + (roadDashOffset % 60); y < H; y += 60) { G.beginPath(); G.moveTo(ROAD_X+LANE_W*2, y); G.lineTo(ROAD_X+LANE_W*2, y+35); G.stroke(); } }
 }
 
-function drawCar(x,y,w,h,col,facingDown,isP, brk=false, sig=0, isT=false){
-  let night = state==='garage'?0:getNightFactor(); G.save(); G.translate(x,y);
-  G.fillStyle='rgba(0,0,0,0.4)'; G.beginPath(); G.ellipse(0,h/2+4,w/2,6,0,0,Math.PI*2); G.fill();
-  G.fillStyle=col; roundRectPath(G, -w/2, -h/2, w, h, isT?2:6); G.fill(); G.strokeStyle='rgba(0,0,0,0.5)'; G.lineWidth=1.5; G.stroke();
-  G.fillStyle='rgba(20,28,40,0.85)'; 
-  if(isT){ roundRectPath(G, -w/2+2, facingDown?-h/2+4:h*0.2, w-4, h*0.25, 2); G.fill(); }
-  else { roundRectPath(G, -w/2+4, facingDown?-h/2+8:h*0.02, w-8, h*0.32, 4); G.fill(); roundRectPath(G, -w/2+5, facingDown?h*0.1:-h/2+6, w-10, h*0.15, 2); G.fill(); }
+// YENİ: ARAÇLARIN ÖZEL TASARIM VE DETAYLARI BURADA ÇİZİLİYOR
+function drawCarRaw(ctx, x, y, w, h, col, facingDown, isP, brk, sig, isT, model) {
+  ctx.save(); ctx.translate(x,y);
   
-  if (isP) { G.fillStyle='#fff'; G.shadowColor='#fff'; G.shadowBlur=10+(night*15); G.fillRect(-w/2+3, -h/2-2, 6, 4); G.fillRect(w/2-9, -h/2-2, 6, 4); G.shadowBlur=0; G.fillStyle=brakeHeld?'#ff0000':'#880000'; if(brakeHeld||night>0.2) {G.shadowColor='#ff0000'; G.shadowBlur=15;} G.fillRect(-w/2+3, h/2-2, 6, 4); G.fillRect(w/2-9, h/2-2, 6, 4); } 
-  else if (facingDown) { G.fillStyle='#fff2b0'; G.shadowColor='#fff2b0'; G.shadowBlur=night>0.2?15:5; G.fillRect(-w/2+3, h/2-2, 6, 4); G.fillRect(w/2-9, h/2-2, 6, 4); G.shadowBlur=0; } 
-  else { G.fillStyle=brk?'#ff0000':'#ff3333'; G.shadowColor=brk?'#ff0000':'#ff3333'; G.shadowBlur=(brk||night>0.2)?15:0; G.fillRect(-w/2+3, -h/2-2, 6, 4); G.fillRect(w/2-9, -h/2-2, 6, 4); G.shadowBlur=0; }
-  if (sig!==0 && Math.floor(tick/15)%2===0) { G.fillStyle='#ffb84d'; G.shadowColor='#ffb84d'; G.shadowBlur=12; G.fillRect(sig===1?w/2-9:-w/2+3, facingDown?h/2-2:-h/2-2, 6, 4); G.shadowBlur=0; }
-  G.restore();
+  // Gölge
+  ctx.fillStyle='rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(0,h/2+4,w/2,6,0,0,Math.PI*2); ctx.fill();
+  
+  if (isT) {
+    // TIR (Çekici + Dorse)
+    ctx.fillStyle = '#eee'; roundRectPath(ctx, -w/2, facingDown ? -h/2+35 : -h/2, w, h-35, 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = col; roundRectPath(ctx, -w/2, facingDown ? -h/2 : h/2-30, w, 30, 4); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#111'; roundRectPath(ctx, -w/2+2, facingDown ? -h/2+10 : h/2-25, w-4, 15, 2); ctx.fill();
+  } else {
+    // STANDART ARAÇ GÖVDESİ
+    ctx.fillStyle=col; roundRectPath(ctx, -w/2, -h/2, w, h, 6); ctx.fill(); ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=1.5; ctx.stroke();
+    
+    // MODEL DETAYLARI
+    ctx.fillStyle='rgba(20,28,40,0.85)'; 
+    let winFrontY = facingDown ? -h/2+8 : h*0.02;
+    let winRearY  = facingDown ? h*0.1 : -h/2+6;
+    
+    // Pickup kasası
+    if (model === 'pickup') {
+      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      roundRectPath(ctx, -w/2+2, facingDown ? -h/2+2 : h/2 - (h*0.4), w-4, h*0.4 - 2, 2); ctx.fill();
+      ctx.fillStyle='rgba(20,28,40,0.85)'; 
+      winRearY = facingDown ? h*0.1 : -h/2+(h*0.4); // Arka camı öne al
+    }
+    
+    // Hatchback arka camı (daha küt ve geride)
+    if (model === 'hatchback') {
+      winRearY = facingDown ? h/2 - 10 : -h/2 + 2;
+    }
 
-  if (night>0.1) {
-    G.save(); G.translate(x,y); G.globalAlpha = night;
-    let bLen = isP?280:200, sp = isP?70:50, ys = facingDown?h/2:-h/2, ye = facingDown?h/2+bLen:-h/2-bLen;
-    let grad = G.createLinearGradient(0, ys, 0, ye); grad.addColorStop(0, 'rgba(255,255,240,0.7)'); grad.addColorStop(1, 'rgba(255,255,240,0)');
-    G.fillStyle = grad; G.beginPath(); G.moveTo(-w/2+6, ys); G.lineTo(w/2-6, ys); G.lineTo(w/2+sp, ye); G.lineTo(-w/2-sp, ye); G.closePath(); G.fill(); G.restore();
+    // Ön Cam
+    roundRectPath(ctx, -w/2+4, winFrontY, w-8, h*0.32, 4); ctx.fill(); 
+    // Arka Cam
+    roundRectPath(ctx, -w/2+5, winRearY, w-10, h*0.15, 2); ctx.fill();
+
+    // SUV Tavan Çıtaları
+    if (model === 'suv') {
+      ctx.fillStyle = '#555';
+      ctx.fillRect(-w/2+2, -h/2+15, 3, h-30);
+      ctx.fillRect(w/2-5, -h/2+15, 3, h-30);
+    }
+
+    // Spor Araç Çizgileri ve Spoiler
+    if (model === 'sport') {
+      // Çizgiler
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.fillRect(-3, -h/2, 2, h); ctx.fillRect(1, -h/2, 2, h);
+      // Rüzgarlık (Spoiler)
+      ctx.fillStyle = '#111';
+      roundRectPath(ctx, -w/2-2, facingDown ? -h/2+2 : h/2-6, w+4, 4, 1); ctx.fill();
+    }
   }
+  
+  // FARLAR VE FRENLER
+  let night = state==='garage'?0:getNightFactor();
+  if (isP) { 
+    ctx.fillStyle='#fff'; ctx.shadowColor='#fff'; ctx.shadowBlur=10+(night*15); ctx.fillRect(-w/2+3, -h/2-2, 6, 4); ctx.fillRect(w/2-9, -h/2-2, 6, 4); ctx.shadowBlur=0; 
+    ctx.fillStyle=brakeHeld?'#ff0000':'#880000'; if(brakeHeld||night>0.2) {ctx.shadowColor='#ff0000'; ctx.shadowBlur=15;} ctx.fillRect(-w/2+3, h/2-2, 6, 4); ctx.fillRect(w/2-9, h/2-2, 6, 4); 
+  } 
+  else if (facingDown) { 
+    ctx.fillStyle='#fff2b0'; ctx.shadowColor='#fff2b0'; ctx.shadowBlur=night>0.2?15:5; ctx.fillRect(-w/2+3, h/2-2, 6, 4); ctx.fillRect(w/2-9, h/2-2, 6, 4); ctx.shadowBlur=0; 
+  } 
+  else { 
+    ctx.fillStyle=brk?'#ff0000':'#ff3333'; ctx.shadowColor=brk?'#ff0000':'#ff3333'; ctx.shadowBlur=(brk||night>0.2)?15:0; ctx.fillRect(-w/2+3, -h/2-2, 6, 4); ctx.fillRect(w/2-9, -h/2-2, 6, 4); ctx.shadowBlur=0; 
+  }
+  
+  // SİNYAL
+  if (sig!==0 && Math.floor(tick/15)%2===0) { ctx.fillStyle='#ffb84d'; ctx.shadowColor='#ffb84d'; ctx.shadowBlur=12; ctx.fillRect(sig===1?w/2-9:-w/2+3, facingDown?h/2-2:-h/2-2, 6, 4); ctx.shadowBlur = 0; }
+  ctx.restore();
+
+  // UZUN FAR AYDINLATMASI (Gece)
+  if (night>0.1) {
+    ctx.save(); ctx.translate(x,y); ctx.globalAlpha = night;
+    let bLen = isP?280:200, sp = isP?70:50, ys = facingDown?h/2:-h/2, ye = facingDown?h/2+bLen:-h/2-bLen;
+    let grad = ctx.createLinearGradient(0, ys, 0, ye); grad.addColorStop(0, 'rgba(255,255,240,0.7)'); grad.addColorStop(1, 'rgba(255,255,240,0)');
+    ctx.fillStyle = grad; ctx.beginPath(); ctx.moveTo(-w/2+6, ys); ctx.lineTo(w/2-6, ys); ctx.lineTo(w/2+sp, ye); ctx.lineTo(-w/2-sp, ye); ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+}
+
+function drawCar(x,y,w,h,col,facingDown,isP,brk=false,sig=0,isT=false){
+  drawCarRaw(G, x, y, w, h, col, facingDown, isP, brk, sig, isT, isP ? player.model : (isT ? 'truck' : traffic.find(t=>t.x===x && t.y===y)?.model));
 }
 
 function loop(timestamp){
