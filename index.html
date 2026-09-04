@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Trafik Kaçışı - Gece Modu</title>
+<title>Trafik Kaçışı - Sokak Lambaları ve Gündüz Modu</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap">
 <style>
 :root{
@@ -21,7 +21,7 @@ html,body{overscroll-behavior:none;}
 canvas{
   display:block; width:100%; height:100%; border-radius:14px;
   box-shadow:0 0 0 2px rgba(198,255,61,0.15), 0 0 60px rgba(0,229,255,0.08), 0 20px 70px rgba(0,0,0,0.8);
-  background:#0a0e14;
+  background:#4da6ff;
 }
 #hud{ position:absolute; inset:0; pointer-events:none; border-radius:14px; overflow:hidden; }
 
@@ -32,17 +32,17 @@ canvas{
 .hud-tr{ right:18px; text-align:right; }
 .hud-tc{ width:100%; text-align:center; top:16px; }
 
-.hud-label{ font-size:10px; letter-spacing:2px; color:rgba(255,255,255,0.55); }
+.hud-label{ font-size:10px; letter-spacing:2px; color:rgba(255,255,255,0.75); }
 .hud-val{ font-size:20px; font-weight:900; color:var(--lime); text-shadow:0 0 12px rgba(198,255,61,0.6); }
 .hud-val.best{ color:var(--amber); text-shadow:0 0 12px rgba(255,184,77,0.5); font-size:14px; }
 .hud-val.speed{ color:var(--cyan); text-shadow:0 0 12px rgba(0,229,255,0.6); font-size:22px; }
-.hud-val.speed span { font-size:11px; color:rgba(255,255,255,0.7); text-shadow:none; }
+.hud-val.speed span { font-size:11px; color:rgba(255,255,255,0.8); text-shadow:none; }
 
 #nitro-wrap{
   position:absolute; left:14px; top:80px; width:120px; pointer-events:none;
 }
-#nitro-label{ font-family:"Orbitron",monospace; font-size:9px; letter-spacing:2px; color:rgba(255,255,255,0.5); margin-bottom:4px; }
-#nitro-bar{ width:100%; height:8px; background:rgba(255,255,255,0.12); border-radius:4px; overflow:hidden; border:1px solid rgba(255,255,255,0.2); }
+#nitro-label{ font-family:"Orbitron",monospace; font-size:9px; letter-spacing:2px; color:rgba(255,255,255,0.7); margin-bottom:4px; }
+#nitro-bar{ width:100%; height:8px; background:rgba(255,255,255,0.2); border-radius:4px; overflow:hidden; border:1px solid rgba(255,255,255,0.3); }
 #nitro-fill{ height:100%; width:100%; background:linear-gradient(90deg,#00e5ff,#c6ff3d); border-radius:4px; transition:width .05s linear; }
 
 /* KONTROLLER */
@@ -56,13 +56,13 @@ canvas{
 
 #btn-left {
   left: 10px;
-  background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
-  border:2px solid rgba(255,255,255,0.4); color:#fff;
+  background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+  border:2px solid rgba(255,255,255,0.6); color:#fff;
 }
 #btn-right {
   left: 78px;
-  background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
-  border:2px solid rgba(255,255,255,0.4); color:#fff;
+  background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+  border:2px solid rgba(255,255,255,0.6); color:#fff;
 }
 
 #btn-brake {
@@ -148,10 +148,10 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
   <div id="start-screen" class="screen on">
     <div class="panel">
       <div class="logo">TRAFİK<span>KAÇIŞI</span></div>
-      <div class="tagline">GECE/GÜNDÜZ DÖNGÜSÜ EKLENDİ</div>
+      <div class="tagline">AYDINLIK GÜNDÜZ & SOKAK LAMBALARI</div>
       <div class="best-row">REKOR: <b id="start-best">0m</b></div>
       <button class="game-btn" id="btn-start">BAŞLA</button>
-      <div class="instructions">Sol tuşlarla şerit değiştir, sağ tuşlarla hızlan/frenle.<br>Mesafe ilerledikçe hava kararacak ve farlar açılacak!</div>
+      <div class="instructions">Gündüz ferah başlar, mesafe ilerledikçe gece olur.<br>Sokak lambaları ve farlar yolu aydınlatır!</div>
     </div>
   </div>
 
@@ -561,34 +561,72 @@ function updatePickups(){
   }
 }
 
-/* ============== ÇİZİM (GECE / GÜNDÜZ DÖNGÜSÜ İLE) ============== */
+/* ============== ÇİZİM (AYDINLIK GÜNDÜZ & GECE DÖNGÜSÜ & SOKAK LAMBALARI) ============== */
 function drawBackground(){
-  // Skor arttıkça (mesafe ilerledikçe) akşamüstü ve geceye geçiş (0 ile 1 arası oran)
   let nightFactor = Math.min(score / 15000, 1); 
 
-  // Gökyüzü renk geçişi (Gündüz mavisi -> Gece mavisi/siyahı)
+  // Gündüz ferah ve canlı açık mavi, gecikse koyu lacivert
   const g = G.createLinearGradient(0,0,0,H);
-  let topR = Math.round(10 - 6 * nightFactor);
-  let topG = Math.round(16 - 10 * nightFactor);
-  let topB = Math.round(32 - 16 * nightFactor);
+  let topR = Math.round(77 - 71 * nightFactor);   // 77 (Açık Mavi) -> 6 (Koyu)
+  let topG = Math.round(166 - 150 * nightFactor); // 166 -> 16
+  let topB = Math.round(255 - 223 * nightFactor); // 255 -> 32
   g.addColorStop(0, `rgb(${topR},${topG},${topB})`);
-  g.addColorStop(0.5, '#0d1526'); 
+  g.addColorStop(0.5, nightFactor > 0.5 ? '#0d1526' : '#5cb85c'); 
   g.addColorStop(1, '#05070a');
   G.fillStyle = g; G.fillRect(0,0,W,H);
 
   bgOffset += currentSpeed * 0.25;
-  G.save(); G.globalAlpha = 0.5 - (nightFactor * 0.2);
-  for (let i=0;i<7;i++){
-    const hx = (i*130 - (bgOffset % 130));
-    G.fillStyle = i%2===0 ? '#141f38' : '#101a30';
-    G.beginPath(); G.moveTo(hx, 160); G.lineTo(hx+65, 120); G.lineTo(hx+130, 160); G.closePath(); G.fill();
-  }
-  G.restore();
-
-  // Çim alanlar
-  G.fillStyle = nightFactor > 0.5 ? '#040c07' : '#0b1610';
+  
+  // Çim / Toprak alanlar (Gündüz canlı yeşil, gece koyu)
+  G.fillStyle = nightFactor > 0.5 ? '#0b1610' : '#47d147';
   G.fillRect(0, 0, ROAD_X, H);
   G.fillRect(ROAD_X+ROAD_W, 0, W-(ROAD_X+ROAD_W), H);
+
+  // SOKAK LAMBALARI ÇİZİMİ (Yolun sol ve sağ kenarlarında)
+  let lampSpacing = 160;
+  let lampOffset = (bgOffset * 1.5) % lampSpacing;
+  
+  for (let y = -20; y < H + 40; y += lampSpacing) {
+    let currentY = y + lampOffset;
+    
+    // Sol lamba direği ve ışığı
+    drawStreetLamp(18, currentY, nightFactor);
+    // Sağ lamba direği ve ışığı
+    drawStreetLamp(W - 18, currentY, nightFactor);
+  }
+}
+
+function drawStreetLamp(x, y, nightFactor) {
+  G.save();
+  // Direk
+  G.strokeStyle = '#333';
+  G.lineWidth = 4;
+  G.beginPath();
+  G.moveTo(x, y);
+  G.lineTo(x + (x < W/2 ? 15 : -15), y - 10);
+  G.stroke();
+
+  // Lamba Ampulü ve Işığı
+  let bulbX = x + (x < W/2 ? 15 : -15);
+  let bulbY = y - 10;
+  
+  G.fillStyle = nightFactor > 0.3 ? '#ffff66' : '#cccccc';
+  G.beginPath();
+  G.arc(bulbX, bulbY, 4, 0, Math.PI*2);
+  G.fill();
+
+  // Gece olduğunda lambanın etrafa saçtığı sarı ışık efekti
+  if (nightFactor > 0.2) {
+    G.globalAlpha = nightFactor * 0.5;
+    let lGrad = G.createRadialGradient(bulbX, bulbY, 2, bulbX, bulbY, 70);
+    lGrad.addColorStop(0, 'rgba(255, 255, 120, 0.8)');
+    lGrad.addColorStop(1, 'rgba(255, 255, 120, 0)');
+    G.fillStyle = lGrad;
+    G.beginPath();
+    G.arc(bulbX, bulbY, 70, 0, Math.PI*2);
+    G.fill();
+  }
+  G.restore();
 }
 
 function drawRoad(){
@@ -607,18 +645,18 @@ function drawRoad(){
   const dashLen = 35, gapLen = 25;
   
   let divX1 = ROAD_X + LANE_W;
-  G.strokeStyle = 'rgba(255,255,255,0.6)'; G.lineWidth = 3;
+  G.strokeStyle = 'rgba(255,255,255,0.7)'; G.lineWidth = 3;
   for (let y = -dashLen + (roadDashOffset % (dashLen+gapLen)); y < H; y += dashLen+gapLen) {
     G.beginPath(); G.moveTo(divX1, y); G.lineTo(divX1, y+dashLen); G.stroke();
   }
 
   let divX2 = ROAD_X + LANE_W * 2;
-  G.strokeStyle = '#f5c542'; G.lineWidth = 2;
+  G.strokeStyle = '#f5c542'; G.lineWidth = 2.5;
   G.beginPath(); G.moveTo(divX2-3,0); G.lineTo(divX2-3,H); G.stroke();
   G.beginPath(); G.moveTo(divX2+3,0); G.lineTo(divX2+3,H); G.stroke();
 
   let divX3 = ROAD_X + LANE_W * 3;
-  G.strokeStyle = 'rgba(255,255,255,0.6)'; G.lineWidth = 3;
+  G.strokeStyle = 'rgba(255,255,255,0.7)'; G.lineWidth = 3;
   for (let y = -dashLen + (roadDashOffset % (dashLen+gapLen)); y < H; y += dashLen+gapLen) {
     G.beginPath(); G.moveTo(divX3, y); G.lineTo(divX3, y+dashLen); G.stroke();
   }
@@ -638,17 +676,15 @@ function drawCar(x,y,w,h,color,facingDown,isPlayer){
   roundRectPath(-w/2+4, facingDown ? -h/2+8 : h*0.02, w-8, h*0.32, 4); G.fill();
   roundRectPath(-w/2+5, facingDown ? h*0.1 : -h/2+6, w-10, h*0.15, 2);
 
-  // FAR VE STOP AYDINLATMALARI (GECE OLUNCA AKTİF)
   if (nightFactor > 0.2) {
     G.save();
     G.globalAlpha = nightFactor;
-    // Far ışık hüzmesi efekti (Yola vuran sarı/beyaz ışık)
     let beamGrad = G.createRadialGradient(0, facingDown ? h/2 : -h/2, 2, 0, facingDown ? h/2 : -h/2, 120);
-    beamGrad.addColorStop(0, 'rgba(255,255,220,0.35)');
+    beamGrad.addColorStop(0, 'rgba(255,255,220,0.4)');
     beamGrad.addColorStop(1, 'rgba(255,255,220,0)');
     G.fillStyle = beamGrad;
     G.beginPath();
-    G.arc(0, facingDown ? h/2 : -h/2, 100, 0, Math.PI*2);
+    G.arc(0, facingDown ? h/2 : -h/2, 110, 0, Math.PI*2);
     G.fill();
     G.restore();
   }
@@ -661,12 +697,10 @@ function drawCar(x,y,w,h,color,facingDown,isPlayer){
     if(brakeHeld || nightFactor > 0.2) { G.shadowColor='#ff0000'; G.shadowBlur=10; }
     G.fillRect(-w/2+3, h/2-2, 6, 4); G.fillRect(w/2-9, h/2-2, 6, 4);
   } else if (facingDown) {
-    // Bot araçların farları (Bize doğru geldikleri için ön taraflarında)
     G.fillStyle = '#fff2b0'; G.shadowColor='#fff2b0'; G.shadowBlur = nightFactor > 0.2 ? 10 : 5;
     G.fillRect(-w/2+3, h/2-2, 6, 4); G.fillRect(w/2-9, h/2-2, 6, 4);
     G.shadowBlur=0;
   } else {
-    // Bot araçların stop lambaları (Önümüzden gidenler)
     G.fillStyle = '#ff3333'; G.shadowColor='#ff3333'; G.shadowBlur = nightFactor > 0.2 ? 10 : 0;
     G.fillRect(-w/2+3, -h/2-2, 6, 4); G.fillRect(w/2-9, -h/2-2, 6, 4);
   }
