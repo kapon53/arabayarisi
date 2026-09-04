@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Trafik Kaçışı - Test Sürümü</title>
+<title>Trafik Kaçışı - Gerçekçi Fizik Sürümü</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap">
 <style>
 :root{
@@ -101,6 +101,7 @@ button.btn-red:active { background: var(--red); color:#000; box-shadow:0 0 30px 
 
 .crash-title{ color:var(--red); font-size:1.5em; text-shadow:0 0 18px rgba(255,59,78,0.7); font-family:"Orbitron",monospace; font-weight:900; margin-bottom:6px; }
 .crash-score{ font-family:"Orbitron",monospace; font-size:30px; color:#fff; margin:10px 0 4px; }
+.crash-new-best{ font-family:"Rajdhani",sans-serif; color:var(--amber); font-size:13px; letter-spacing:2px; margin-bottom:10px; display:none; }
 .crash-sub{ font-family:"Rajdhani",sans-serif; color:rgba(255,255,255,0.5); font-size:12px; margin-bottom:8px; letter-spacing:1px; }
 .earned-cash{ font-family:"Orbitron",monospace; color:var(--amber); font-size:18px; margin-bottom: 20px; text-shadow:0 0 10px rgba(255,184,77,0.5); }
 
@@ -123,15 +124,11 @@ button.btn-red:active { background: var(--red); color:#000; box-shadow:0 0 30px 
     <div class="hud-tl">
       <div class="hud-label">MESAFE</div>
       <div class="hud-val" id="hud-score">0m</div>
-      <div class="hud-label" style="margin-top:8px;">KASA</div>
-      <div class="hud-val" id="hud-cash" style="color:var(--amber); font-size:16px;">0 💰</div>
     </div>
-    
     <div class="hud-tc">
       <div class="hud-label">HIZ</div>
       <div class="hud-val speed" id="hud-speed">0 <span>km/h</span></div>
     </div>
-
     <div class="hud-tr-rekor">
       <div class="hud-label">REKOR</div>
       <div class="hud-val best" id="hud-best">0m</div>
@@ -144,7 +141,6 @@ button.btn-red:active { background: var(--red); color:#000; box-shadow:0 0 30px 
       <div id="nitro-label">NOS</div>
       <div id="nitro-bar"><div id="nitro-fill"></div></div>
     </div>
-
     <div id="combo-wrap">
       <div class="hud-label" style="color:var(--amber);">KOMBO</div>
       <div id="combo-val">x1</div>
@@ -157,11 +153,10 @@ button.btn-red:active { background: var(--red); color:#000; box-shadow:0 0 30px 
   <div id="btn-nos" class="control-btn">NOS</div>
   <div id="btn-gas" class="control-btn">GAZ</div>
 
-  <!-- ANA EKRAN -->
   <div id="start-screen" class="screen on">
     <div class="panel">
       <div class="logo">TRAFİK<span>KAÇIŞI</span></div>
-      <div class="tagline">ARAÇ TEST SÜRÜMÜ</div>
+      <div class="tagline">GERÇEKÇİ FİZİK SÜRÜMÜ</div>
       <div class="best-row">
         REKOR: <b id="start-best">0m</b><br>
         KASA: <b id="start-cash" style="color:var(--amber); font-size:14px;">999999 💰</b>
@@ -171,7 +166,6 @@ button.btn-red:active { background: var(--red); color:#000; box-shadow:0 0 30px 
     </div>
   </div>
 
-  <!-- GARAJ EKRANI -->
   <div id="garage-screen" class="screen">
     <div class="panel">
       <div class="g-header">
@@ -179,6 +173,8 @@ button.btn-red:active { background: var(--red); color:#000; box-shadow:0 0 30px 
         <div class="g-car-name" id="g-name">Araç Adı</div>
         <div class="g-nav" id="g-next">▶</div>
       </div>
+      
+      <div id="garage-cash" style="font-family:'Orbitron',monospace; font-size:14px; color:var(--amber); margin-bottom:10px;">KASA: 0 💰</div>
       
       <canvas id="car-preview" width="160" height="140" style="margin: 0 auto 15px; display: block;"></canvas> 
 
@@ -201,11 +197,11 @@ button.btn-red:active { background: var(--red); color:#000; box-shadow:0 0 30px 
     </div>
   </div>
 
-  <!-- OYUN SONU -->
   <div id="gameover-screen" class="screen">
     <div class="panel">
       <div class="crash-title">ÇARPTIN!</div>
       <div class="crash-score" id="go-score">0m</div>
+      <div class="crash-new-best" id="go-newbest">✨ YENİ REKOR! ✨</div>
       <div class="earned-cash" id="go-earned">+0 💰</div>
       <div class="crash-sub">REKOR: <b id="go-best">0m</b></div>
       <button class="game-btn" id="btn-retry">TEKRAR DENE</button>
@@ -220,12 +216,14 @@ const G = CV.getContext('2d');
 const W = 420, H = 760;
 CV.width = W; CV.height = H;
 
+// YENİ: UÇURUMU BÜYÜTÜLMÜŞ ARAÇ İSTATİSTİKLERİ
+// Speed, NOS, Steer ve Brake değerleri arasındaki uçurum artırıldı. A3 resmen bir canavara dönüştü.
 const CARS = [
-  { id: 0, name: 'Standart Sedan', price: 0, speed: 8.5, nos: 13.0, steer: 5.5, brake: 0.30, color: '#3fa9f5', w: 30, h: 54, spdBar: 40, hndBar: 40, brkBar: 40 },
-  { id: 1, name: 'Kamiq Line', price: 1500, speed: 9.0, nos: 14.5, steer: 6.2, brake: 0.35, color: '#ffffff', w: 32, h: 56, spdBar: 55, hndBar: 55, brkBar: 55 },
-  { id: 2, name: 'Taigo Cross', price: 3000, speed: 9.5, nos: 15.0, steer: 7.5, brake: 0.35, color: '#f5c542', w: 28, h: 52, spdBar: 65, hndBar: 80, brkBar: 60 },
-  { id: 3, name: 'Omoda SUV', price: 7500, speed: 10.5, nos: 16.0, steer: 6.0, brake: 0.40, color: '#ff3b4e', w: 34, h: 60, spdBar: 80, hndBar: 45, brkBar: 75 },
-  { id: 4, name: 'A3 S-Line', price: 15000, speed: 11.5, nos: 17.5, steer: 8.0, brake: 0.50, color: '#c6ff3d', w: 30, h: 56, spdBar: 100, hndBar: 100, brkBar: 100 }
+  { id: 0, name: 'Standart Sedan', price: 0,     speed: 7.5,  nos: 11.5, steer: 4.5, brake: 0.20, color: '#3fa9f5', w: 30, h: 54, spdBar: 20, hndBar: 25, brkBar: 20 },
+  { id: 1, name: 'Kamiq Line',     price: 1500,  speed: 8.5,  nos: 13.0, steer: 5.5, brake: 0.35, color: '#ffffff', w: 32, h: 56, spdBar: 40, hndBar: 45, brkBar: 40 },
+  { id: 2, name: 'Taigo Cross',    price: 3000,  speed: 9.0,  nos: 14.5, steer: 7.5, brake: 0.45, color: '#f5c542', w: 28, h: 52, spdBar: 55, hndBar: 75, brkBar: 60 },
+  { id: 3, name: 'Omoda SUV',      price: 7500,  speed: 10.5, nos: 16.5, steer: 5.0, brake: 0.55, color: '#ff3b4e', w: 34, h: 60, spdBar: 75, hndBar: 35, brkBar: 75 },
+  { id: 4, name: 'A3 S-Line',      price: 15000, speed: 12.5, nos: 19.5, steer: 9.5, brake: 0.80, color: '#c6ff3d', w: 30, h: 56, spdBar: 100, hndBar: 100, brkBar: 100 }
 ];
 
 let globalCash = 999999; 
@@ -237,7 +235,6 @@ const startScreen = document.getElementById('start-screen');
 const gameoverScreen = document.getElementById('gameover-screen');
 const garageScreen = document.getElementById('garage-screen');
 const hudScoreEl = document.getElementById('hud-score');
-const hudCashEl = document.getElementById('hud-cash');
 const hudBestEl = document.getElementById('hud-best');
 const hudSpeedEl = document.getElementById('hud-speed');
 const nitroFillEl = document.getElementById('nitro-fill');
@@ -292,7 +289,7 @@ const ROAD_X = 50, ROAD_W = 320;
 const LANE_W = ROAD_W / 4;
 const LANE_X = [ROAD_X + LANE_W*0.5, ROAD_X + LANE_W*1.5, ROAD_X + LANE_W*2.5, ROAD_X + LANE_W*3.5];
 
-let state = 'title'; // title, garage, play, crash
+let state = 'title'; 
 let tick = 0, score = 0, best = 0;
 let combo = 1, comboTimer = 0; 
 try { best = parseInt(localStorage.getItem('trafikKacisiBest') || '0', 10) || 0; } catch(e){}
@@ -353,10 +350,13 @@ function roundRectPath(ctx, x,y,w,h,r){
   ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
 }
 
-/* ============== EKRAN VE GARAJ YÖNETİMİ ============== */
-document.getElementById('start-cash').innerText = globalCash + ' 💰';
-hudCashEl.innerText = globalCash + ' 💰';
-document.getElementById('start-best').innerText = best + 'm'; // Hata düzeltme satırı!
+/* ============== PARA EKRANI YÖNETİMİ ============== */
+function updateCashUI() {
+  if(document.getElementById('start-cash')) document.getElementById('start-cash').innerText = globalCash + ' 💰';
+  if(document.getElementById('garage-cash')) document.getElementById('garage-cash').innerText = 'KASA: ' + globalCash + ' 💰';
+}
+updateCashUI();
+if(document.getElementById('start-best')) document.getElementById('start-best').textContent = best + 'm'; 
 
 function updateGarageUI() {
   const c = CARS[viewingCarId];
@@ -399,12 +399,12 @@ function updateGarageUI() {
 }
 
 document.getElementById('btn-garage-menu').addEventListener('click', (e) => {
-  e.preventDefault(); getAudio(); viewingCarId = selectedCarId; updateGarageUI();
+  e.preventDefault(); getAudio(); viewingCarId = selectedCarId; updateGarageUI(); updateCashUI();
   startScreen.classList.remove('on'); garageScreen.classList.add('on'); state = 'garage';
 });
 document.getElementById('btn-g-back').addEventListener('click', (e) => {
   e.preventDefault(); garageScreen.classList.remove('on'); startScreen.classList.add('on'); state = 'title';
-  document.getElementById('start-cash').innerText = globalCash + ' 💰'; hudCashEl.innerText = globalCash + ' 💰';
+  updateCashUI();
 });
 document.getElementById('g-prev').addEventListener('click', () => { viewingCarId = (viewingCarId - 1 + CARS.length) % CARS.length; updateGarageUI(); });
 document.getElementById('g-next').addEventListener('click', () => { viewingCarId = (viewingCarId + 1) % CARS.length; updateGarageUI(); });
@@ -419,6 +419,7 @@ document.getElementById('btn-g-action').addEventListener('click', () => {
       localStorage.setItem('trafikKacisiCash', globalCash); localStorage.setItem('trafikKacisiUnlocked', JSON.stringify(unlockedCars));
       selectedCarId = viewingCarId; localStorage.setItem('trafikKacisiSelectedCar', selectedCarId);
       sfx('buy'); burst(W/2, H/2, '#ffb84d', '#fff', 30);
+      updateCashUI();
     } else {
       shake(10); 
     }
@@ -430,7 +431,7 @@ document.getElementById('btn-start').addEventListener('click', (e)=>{ e.preventD
 document.getElementById('btn-retry').addEventListener('click', (e)=>{ e.preventDefault(); e.target.blur(); startGame(); });
 document.getElementById('btn-go-garage').addEventListener('click', (e)=>{ 
   e.preventDefault(); gameoverScreen.classList.remove('on'); 
-  viewingCarId = selectedCarId; updateGarageUI(); garageScreen.classList.add('on'); state = 'garage'; 
+  viewingCarId = selectedCarId; updateGarageUI(); updateCashUI(); garageScreen.classList.add('on'); state = 'garage'; 
 });
 
 /* ============== OYUN AKIŞI ============== */
@@ -464,17 +465,19 @@ function crash(){
   let earnedCash = Math.floor(score / 15) + (combo * 5); 
   globalCash += earnedCash;
   localStorage.setItem('trafikKacisiCash', globalCash);
+  updateCashUI();
   document.getElementById('go-earned').innerText = '+' + earnedCash + ' 💰';
 
   if (Math.round(score) > best) {
     best = Math.round(score); try { localStorage.setItem('trafikKacisiBest', String(best)); } catch(e){}
-    document.getElementById('go-newbest').style.display = 'block';
-  } else { document.getElementById('go-newbest').style.display = 'none'; }
+    if(document.getElementById('go-newbest')) document.getElementById('go-newbest').style.display = 'block';
+  } else { 
+    if(document.getElementById('go-newbest')) document.getElementById('go-newbest').style.display = 'none'; 
+  }
   
   setTimeout(()=>{
     document.getElementById('go-score').textContent = Math.round(score) + 'm';
     document.getElementById('go-best').textContent = best + 'm';
-    hudCashEl.innerText = globalCash + ' 💰';
     gameoverScreen.classList.add('on');
   }, 650);
 }
@@ -482,7 +485,7 @@ function crash(){
 function updateHud(){
   hudScoreEl.textContent = Math.round(score) + 'm';
   hudBestEl.textContent = best + 'm';
-  if(document.getElementById('start-best')) document.getElementById('start-best').textContent = best + 'm'; // GÜVENLİK KONTROLÜ
+  if(document.getElementById('start-best')) document.getElementById('start-best').textContent = best + 'm'; 
   nitroFillEl.style.width = nitroFuel + '%';
   btnNos.style.opacity = nitroFuel > 2 ? '1' : '0.4';
 
@@ -531,7 +534,10 @@ function updatePlayer(){
   if (keys.left || leftHeld) player.targetX -= STEER_SPEED;
   if (keys.right || rightHeld) player.targetX += STEER_SPEED;
   player.targetX = clamp(player.targetX, ROAD_X+24, ROAD_X+ROAD_W-24);
-  player.x += (player.targetX - player.x) * 0.25;
+  
+  // YENİ: YOL TUTUŞ HİSSİYATI (Direksiyon tepkimesi araca göre değişir)
+  let handlingResponsiveness = STEER_SPEED * 0.035; 
+  player.x += (player.targetX - player.x) * handlingResponsiveness;
 
   const isWrongWay = player.x < (ROAD_X + ROAD_W/2);
   if (isWrongWay && currentSpeed > 4) {
