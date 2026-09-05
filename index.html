@@ -423,7 +423,8 @@ function updateTraffic(){
       if (i === j) continue; const other = traffic[j];
       if (c.lane === other.lane && c.aiState !== 'changing' && other.aiState !== 'changing') {
         if (!c.oncoming && !other.oncoming) { if (c.y > other.y && c.y - other.y < 85) if (c.ownSpeed > other.ownSpeed) c.ownSpeed = other.ownSpeed; } 
-        else if (c.oncoming && electric) { if (c.y < other.y && other.y - c.y < 85) if (c.ownSpeed < other.ownSpeed) c.ownSpeed = other.ownSpeed; }
+        // HATA BURADAYDI: electric kelimesi "other.oncoming" olarak düzeltildi.
+        else if (c.oncoming && other.oncoming) { if (c.y < other.y && other.y - c.y < 85) if (c.ownSpeed < other.ownSpeed) c.ownSpeed = other.ownSpeed; }
       }
     }
 
