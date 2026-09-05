@@ -3,78 +3,103 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Trafik Kaçışı - Ultimate Sürüm</title>
+<title>Trafik Kaçışı</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap">
 <style>
-:root{ --lime:#c6ff3d; --cyan:#00e5ff; --amber:#ffb84d; --red:#ff3b4e; --bg:#05070a; }
-*{margin:0;padding:0;box-sizing:border-box; user-select:none; touch-action:none;}
-body{ background:var(--bg); min-height:100vh; display:flex; align-items:center; justify-content:center; font-family:"Rajdhani",sans-serif; overflow:hidden; }
-#arena{ position:relative; width:100%; max-width:420px; aspect-ratio:420/760; margin:0 auto; }
-canvas{ display:block; width:100%; height:100%; border-radius:14px; box-shadow:0 0 0 2px rgba(198,255,61,0.15), 0 0 60px rgba(0,229,255,0.08), 0 20px 70px rgba(0,0,0,0.8); background:#0a0e14; }
+:root{
+  --lime:#c6ff3d; --cyan:#00e5ff; --amber:#ffb84d; --red:#ff3b4e; --bg:#05070a;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--bg); min-height:100vh; display:flex; align-items:center; justify-content:center;
+  font-family:"Rajdhani",sans-serif; overflow:hidden; user-select:none; touch-action:none;
+}
+html,body{overscroll-behavior:none;}
+#arena{
+  position:relative; width:100%; max-width:420px; aspect-ratio:420/760; margin:0 auto; touch-action:none;
+}
+canvas{
+  display:block; width:100%; height:100%; border-radius:14px;
+  box-shadow:0 0 0 2px rgba(198,255,61,0.15), 0 0 60px rgba(0,229,255,0.08), 0 20px 70px rgba(0,0,0,0.8);
+  background:#0a0e14;
+}
 #hud{ position:absolute; inset:0; pointer-events:none; border-radius:14px; overflow:hidden; }
-.hud-tl, .hud-tc { position:absolute; top:16px; font-family:"Orbitron",monospace; color:#fff; }
-.hud-tl{ left:18px; } .hud-tc{ width:100%; text-align:center; top:16px; }
+
+.hud-tl, .hud-tc {
+  position:absolute; top:16px; font-family:"Orbitron",monospace; color:#fff;
+}
+.hud-tl{ left:18px; } 
+.hud-tc{ width:100%; text-align:center; top:16px; }
 .hud-tr-rekor { position:absolute; top: 60px; right: 18px; text-align:right; font-family:"Orbitron",monospace; color:#fff; }
-.top-btn { position: absolute; top: 16px; width: 36px; height: 36px; background: rgba(5,7,10,0.6); border: 1px solid rgba(0,229,255,0.4); color: #fff; border-radius: 8px; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; }
-#btn-pause { right: 62px; } #btn-mute { right: 18px; }
+
+.top-btn {
+  position: absolute; top: 16px; width: 36px; height: 36px;
+  background: rgba(5,7,10,0.6); border: 1px solid rgba(0,229,255,0.4); color: #fff;
+  border-radius: 8px; font-size: 16px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; pointer-events: auto; transition: transform 0.1s;
+}
+.top-btn:active { transform: scale(0.9); }
+#btn-pause { right: 62px; }
+#btn-mute { right: 18px; }
+
 .hud-label{ font-size:10px; letter-spacing:2px; color:rgba(255,255,255,0.55); }
 .hud-val{ font-size:20px; font-weight:900; color:var(--lime); text-shadow:0 0 12px rgba(198,255,61,0.6); }
+.hud-val.best{ color:var(--amber); text-shadow:0 0 12px rgba(255,184,77,0.5); font-size:14px; }
 .hud-val.speed{ color:var(--cyan); text-shadow:0 0 12px rgba(0,229,255,0.6); font-size:22px; }
 .hud-val.speed span { font-size:11px; color:rgba(255,255,255,0.7); text-shadow:none; }
-#nitro-wrap{ position:absolute; left:14px; top:120px; width:120px; }
-#nitro-label{ font-family:"Orbitron"; font-size:9px; color:rgba(255,255,255,0.5); margin-bottom:4px; }
-#nitro-bar{ width:100%; height:8px; background:rgba(255,255,255,0.12); border-radius:4px; overflow:hidden; }
-#nitro-fill{ height:100%; width:100%; background:linear-gradient(90deg,#00e5ff,#c6ff3d); transition:width .05s linear; }
-#combo-wrap{ position:absolute; left:14px; top:150px; opacity:0; }
-#combo-val{ font-family:"Orbitron"; font-weight:900; font-size:24px; color:var(--amber); text-shadow:0 0 15px var(--amber); }
+
+#nitro-wrap{ position:absolute; left:14px; top:120px; width:120px; pointer-events:none; }
+#nitro-label{ font-family:"Orbitron",monospace; font-size:9px; letter-spacing:2px; color:rgba(255,255,255,0.5); margin-bottom:4px; }
+#nitro-bar{ width:100%; height:8px; background:rgba(255,255,255,0.12); border-radius:4px; overflow:hidden; border:1px solid rgba(255,255,255,0.2); }
+#nitro-fill{ height:100%; width:100%; background:linear-gradient(90deg,#00e5ff,#c6ff3d); border-radius:4px; transition:width .05s linear; }
+
+#combo-wrap{ position:absolute; left:14px; top:150px; transition:opacity 0.1s; opacity:0; }
+#combo-val{ font-family:"Orbitron",monospace; font-weight:900; font-size:24px; color:var(--amber); text-shadow:0 0 15px var(--amber); }
 
 /* KONTROLLER */
-.control-btn { position:absolute; bottom:16px; width:60px; height:60px; border-radius:50%; font-family:"Orbitron"; font-weight:900; font-size:12px; display:flex; align-items:center; justify-content:center; pointer-events:auto; transition: transform 0.1s; color:#fff; border:2px solid; }
-.control-btn:active { transform:scale(0.9); }
-#btn-left { left: 10px; border-color:rgba(255,255,255,0.4); }
-#btn-right { left: 78px; border-color:rgba(255,255,255,0.4); }
-#btn-horn { left: 146px; border-color:var(--amber); box-shadow:0 0 20px rgba(255,184,77,0.3); font-size:10px; }
-#btn-brake { right: 95px; border-color:var(--red); box-shadow:0 0 25px rgba(255,59,78,0.3); }
-#btn-gas { right: 10px; width: 75px; height: 75px; border-color:var(--lime); box-shadow:0 0 25px rgba(198,255,61,0.3); }
-#btn-nos { right: 18px; bottom: 100px; width: 55px; height: 55px; border-color:var(--cyan); box-shadow:0 0 20px rgba(0,229,255,0.3); }
+.control-btn {
+  position:absolute; bottom:16px; width:60px; height:60px; border-radius:50%;
+  font-family:"Orbitron",monospace; font-weight:900; font-size:14px;
+  display:flex; align-items:center; justify-content:center; pointer-events:auto; letter-spacing:1px;
+  transition: transform 0.1s; z-index: 10; user-select:none;
+}
+.control-btn:active, .control-btn.active { transform:scale(0.9); }
+#btn-left { left: 10px; background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.05)); border:2px solid rgba(255,255,255,0.4); color:#fff; }
+#btn-right { left: 78px; background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.05)); border:2px solid rgba(255,255,255,0.4); color:#fff; }
+#btn-brake { right: 95px; background:radial-gradient(circle at 35% 30%, rgba(255,59,78,0.5), rgba(180,0,0,0.25)); border:2px solid var(--red); color:#fff; box-shadow:0 0 25px rgba(255,59,78,0.35); font-size:10px; }
+#btn-brake.active { background:radial-gradient(circle at 35% 30%, rgba(255,59,78,0.8), rgba(180,0,0,0.5)); }
+#btn-gas { right: 10px; width: 75px; height: 75px; background:radial-gradient(circle at 35% 30%, rgba(198,255,61,0.5), rgba(100,180,0,0.25)); border:2px solid var(--lime); color:#fff; box-shadow:0 0 25px rgba(198,255,61,0.35); }
+#btn-gas.active { background:radial-gradient(circle at 35% 30%, rgba(198,255,61,0.8), rgba(100,180,0,0.5)); }
+#btn-nos { right: 18px; bottom: 100px; width: 55px; height: 55px; background:radial-gradient(circle at 35% 30%, rgba(0,229,255,0.5), rgba(0,150,180,0.25)); border:2px solid var(--cyan); color:#fff; box-shadow:0 0 20px rgba(0,229,255,0.35); font-size:11px; }
+#btn-nos.active { background:radial-gradient(circle at 35% 30%, rgba(0,229,255,0.8), rgba(0,150,180,0.5)); }
 
 /* EKRANLAR */
-.screen{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s; background:rgba(5,7,10,0.85); backdrop-filter:blur(8px); z-index: 20; }
+.screen{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity .35s ease;
+  background:rgba(5,7,10,0.85); backdrop-filter:blur(8px); border-radius:14px; z-index: 20;
+}
 .screen.on{ opacity:1; pointer-events:all; }
-.panel{ text-align:center; padding:15px; width: 95%; }
-.logo{ font-family:"Orbitron"; font-weight:900; font-size:36px; line-height:1; color:#fff; }
-.logo span{ display:block; color:var(--lime); text-shadow:0 0 20px rgba(198,255,61,0.6); }
-.best-row{ font-family:"Orbitron"; font-size:12px; color:rgba(255,255,255,0.6); margin:15px 0; line-height: 1.8; }
+.panel{ text-align:center; padding:20px; width: 90%; }
+.logo{ font-family:"Orbitron",monospace; font-weight:900; font-size:clamp(30px,8vw,42px); line-height:1; color:#fff; }
+.logo span{ display:block; color:var(--lime); text-shadow:0 0 24px rgba(198,255,61,0.6); }
+.tagline{ font-family:"Rajdhani",sans-serif; font-weight:300; font-size:12px; letter-spacing:6px; color:var(--cyan); margin-top:8px; margin-bottom:22px; }
+.best-row{ font-family:"Orbitron",monospace; font-size:12px; color:rgba(255,255,255,0.6); margin-bottom:22px; letter-spacing:1px; line-height: 1.8; }
 .best-row b{ color:var(--amber); }
 
-button.game-btn{ padding:12px 20px; margin: 4px; background:transparent; border:2px solid var(--lime); color:var(--lime); font-family:"Orbitron"; font-weight:700; font-size:12px; cursor:pointer; width: 85%; }
+button.game-btn{
+  padding:14px 30px; margin: 5px; background:transparent; border:2px solid var(--lime); color:var(--lime);
+  font-family:"Orbitron",monospace; font-weight:700; font-size:13px; letter-spacing:3px; cursor:pointer;
+  clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);
+  transition:background .2s,box-shadow .2s,color .2s; width: 80%;
+}
 button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px rgba(198,255,61,0.5); }
-.btn-blue { border-color: var(--cyan)!important; color: var(--cyan)!important; }
-.btn-blue:active { background: var(--cyan)!important; color:#000!important; }
-.btn-amber { border-color: var(--amber)!important; color: var(--amber)!important; }
-.btn-amber:active { background: var(--amber)!important; color:#000!important; }
 
-/* SEÇİCİLER */
-.selectors { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
-.sel-btn { padding: 6px 12px; font-family: "Rajdhani"; font-weight: bold; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; border-radius: 4px; }
-.sel-btn.active { background: var(--cyan); color: #000; border-color: var(--cyan); box-shadow: 0 0 15px rgba(0,229,255,0.4); }
+.crash-title{ color:var(--red); font-size:1.5em; text-shadow:0 0 18px rgba(255,59,78,0.7); font-family:"Orbitron",monospace; font-weight:900; margin-bottom:6px; }
+.crash-score{ font-family:"Orbitron",monospace; font-size:30px; color:#fff; margin:10px 0 4px; }
+.crash-new-best{ font-family:"Rajdhani",sans-serif; color:var(--amber); font-size:13px; letter-spacing:2px; margin-bottom:10px; display:none; }
+.crash-sub{ font-family:"Rajdhani",sans-serif; color:rgba(255,255,255,0.5); font-size:12px; margin-bottom:8px; letter-spacing:1px; }
 
-/* GARAJ ARAYÜZÜ */
-.g-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-.g-nav { font-family: "Orbitron"; font-size: 24px; color: #fff; cursor: pointer; padding: 10px; }
-.g-car-name { font-family: "Orbitron"; font-size: 18px; color: var(--cyan); font-weight: bold; }
-.stat-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-family: "Rajdhani"; font-size: 13px; color: #fff; }
-.stat-bar-bg { width: 50%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-left: 10px; }
-.stat-bar-fill { height: 100%; background: var(--lime); }
-.upg-btn { background: var(--amber); color: #000; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-weight: bold; margin-left: 5px; font-size:12px; }
-.g-price { font-family: "Orbitron"; font-size: 16px; color: var(--amber); margin: 10px 0; }
-.color-picker { display:flex; justify-content:center; gap:5px; margin-bottom:10px; }
-.c-dot { width:20px; height:20px; border-radius:50%; cursor:pointer; border:2px solid transparent; }
-.c-dot.active { border-color:#fff; transform:scale(1.2); }
-
-.crash-title{ color:var(--red); font-size:1.5em; text-shadow:0 0 18px rgba(255,59,78,0.7); font-family:"Orbitron"; font-weight:900; }
-.crash-score{ font-family:"Orbitron"; font-size:30px; color:#fff; margin:5px 0; }
-.earned-cash{ font-family:"Orbitron"; color:var(--amber); font-size:18px; margin-bottom: 15px; }
 </style>
 </head>
 <body>
@@ -82,18 +107,33 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
   <canvas id="c"></canvas>
   <div id="hud">
     <div class="hud-tl">
-      <div class="hud-label">MESAFE</div><div class="hud-val" id="hud-score">0m</div>
+      <div class="hud-label">MESAFE</div>
+      <div class="hud-val" id="hud-score">0m</div>
     </div>
-    <div class="hud-tc"><div class="hud-label">HIZ</div><div class="hud-val speed" id="hud-speed">0 <span>km/h</span></div></div>
-    <div class="hud-tr-rekor"><div class="hud-label">REKOR</div><div class="hud-val best" id="hud-best">0m</div></div>
-    <div id="btn-pause" class="top-btn">⏸</div><div id="btn-mute" class="top-btn">🔊</div>
-    <div id="nitro-wrap"><div id="nitro-label">NOS</div><div id="nitro-bar"><div id="nitro-fill"></div></div></div>
-    <div id="combo-wrap"><div class="hud-label" style="color:var(--amber);">KOMBO</div><div id="combo-val">x1</div></div>
+    <div class="hud-tc">
+      <div class="hud-label">HIZ</div>
+      <div class="hud-val speed" id="hud-speed">0 <span>km/h</span></div>
+    </div>
+    <div class="hud-tr-rekor">
+      <div class="hud-label">REKOR</div>
+      <div class="hud-val best" id="hud-best">0m</div>
+    </div>
+
+    <div id="btn-pause" class="top-btn">⏸</div>
+    <div id="btn-mute" class="top-btn">🔊</div>
+
+    <div id="nitro-wrap">
+      <div id="nitro-label">NOS</div>
+      <div id="nitro-bar"><div id="nitro-fill"></div></div>
+    </div>
+    <div id="combo-wrap">
+      <div class="hud-label" style="color:var(--amber);">KOMBO</div>
+      <div id="combo-val">x1</div>
+    </div>
   </div>
   
   <div id="btn-left" class="control-btn">◀</div>
   <div id="btn-right" class="control-btn">▶</div>
-  <div id="btn-horn" class="control-btn">KORNA</div>
   <div id="btn-brake" class="control-btn">FREN</div>
   <div id="btn-nos" class="control-btn">NOS</div>
   <div id="btn-gas" class="control-btn">GAZ</div>
@@ -102,40 +142,11 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
   <div id="start-screen" class="screen on">
     <div class="panel">
       <div class="logo">TRAFİK<span>KAÇIŞI</span></div>
-      
-      <div class="selectors" style="margin-top:20px;">
-        <button class="sel-btn active" id="md-1">Tek Yön</button>
-        <button class="sel-btn" id="md-2">Çift Yön</button>
+      <div class="tagline">SADE SÜRÜM - FPS SABİTLİ</div>
+      <div class="best-row">
+        REKOR: <b id="start-best">0m</b>
       </div>
-      <div class="selectors">
-        <button class="sel-btn active" id="th-forest">Orman</button>
-        <button class="sel-btn" id="th-desert">Çöl</button>
-        <button class="sel-btn" id="th-snow">Kar</button>
-      </div>
-
-      <div class="best-row">REKOR: <b id="start-best">0m</b><br>KASA: <b id="start-cash" style="color:var(--amber); font-size:14px;">0 💰</b></div>
       <button class="game-btn" id="btn-start">YARIŞA BAŞLA</button>
-      <button class="game-btn btn-amber" id="btn-garage-menu">GARAJ & UPGRADE</button>
-    </div>
-  </div>
-
-  <!-- GARAJ EKRANI -->
-  <div id="garage-screen" class="screen">
-    <div class="panel">
-      <div class="g-header"><div class="g-nav" id="g-prev">◀</div><div class="g-car-name" id="g-name">Araç</div><div class="g-nav" id="g-next">▶</div></div>
-      <div id="garage-cash" style="font-family:'Orbitron'; font-size:14px; color:var(--amber); margin-bottom:5px;">KASA: 0 💰</div>
-      
-      <canvas id="car-preview" width="160" height="110" style="margin: 0 auto; display: block;"></canvas> 
-      
-      <div class="color-picker" id="c-colors"></div>
-
-      <div class="stat-row">HIZ<div class="stat-bar-bg"><div class="stat-bar-fill" id="stat-spd"></div></div><button class="upg-btn" id="upg-spd">+2K</button></div>
-      <div class="stat-row">YOL TUTUŞ<div class="stat-bar-bg"><div class="stat-bar-fill" id="stat-hnd"></div></div><button class="upg-btn" id="upg-hnd">+2K</button></div>
-      <div class="stat-row">FREN<div class="stat-bar-bg"><div class="stat-bar-fill" id="stat-brk"></div></div><button class="upg-btn" id="upg-brk">+2K</button></div>
-
-      <div class="g-price" id="g-price">FİYAT: 0 💰</div>
-      <button class="game-btn" id="btn-g-action">SEÇİLDİ</button>
-      <button class="game-btn btn-red" id="btn-g-back">ANA MENÜ</button>
     </div>
   </div>
 
@@ -144,365 +155,413 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
     <div class="panel">
       <div class="crash-title">ÇARPTIN!</div>
       <div class="crash-score" id="go-score">0m</div>
-      <div class="earned-cash" id="go-earned">+0 💰</div>
+      <div class="crash-new-best" id="go-newbest">✨ YENİ REKOR! ✨</div>
+      <div class="crash-sub">REKOR: <b id="go-best">0m</b></div>
       <button class="game-btn" id="btn-retry">TEKRAR DENE</button>
-      <button class="game-btn btn-amber" id="btn-go-garage">GARAJA GİT</button>
     </div>
   </div>
 </div>
 
 <script>
-const CV = document.getElementById('c'), G = CV.getContext('2d'), W = 420, H = 760;
+const CV = document.getElementById('c');
+const G = CV.getContext('2d');
+const W = 420, H = 760;
 CV.width = W; CV.height = H;
 
-// SABİT MATEMATİK VE ÇİZİM FONKSİYONLARI (Kilitlenmeyi önler)
-function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
-function getNightFactor() { let timePhase = (score % 12000) / 12000; if (timePhase > 0.4 && timePhase <= 0.5) return (timePhase - 0.4) * 10; if (timePhase > 0.5 && timePhase <= 0.9) return 1; if (timePhase > 0.9) return 1 - ((timePhase - 0.9) * 10); return 0; }
-function shake(amt){ shakeAmt = Math.max(shakeAmt, amt); }
-let popups = []; 
-function popup(x,y,text,col){ popups.push({x,y,life:1,text,col}); }
+const startScreen = document.getElementById('start-screen');
+const gameoverScreen = document.getElementById('gameover-screen');
+const hudScoreEl = document.getElementById('hud-score');
+const hudBestEl = document.getElementById('hud-best');
+const hudSpeedEl = document.getElementById('hud-speed');
+const nitroFillEl = document.getElementById('nitro-fill');
+const btnGas = document.getElementById('btn-gas');
+const btnBrake = document.getElementById('btn-brake');
+const btnNos = document.getElementById('btn-nos');
+const btnLeft = document.getElementById('btn-left');
+const btnRight = document.getElementById('btn-right');
+const comboWrapEl = document.getElementById('combo-wrap');
+const comboValEl = document.getElementById('combo-val');
 
-// VERİTABANI & EKONOMİ
-let globalCash = parseInt(localStorage.getItem('trafikKacisiCash') || '0', 10);
-// Araç Veritabanı
-const BASE_CARS = [
-  { id: 0, name: 'Sedan', price: 0, speed: 7.5, nos: 11.5, steer: 4.5, brake: 0.20, color: '#3fa9f5', w: 30, h: 54, spdMax: 10, hndMax: 7, brkMax: 0.4, model: 'sedan' },
-  { id: 1, name: 'Crossover', price: 2000, speed: 8.5, nos: 13.0, steer: 5.5, brake: 0.35, color: '#ffffff', w: 32, h: 56, spdMax: 11, hndMax: 8, brkMax: 0.5, model: 'hatchback' },
-  { id: 2, name: 'Hatchback', price: 5000, speed: 9.0, nos: 14.5, steer: 7.5, brake: 0.45, color: '#f5c542', w: 28, h: 50, spdMax: 11.5, hndMax: 10, brkMax: 0.6, model: 'hatchback' },
-  { id: 3, name: 'Ağır SUV', price: 10000, speed: 10.5, nos: 16.5, steer: 5.0, brake: 0.55, color: '#ff3b4e', w: 34, h: 60, spdMax: 13, hndMax: 7.5, brkMax: 0.7, model: 'suv' },
-  { id: 4, name: 'Spor S-Line', price: 25000, speed: 12.5, nos: 19.5, steer: 9.5, brake: 0.80, color: '#c6ff3d', w: 30, h: 56, spdMax: 15, hndMax: 12, brkMax: 1.0, model: 'sport' }
-];
-const COLORS = ['#3fa9f5', '#ffffff', '#f5c542', '#ff3b4e', '#c6ff3d', '#222', '#8e6bd8'];
+/* ============== SES MOTORU ============== */
+let audioCtx = null, engineOsc = null, engineGain = null;
+let isMuted = false, isPaused = false;
 
-let myGarage = JSON.parse(localStorage.getItem('trafikGarageData')) || { 
-  0: { unlocked: true, spdLvl: 0, hndLvl: 0, brkLvl: 0, color: '#3fa9f5' }
-};
-let selectedCarId = parseInt(localStorage.getItem('trafikKacisiSelectedCar') || '0', 10);
-let viewingCarId = selectedCarId;
-let best = parseInt(localStorage.getItem('trafikKacisiBest') || '0', 10);
+document.getElementById('btn-mute').addEventListener('click', (e)=>{
+  e.preventDefault(); e.target.blur(); isMuted = !isMuted;
+  document.getElementById('btn-mute').innerText = isMuted ? '🔇' : '🔊';
+  if (isMuted) stopEngine(); else if (state === 'play' && !isPaused) startEngine();
+});
 
-// Ayarlar
-let isTwoWay = false; 
-let curTheme = 'forest'; 
+document.getElementById('btn-pause').addEventListener('click', (e)=>{
+  e.preventDefault(); e.target.blur(); if (state !== 'play') return;
+  isPaused = !isPaused; document.getElementById('btn-pause').innerText = isPaused ? '▶' : '⏸';
+  if (isPaused) {
+    stopEngine(); G.fillStyle = 'rgba(0,0,0,0.6)'; G.fillRect(0,0,W,H);
+    G.fillStyle = '#fff'; G.font = 'bold 30px Orbitron'; G.textAlign = 'center'; G.fillText('DURAKLATILDI', W/2, H/2);
+  } else { if(!isMuted) startEngine(); }
+});
 
-const THEMES = {
-  forest: { bg1: 77, bg2: 166, bg3: 255, ground: [42,77,46], road: '#262933', line: '#f5c542' },
-  desert: { bg1: 255, bg2: 180, bg3: 100, ground: [212,179,116], road: '#3b3427', line: '#fff' },
-  snow:   { bg1: 200, bg2: 220, bg3: 255, ground: [224,247,250], road: '#404652', line: '#81d4fa' }
-};
+function getAudio(){ if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if(audioCtx.state === 'suspended') audioCtx.resume(); return audioCtx; }
+function startEngine(){
+  if(isMuted) return; if(!audioCtx) getAudio(); if(engineOsc) { engineOsc.stop(); engineOsc = null; }
+  engineOsc = audioCtx.createOscillator(); engineGain = audioCtx.createGain();
+  engineOsc.type = 'sawtooth'; engineOsc.frequency.value = 50; engineGain.gain.value = 0.05;
+  const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 400;
+  engineOsc.connect(filter); filter.connect(engineGain); engineGain.connect(audioCtx.destination); engineOsc.start();
+}
+function stopEngine(){ if(engineGain && audioCtx) engineGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5); setTimeout(() => { if(engineOsc){ engineOsc.stop(); engineOsc=null;} }, 500); }
+function mkNoise(ctx, dur){ const b = ctx.createBuffer(1, ctx.sampleRate*dur, ctx.sampleRate); const d = b.getChannelData(0); for(let i=0;i<d.length;i++) d[i] = Math.random()*2-1; const s = ctx.createBufferSource(); s.buffer = b; return s; }
+function sfx(type){
+  if(!audioCtx || isMuted) return; const ctx = audioCtx, t = ctx.currentTime, out = ctx.destination;
+  if(type === 'nitro_start'){ const n = mkNoise(ctx, 0.5); const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 1000; const g = ctx.createGain(); g.gain.setValueAtTime(0.8, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.5); n.connect(hp).connect(g).connect(out); n.start(t); n.stop(t+0.5); const osc = ctx.createOscillator(); osc.type='sine'; osc.frequency.setValueAtTime(120, t); osc.frequency.exponentialRampToValueAtTime(20, t+0.4); const g2 = ctx.createGain(); g2.gain.setValueAtTime(0.9, t); g2.gain.exponentialRampToValueAtTime(0.01, t+0.4); osc.connect(g2).connect(out); osc.start(t); osc.stop(t+0.45); }
+  if(type === 'nearmiss'){ const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(500, t); o.frequency.exponentialRampToValueAtTime(1200, t+0.12); g.gain.setValueAtTime(0.18, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.15); o.connect(g); g.connect(out); o.start(t); o.stop(t+0.16); }
+  if(type === 'pickup'){ [660,880,1100].forEach((f,i)=>{ const o = ctx.createOscillator(), g = ctx.createGain(); o.type='square'; o.frequency.value=f; g.gain.setValueAtTime(0.14, t+i*0.05); g.gain.exponentialRampToValueAtTime(0.001, t+i*0.05+0.1); o.connect(g); g.connect(out); o.start(t+i*0.05); o.stop(t+i*0.05+0.1); }); }
+  if(type === 'crash'){ const n = mkNoise(ctx, 0.45); const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(2200,t); lp.frequency.exponentialRampToValueAtTime(120,t+0.45); const g = ctx.createGain(); g.gain.setValueAtTime(0.65,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.45); n.connect(lp); lp.connect(g); g.connect(out); n.start(t); n.stop(t+0.45); const o = ctx.createOscillator(), g2 = ctx.createGain(); o.type='sawtooth'; o.frequency.setValueAtTime(140,t); o.frequency.exponentialRampToValueAtTime(30,t+0.4); g2.gain.setValueAtTime(0.45,t); g2.gain.exponentialRampToValueAtTime(0.001,t+0.4); o.connect(g2); g2.connect(out); o.start(t); o.stop(t+0.41); }
+}
 
-let state = 'title', tick = 0, score = 0, combo = 1, comboTimer = 0; 
-let shakeAmt = 0, shakeX = 0, shakeY = 0, roadDashOffset = 0, bgOffset = 0;
-let currentSpeed = 0, targetSpeed = 0; 
-let GAS_SPEED=8, NOS_SPEED=12, STEER_SPEED=5, BRAKE_DECEL=0.3;
-const COAST_SPEED = 1.5, BRAKE_SPEED = 0.5, ACCEL = 0.12, DECEL = 0.025;  
-let gasHeld=false, brakeHeld=false, nosHeld=false, leftHeld=false, rightHeld=false;
-let nitroFuel = 100;
-const ROAD_X = 50, ROAD_W = 320, LANE_W = ROAD_W / 4;
+/* ============== YOL VE OYUN FİZİĞİ ============== */
+const ROAD_X = 50, ROAD_W = 320;
+const LANE_W = ROAD_W / 4;
 const LANE_X = [ROAD_X + LANE_W*0.5, ROAD_X + LANE_W*1.5, ROAD_X + LANE_W*2.5, ROAD_X + LANE_W*3.5];
-const player = { x: LANE_X[2], y: H - 150, w: 30, h: 54, targetX: LANE_X[2], color: '#3fa9f5' };
-const traffic = [], pickups = [], particles = []; 
+
+let state = 'title'; 
+let tick = 0, score = 0, best = 0;
+let combo = 1, comboTimer = 0; 
+try { best = parseInt(localStorage.getItem('trafikKacisiBest') || '0', 10) || 0; } catch(e){}
+
+let shakeAmt = 0, shakeX = 0, shakeY = 0;
+let roadDashOffset = 0, bgOffset = 0;
+
+let currentSpeed = 0; 
+const COAST_SPEED = 1.5;   
+let GAS_SPEED = 9.5;     
+let NOS_SPEED = 15.0;    
+let STEER_SPEED = 7.0;
+const BRAKE_SPEED = 0.5;   
+const ACCEL = 0.12;        
+const DECEL = 0.025;       
+let BRAKE_DECEL = 0.40;  
+
+let gasHeld = false, brakeHeld = false, nosHeld = false, leftHeld = false, rightHeld = false;
+let wasNosHeld = false; 
+let nitroFuel = 100;
+const NITRO_DRAIN = 0.4, NITRO_AUTO_REGEN = 0.05; 
+
+const player = { x: LANE_X[2], y: H - 150, w: 30, h: 54, targetX: LANE_X[2], color: '#00e5ff' };
+const traffic = [], pickups = []; 
 let spawnTimer = 40, pickupTimer = 220, wrongWayTimer = 0; 
 
 const bgStars = [];
 for(let i=0; i<80; i++) { bgStars.push({ x: Math.random()*W, y: Math.random()*H, s: Math.random()*1.5 + 0.5, a: Math.random() }); }
+const particles = [];
+function burst(x,y,col1,col2,n){ for(let i=0;i<n;i++){ const a = Math.random()*Math.PI*2, s = 1.5+Math.random()*6; particles.push({ x,y, vx:Math.cos(a)*s, vy:Math.sin(a)*s-1, life:1, col: Math.random()>0.5?col1:col2, size:2+Math.random()*4, gravity:0.15+Math.random()*0.1 }); } }
+function updateParticles(){ for(let i=particles.length-1;i>=0;i--){ const p = particles[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=p.gravity; p.vx*=0.97; p.life-=0.03; if(p.life<=0) particles.splice(i,1); } }
+function drawParticles(){ particles.forEach(p=>{ G.save(); G.globalAlpha=Math.max(0,p.life); G.fillStyle=p.col; G.beginPath(); G.arc(p.x,p.y,p.size*p.life,0,Math.PI*2); G.fill(); G.restore(); }); }
 
-// Menü Seçiciler (Mobil Uyumlu Tıklamalar)
-document.getElementById('md-1').onclick = function(){ this.classList.add('active'); document.getElementById('md-2').classList.remove('active'); isTwoWay=false; }
-document.getElementById('md-2').onclick = function(){ this.classList.add('active'); document.getElementById('md-1').classList.remove('active'); isTwoWay=true; }
-['forest','desert','snow'].forEach(t => {
-  document.getElementById('th-'+t).onclick = function(){ 
-    document.querySelectorAll('#start-screen .selectors:nth-child(3) .sel-btn').forEach(b=>b.classList.remove('active'));
-    this.classList.add('active'); curTheme = t; 
-  }
-});
+let popups = []; 
+function popup(x,y,text,col){ popups.push({x,y,life:1,text,col}); }
+function updatePopups(){ for(let i=popups.length-1;i>=0;i--){ popups[i].life-=0.018; popups[i].y-=0.8; if(popups[i].life<=0) popups.splice(i,1); } }
+function drawPopups(){ popups.forEach(p=>{ G.save(); G.globalAlpha=Math.max(0,p.life); G.font='bold 14px Orbitron, monospace'; G.fillStyle=p.col; G.textAlign='center'; G.fillText(p.text, p.x, p.y); G.restore(); }); }
+function shake(amt){ shakeAmt = Math.max(shakeAmt, amt); }
 
-/* SES MOTORU */
-let audioCtx=null, engineOsc=null, engineGain=null, isMuted=false, isPaused=false;
-function getAudio(){ if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if(audioCtx.state === 'suspended') audioCtx.resume(); return audioCtx; }
-function startEngine(){ if(isMuted) return; getAudio(); if(engineOsc) engineOsc.stop(); engineOsc=audioCtx.createOscillator(); engineGain=audioCtx.createGain(); engineOsc.type='sawtooth'; engineGain.gain.value=0.05; const f=audioCtx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=400; engineOsc.connect(f); f.connect(engineGain); engineGain.connect(audioCtx.destination); engineOsc.start(); }
-function stopEngine(){ if(engineGain) engineGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5); setTimeout(()=>{if(engineOsc){engineOsc.stop();engineOsc=null;}}, 500); }
-function sfx(type){
-  if(!audioCtx || isMuted) return; const t = audioCtx.currentTime, out = audioCtx.destination;
-  if(type==='horn'){
-    const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='square'; o.frequency.value=350;
-    g.gain.setValueAtTime(0.15, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.3);
-    o.connect(g); g.connect(out); o.start(t); o.stop(t+0.35);
-  }
-  if(type==='nearmiss'){ const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='sine'; o.frequency.setValueAtTime(600, t); o.frequency.exponentialRampToValueAtTime(1400, t+0.1); g.gain.setValueAtTime(0.15, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.15); o.connect(g); g.connect(out); o.start(t); o.stop(t+0.15); }
-  if(type==='crash'){ const n=audioCtx.createBufferSource(); const b=audioCtx.createBuffer(1,audioCtx.sampleRate*0.4,audioCtx.sampleRate); const d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; n.buffer=b; const f=audioCtx.createBiquadFilter(); f.type='lowpass'; f.frequency.setValueAtTime(2000,t); f.frequency.exponentialRampToValueAtTime(100,t+0.4); const g=audioCtx.createGain(); g.gain.setValueAtTime(0.5,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.4); n.connect(f); f.connect(g); g.connect(out); n.start(t); n.stop(t+0.4); }
+/* ============== GİRİŞ KONTROLLERİ ============== */
+function bindBtn(el, onDown, onUp) {
+  const downHandler = (e) => { e.preventDefault(); onDown(); el.classList.add('active'); getAudio(); };
+  const upHandler = (e) => { e.preventDefault(); onUp(); el.classList.remove('active'); };
+  el.addEventListener('pointerdown', downHandler); el.addEventListener('touchstart', downHandler, {passive: false});
+  el.addEventListener('pointerup', upHandler); el.addEventListener('pointerleave', upHandler); el.addEventListener('pointercancel', upHandler); el.addEventListener('touchend', upHandler);
+}
+bindBtn(btnGas, () => gasHeld = true, () => gasHeld = false); bindBtn(btnBrake, () => brakeHeld = true, () => brakeHeld = false);
+bindBtn(btnNos, () => nosHeld = true, () => nosHeld = false); bindBtn(btnLeft, () => leftHeld = true, () => leftHeld = false); bindBtn(btnRight, () => rightHeld = true, () => rightHeld = false);
+const keys = { left:false, right:false };
+window.addEventListener('keydown', (e)=>{ if(e.code==='ArrowLeft'||e.code==='KeyA') { keys.left = true; btnLeft.classList.add('active'); } if(e.code==='ArrowRight'||e.code==='KeyD') { keys.right = true; btnRight.classList.add('active'); } if(e.code==='ArrowUp'||e.code==='KeyW') { gasHeld = true; btnGas.classList.add('active'); } if(e.code==='ArrowDown'||e.code==='KeyS') { brakeHeld = true; btnBrake.classList.add('active'); } if(e.code==='Space'||e.code==='ShiftLeft') { nosHeld = true; btnNos.classList.add('active'); } });
+window.addEventListener('keyup', (e)=>{ if(e.code==='ArrowLeft'||e.code==='KeyA') { keys.left = false; btnLeft.classList.remove('active'); } if(e.code==='ArrowRight'||e.code==='KeyD') { keys.right = false; btnRight.classList.remove('active'); } if(e.code==='ArrowUp'||e.code==='KeyW') { gasHeld = false; btnGas.classList.remove('active'); } if(e.code==='ArrowDown'||e.code==='KeyS') { brakeHeld = false; btnBrake.classList.remove('active'); } if(e.code==='Space'||e.code==='ShiftLeft') { nosHeld = false; btnNos.classList.remove('active'); } });
+
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function getNightFactor() { let timePhase = (score % 12000) / 12000; if (timePhase > 0.4 && timePhase <= 0.5) return (timePhase - 0.4) * 10; if (timePhase > 0.5 && timePhase <= 0.9) return 1; if (timePhase > 0.9) return 1 - ((timePhase - 0.9) * 10); return 0; }
+
+function roundRectPath(ctx, x,y,w,h,r){
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
 }
 
-function bindBtn(el, d, u) { el.addEventListener('pointerdown', (e)=>{e.preventDefault(); d(); el.classList.add('active'); getAudio();}); el.addEventListener('pointerup', (e)=>{e.preventDefault(); u(); el.classList.remove('active');}); el.addEventListener('pointerleave', (e)=>{u(); el.classList.remove('active');}); }
-bindBtn(document.getElementById('btn-gas'), ()=>gasHeld=true, ()=>gasHeld=false); bindBtn(document.getElementById('btn-brake'), ()=>brakeHeld=true, ()=>brakeHeld=false); bindBtn(document.getElementById('btn-nos'), ()=>nosHeld=true, ()=>nosHeld=false); bindBtn(document.getElementById('btn-left'), ()=>leftHeld=true, ()=>leftHeld=false); bindBtn(document.getElementById('btn-right'), ()=>rightHeld=true, ()=>rightHeld=false);
-bindBtn(document.getElementById('btn-horn'), ()=>honkHorn(), ()=>{});
-window.addEventListener('keydown', (e)=>{ 
-  if(e.code==='ArrowLeft'||e.code==='KeyA') leftHeld=true; 
-  if(e.code==='ArrowRight'||e.code==='KeyD') rightHeld=true; 
-  if(e.code==='ArrowUp'||e.code==='KeyW') gasHeld=true; 
-  if(e.code==='ArrowDown'||e.code==='KeyS') brakeHeld=true; 
-  if(e.code==='Space') nosHeld=true; 
-  if(e.code==='KeyK') honkHorn(); 
-});
-window.addEventListener('keyup', (e)=>{ if(e.code==='ArrowLeft'||e.code==='KeyA') leftHeld=false; if(e.code==='ArrowRight'||e.code==='KeyD') rightHeld=false; if(e.code==='ArrowUp'||e.code==='KeyW') gasHeld=false; if(e.code==='ArrowDown'||e.code==='KeyS') brakeHeld=false; if(e.code==='Space') nosHeld=false; });
+if(document.getElementById('start-best')) document.getElementById('start-best').textContent = best + 'm'; 
 
-/* GARAJ VE EKONOMİ */
-function updateCashUI() { document.getElementById('start-cash').innerText = globalCash + ' 💰'; document.getElementById('garage-cash').innerText = 'KASA: ' + globalCash + ' 💰'; }
-function getCarStat(id) {
-  let base = BASE_CARS[id]; let u = myGarage[id]; if(!u) return base;
-  return { speed: base.speed + (u.spdLvl*0.5), hnd: base.steer + (u.hndLvl*0.5), brk: base.brake + (u.brkLvl*0.05) };
-}
-function updateGarageUI() {
-  const c = BASE_CARS[viewingCarId]; let u = myGarage[viewingCarId];
-  document.getElementById('g-name').innerText = c.name;
-  
-  let cColors = document.getElementById('c-colors'); cColors.innerHTML='';
-  COLORS.forEach(col => {
-    let d = document.createElement('div'); d.className='c-dot'; d.style.background=col;
-    if(u && u.color===col) d.classList.add('active');
-    d.onclick = () => { if(u){ u.color=col; saveG(); updateGarageUI(); } }
-    cColors.appendChild(d);
-  });
+document.getElementById('btn-start').addEventListener('click', (e)=>{ e.preventDefault(); e.target.blur(); startGame(); });
+document.getElementById('btn-retry').addEventListener('click', (e)=>{ e.preventDefault(); e.target.blur(); startGame(); });
 
-  if (u) {
-    document.getElementById('stat-spd').style.width = ((c.speed + u.spdLvl*0.5)/c.spdMax)*100 + '%';
-    document.getElementById('stat-hnd').style.width = ((c.steer + u.hndLvl*0.5)/c.hndMax)*100 + '%';
-    document.getElementById('stat-brk').style.width = ((c.brake + u.brkLvl*0.05)/c.brkMax)*100 + '%';
-    
-    ['spd','hnd','brk'].forEach(t => {
-      let btn = document.getElementById('upg-'+t);
-      if(u[t+'Lvl'] >= 5) { btn.innerText='MAX'; btn.style.opacity=0.5; }
-      else { btn.innerText='2000💰'; btn.style.opacity=1; btn.onclick=()=>{ if(globalCash>=2000){ globalCash-=2000; u[t+'Lvl']++; saveG(); updateGarageUI(); sfx('horn'); } }; }
-    });
-    document.getElementById('g-price').innerText = 'SAHİPSİN'; document.getElementById('g-price').style.color = 'var(--lime)';
-    let b = document.getElementById('btn-g-action');
-    if (selectedCarId === viewingCarId) { b.innerText = 'SEÇİLDİ'; b.className='game-btn'; } else { b.innerText = 'SEÇ'; b.className='game-btn btn-cyan'; b.onclick=()=>{selectedCarId=viewingCarId; saveG(); updateGarageUI();} }
-  } else {
-    document.getElementById('stat-spd').style.width = (c.speed/c.spdMax)*100 + '%';
-    document.getElementById('stat-hnd').style.width = (c.steer/c.hndMax)*100 + '%';
-    document.getElementById('stat-brk').style.width = (c.brake/c.brkMax)*100 + '%';
-    ['spd','hnd','brk'].forEach(t => { document.getElementById('upg-'+t).style.opacity=0; });
-    document.getElementById('g-price').innerText = 'FİYAT: ' + c.price + ' 💰'; document.getElementById('g-price').style.color = 'var(--amber)';
-    let b = document.getElementById('btn-g-action'); b.innerText = 'SATIN AL'; b.className='game-btn btn-amber';
-    b.onclick=()=>{ if(globalCash>=c.price){ globalCash-=c.price; myGarage[viewingCarId]={unlocked:true, spdLvl:0, hndLvl:0, brkLvl:0, color:c.color}; selectedCarId=viewingCarId; saveG(); updateGarageUI(); sfx('horn');} else shake(10); }
-  }
+/* ============== FPS SABİTLEYİCİ VE OYUN DÖNGÜSÜ ============== */
+let lastTime = 0;
+const FPS_LIMIT = 60;
+const frameInterval = 1000 / FPS_LIMIT;
 
-  const pCV = document.getElementById('car-preview'), pCtx = pCV.getContext('2d'); pCtx.clearRect(0,0,pCV.width, pCV.height); pCtx.save(); pCtx.translate(pCV.width/2, pCV.height/2);
-  let pw = c.w * 2, ph = c.h * 2; pCtx.fillStyle = 'rgba(0,0,0,0.4)'; pCtx.beginPath(); pCtx.ellipse(0, ph/2+4, pw/2, 8, 0, 0, Math.PI*2); pCtx.fill();
-  pCtx.fillStyle = u ? u.color : c.color; roundRectPath(pCtx, -pw/2, -ph/2, pw, ph, 8); pCtx.fill(); pCtx.strokeStyle='rgba(0,0,0,0.5)'; pCtx.lineWidth=2; pCtx.stroke();
-  pCtx.fillStyle = 'rgba(20,28,40,0.85)'; roundRectPath(pCtx, -pw/2+5, -ph/2+12, pw-10, ph*0.32, 5); pCtx.fill(); roundRectPath(pCtx, -pw/2+6, ph*0.1, pw-12, ph*0.15, 3); pCtx.fill();
-  pCtx.fillStyle = '#fff'; pCtx.fillRect(-pw/2+4, -ph/2-3, 8, 5); pCtx.fillRect(pw/2-12, -ph/2-3, 8, 5); pCtx.fillStyle = '#880000'; pCtx.fillRect(-pw/2+4, ph/2-2, 8, 5); pCtx.fillRect(pw/2-12, ph/2-2, 8, 5); pCtx.restore();
-}
-function saveG(){ localStorage.setItem('trafikGarageData', JSON.stringify(myGarage)); localStorage.setItem('trafikKacisiCash', globalCash); localStorage.setItem('trafikKacisiSelectedCar', selectedCarId); updateCashUI(); }
-document.getElementById('btn-garage-menu').onclick = (e)=>{ e.preventDefault(); getAudio(); viewingCarId=selectedCarId; updateGarageUI(); document.getElementById('start-screen').classList.remove('on'); document.getElementById('garage-screen').classList.add('on'); state='garage'; };
-document.getElementById('btn-g-back').onclick = (e)=>{ e.preventDefault(); document.getElementById('garage-screen').classList.remove('on'); document.getElementById('start-screen').classList.add('on'); state='title'; };
-document.getElementById('g-prev').onclick = ()=>{ viewingCarId = (viewingCarId - 1 + BASE_CARS.length) % BASE_CARS.length; updateGarageUI(); }; document.getElementById('g-next').onclick = ()=>{ viewingCarId = (viewingCarId + 1) % BASE_CARS.length; updateGarageUI(); };
-updateCashUI(); document.getElementById('start-best').innerText = best + 'm';
-
-/* KORNA MEKANİĞİ */
-function honkHorn() {
-  if(state !== 'play') return;
-  sfx('horn');
-  traffic.forEach(c => {
-    if (!c.oncoming && c.lane === player.lane && c.y < player.y && player.y - c.y < 300) {
-      let possibleLanes = [];
-      if (c.lane > 2 && isTwoWay) possibleLanes.push(3); 
-      else if (c.lane > 0) possibleLanes.push(c.lane - 1);
-      if (c.lane < 3) possibleLanes.push(c.lane + 1);
-      
-      for(let l of possibleLanes) {
-        if (!traffic.some(o => o !== c && o.lane === l && Math.abs(o.y - c.y) < 180)) {
-           c.aiState = 'signaling'; c.aiTimer = 20; c.targetLane = l; c.targetLaneX = LANE_X[l]; c.turnSignal = l > c.lane ? 1 : -1; break;
-        }
-      }
-    }
-  });
-}
-
-/* OYUN AKIŞI */
-let lastTime=0; const fpsInterval = 1000/60;
 function startGame(){
   getAudio(); startEngine();
   state = 'play'; score = 0; tick = 0; currentSpeed = 0;
   traffic.length = 0; pickups.length = 0; particles.length = 0; popups.length = 0;
-  nitroFuel = 100; gasHeld=brakeHeld=nosHeld=leftHeld=rightHeld=false; combo = 1; comboTimer = 0;
+  nitroFuel = 100; gasHeld = false; brakeHeld = false; nosHeld = false; leftHeld = false; rightHeld = false; wasNosHeld = false;
+  combo = 1; comboTimer = 0;
   
-  let base = BASE_CARS[selectedCarId]; let stat = getCarStat(selectedCarId); let u = myGarage[selectedCarId];
-  GAS_SPEED = stat.speed; NOS_SPEED = base.nos + (u.spdLvl*0.5); STEER_SPEED = stat.hnd; BRAKE_DECEL = stat.brk;
-  player.color = u.color; player.w = base.w; player.h = base.h; player.lane = 2; player.x = LANE_X[2]; player.targetX = LANE_X[2];
+  player.x = LANE_X[2]; player.targetX = LANE_X[2];
 
-  spawnTimer = 20; isPaused = false; document.getElementById('btn-pause').innerText = '⏸';
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  spawnTimer = 20; pickupTimer = 220; wrongWayTimer = 0; shakeAmt = 0;
+  isPaused = false; document.getElementById('btn-pause').innerText = '⏸';
+  
+  btnGas.classList.remove('active'); btnBrake.classList.remove('active'); btnNos.classList.remove('active');
+  btnLeft.classList.remove('active'); btnRight.classList.remove('active');
+  startScreen.classList.remove('on'); gameoverScreen.classList.remove('on');
+  updateHud();
   lastTime = performance.now();
 }
 
 function crash(){
-  if(state !== 'play') return; state = 'crash'; stopEngine(); sfx('crash'); shake(15);
-  for(let i=0;i<30;i++){ particles.push({x:player.x,y:player.y, vx:(Math.random()-0.5)*10, vy:(Math.random()-0.5)*10, life:1, col:Math.random()>0.5?'#ff3b4e':'#ffb84d', size:3+Math.random()*5, gravity:0.1}); }
-  let earned = Math.floor(score/20) + (combo*5) + (isTwoWay ? 50 : 0); 
-  globalCash += earned; saveG(); document.getElementById('go-earned').innerText = '+' + earned + ' 💰';
-  if (Math.round(score)>best) { best=Math.round(score); localStorage.setItem('trafikKacisiBest', best); }
-  setTimeout(()=>{ document.getElementById('go-score').innerText = Math.round(score)+'m'; document.getElementById('gameover-screen').classList.add('on'); }, 800);
+  if(state !== 'play') return;
+  state = 'crash';
+  stopEngine(); sfx('crash'); shake(14);
+  burst(player.x, player.y, '#ff3b4e', '#ffb84d', 46);
+
+  if (Math.round(score) > best) {
+    best = Math.round(score); try { localStorage.setItem('trafikKacisiBest', String(best)); } catch(e){}
+    if(document.getElementById('go-newbest')) document.getElementById('go-newbest').style.display = 'block';
+  } else { 
+    if(document.getElementById('go-newbest')) document.getElementById('go-newbest').style.display = 'none'; 
+  }
+  
+  setTimeout(()=>{
+    document.getElementById('go-score').textContent = Math.round(score) + 'm';
+    document.getElementById('go-best').textContent = best + 'm';
+    gameoverScreen.classList.add('on');
+  }, 650);
 }
 
-document.getElementById('btn-start').onclick = (e)=>{ e.preventDefault(); startGame(); };
-document.getElementById('btn-retry').onclick = (e)=>{ e.preventDefault(); startGame(); };
-document.getElementById('btn-go-garage').onclick = (e)=>{ e.preventDefault(); document.getElementById('gameover-screen').classList.remove('on'); updateGarageUI(); document.getElementById('garage-screen').classList.add('on'); state='garage'; };
+function updateHud(){
+  hudScoreEl.textContent = Math.round(score) + 'm';
+  hudBestEl.textContent = best + 'm';
+  if(document.getElementById('start-best')) document.getElementById('start-best').textContent = best + 'm'; 
+  nitroFillEl.style.width = nitroFuel + '%';
+  btnNos.style.opacity = nitroFuel > 2 ? '1' : '0.4';
 
-/* FİZİK & TRAFİK */
-const CAR_COLORS = ['#3fa9f5','#ffffff','#f5c542','#8e6bd8','#4caf6a','#ff3b4e','#222'];
+  let displaySpeed = Math.round(currentSpeed * 14.5); 
+  hudSpeedEl.innerHTML = displaySpeed + ' <span>km/h</span>';
+
+  if (combo > 1) {
+    if (comboTimer < 60) { comboWrapEl.style.opacity = (Math.floor(tick / 10) % 2 === 0) ? '1' : '0.3'; } else { comboWrapEl.style.opacity = '1'; }
+  } else { comboWrapEl.style.opacity = '0'; }
+  comboValEl.textContent = 'x' + combo;
+}
+
+const CAR_COLORS = ['#e0463c','#3fa9f5','#f5c542','#8e6bd8','#4caf6a','#f57f42', '#ffffff', '#222222'];
 function spawnTraffic(){
   const lane = Math.floor(Math.random()*4); const laneX = LANE_X[lane];
-  const isTruck = Math.random() < 0.25; const w = isTruck ? 36 : 30, h = isTruck ? 95 : 54;
-  const oncoming = isTwoWay ? (lane < 2) : false; 
+  const isTruck = Math.random() < 0.20; const w = isTruck ? 38 : 30, h = isTruck ? 88 : 52;
+  const oncoming = lane < 2; 
+  let ownSpeed, spawnY;
   
-  let ownSpeed = oncoming ? -(2.5 + Math.random()*2) : (isTruck ? 1.5 + Math.random() : 2.0 + Math.random()*3);
-  let spawnY = oncoming ? -150 : (ownSpeed > currentSpeed ? H + 200 : -150);
-  if (traffic.some(c => c.lane === lane && Math.abs(c.y - spawnY) < 250)) return;
+  if (oncoming) { ownSpeed = -(3.0 + Math.random()*2.5); spawnY = -150; } 
+  else { ownSpeed = 1.5 + Math.random()*3.5; if (ownSpeed > currentSpeed + 0.5) spawnY = H + 200; else spawnY = -150; }
+  if (traffic.some(c => c.lane === lane && Math.abs(c.y - spawnY) < 220)) return;
 
-  traffic.push({ x: laneX, y: spawnY, w, h, lane, ownSpeed, color: CAR_COLORS[Math.floor(Math.random()*CAR_COLORS.length)], oncoming, passed: false, nearMissAwarded: false, isTruck, isCrazy: !isTruck && Math.random() < Math.min(0.2 + score/15000, 0.6), aiState: 'wait', aiTimer: 60 + Math.random() * 100, turnSignal: 0, targetLaneX: laneX, targetLane: lane });
+  let crazyRatio = Math.min(0.15 + (score / 15000), 0.60);
+  traffic.push({
+    x: laneX, y: spawnY, w, h, lane, ownSpeed, color: CAR_COLORS[Math.floor(Math.random()*CAR_COLORS.length)],
+    oncoming, passed: false, nearMissAwarded: false, isTruck, isCrazy: !isTruck && Math.random() < crazyRatio, 
+    aiState: 'wait', aiTimer: 60 + Math.random() * 100, turnSignal: 0, targetLaneX: laneX, targetLane: lane
+  });
 }
+function spawnPickup(){ const lane = Math.floor(Math.random()*4); pickups.push({ x: LANE_X[lane], y: -60, r: 12, collected: false }); }
 
 function updatePhysics() {
-  targetSpeed = (nosHeld && nitroFuel>0) ? NOS_SPEED : (gasHeld ? GAS_SPEED : COAST_SPEED);
+  let targetSpeed = COAST_SPEED;
+  if (nosHeld && nitroFuel > 0) { if (!wasNosHeld) { sfx('nitro_start'); wasNosHeld = true; } targetSpeed = NOS_SPEED; nitroFuel -= NITRO_DRAIN; } 
+  else { wasNosHeld = false; nitroFuel = Math.min(100, nitroFuel + NITRO_AUTO_REGEN); if (gasHeld) targetSpeed = GAS_SPEED; }
   if (brakeHeld) targetSpeed = BRAKE_SPEED;
-  if(nosHeld && gasHeld && nitroFuel>0) nitroFuel -= NITRO_DRAIN; else nitroFuel = Math.min(100, nitroFuel + 0.05);
-  if (currentSpeed < targetSpeed) currentSpeed += ACCEL; else currentSpeed -= brakeHeld ? BRAKE_DECEL : DECEL;
-  if(engineOsc && audioCtx){ engineOsc.frequency.setValueAtTime(40 + (currentSpeed * 8) + (nosHeld?50:0), audioCtx.currentTime); }
-  
-  if (keys.left || leftHeld) player.targetX -= STEER_SPEED; if (keys.right || rightHeld) player.targetX += STEER_SPEED;
-  player.targetX = clamp(player.targetX, ROAD_X+20, ROAD_X+ROAD_W-20);
-  player.x += (player.targetX - player.x) * (STEER_SPEED * 0.035); 
-  player.lane = Math.floor((player.x - ROAD_X) / LANE_W);
 
-  if (isTwoWay && player.x < ROAD_X + ROAD_W/2 && currentSpeed > 4) {
-    wrongWayTimer++; if (wrongWayTimer > 45) { comboTimer=300; score+=50*combo; popup(player.x, player.y-40, '+'+50*combo, '#ff3b4e'); wrongWayTimer=0; combo++; }
+  if (currentSpeed < targetSpeed) currentSpeed += ACCEL; else if (currentSpeed > targetSpeed) currentSpeed -= brakeHeld ? BRAKE_DECEL : DECEL;
+  if(engineOsc && audioCtx){ let pitch = 40 + (currentSpeed * 7); if(nosHeld && nitroFuel > 0) pitch += 50; engineOsc.frequency.setValueAtTime(pitch, audioCtx.currentTime); }
+}
+
+function updatePlayer(){
+  if (keys.left || leftHeld) player.targetX -= STEER_SPEED;
+  if (keys.right || rightHeld) player.targetX += STEER_SPEED;
+  player.targetX = clamp(player.targetX, ROAD_X+24, ROAD_X+ROAD_W-24);
+  
+  let handlingResponsiveness = STEER_SPEED * 0.035; 
+  player.x += (player.targetX - player.x) * handlingResponsiveness;
+
+  const isWrongWay = player.x < (ROAD_X + ROAD_W/2);
+  if (isWrongWay && currentSpeed > 4) {
+    wrongWayTimer++;
+    if (wrongWayTimer > 45) {
+      comboTimer = 300; let pts = 50 * combo; score += pts; popup(player.x, player.y - 40, '+' + pts + ' TERS YÖN x' + combo, '#ff3b4e'); wrongWayTimer = 0; combo++;
+    }
   } else { wrongWayTimer = 0; }
 }
 
 function updateTraffic(){
   for (let i = traffic.length - 1; i >= 0; i--) {
     const c = traffic[i];
-    
-    if (c.aiState === 'wait' && c.isCrazy && --c.aiTimer <= 0) {
-      let opts = [];
-      if (c.oncoming) { if(c.lane===1)opts.push(0); if(c.lane===0)opts.push(1); } else { if(c.lane===2 && isTwoWay)opts.push(3); else if(!isTwoWay){ if(c.lane>0)opts.push(c.lane-1); if(c.lane<3)opts.push(c.lane+1); } else { if(c.lane===3)opts.push(2); } }
-      if (opts.length > 0) {
-        let nl = opts[0];
-        if (!traffic.some(o => o !== c && o.lane === nl && Math.abs(o.y - c.y) < 180)) { c.aiState='signaling'; c.aiTimer=45; c.targetLane=nl; c.targetLaneX=LANE_X[nl]; c.turnSignal=nl>c.lane?1:-1; }
-        else { c.aiState='braking'; c.ownSpeed = c.oncoming ? -1.0 : 1.0; c.aiTimer=60; }
+    if (c.isCrazy && c.aiState === 'wait') {
+      c.aiTimer--;
+      if (c.aiTimer <= 0) {
+        if (Math.random() < 0.4) { c.aiState = 'braking'; c.ownSpeed = c.oncoming ? -1.5 : 1.5; } 
+        else {
+          let possibleLanes = [];
+          if (c.oncoming) { if (c.lane === 1) possibleLanes.push(0); if (c.lane === 0) possibleLanes.push(1); } 
+          else { if (c.lane === 2) possibleLanes.push(3); if (c.lane === 3) possibleLanes.push(2); }
+          if (possibleLanes.length > 0) {
+            let newLane = possibleLanes[0];
+            let isSafe = !traffic.some(other => other !== c && other.lane === newLane && Math.abs(other.y - c.y) < 160);
+            if (isSafe) { c.aiState = 'signaling'; c.aiTimer = 45; c.targetLane = newLane; c.targetLaneX = LANE_X[newLane]; c.turnSignal = newLane > c.lane ? 1 : -1; } 
+            else { c.aiState = 'braking'; c.ownSpeed = c.oncoming ? -1.0 : 1.0; }
+          }
+        }
       }
-    } else if (c.aiState === 'signaling' && --c.aiTimer <= 0) { c.aiState = 'changing'; c.lane = c.targetLane;
-    } else if (c.aiState === 'changing') { c.x += (c.targetLaneX - c.x) * 0.05; if (Math.abs(c.x - c.targetLaneX)<2) { c.x=c.targetLaneX; c.aiState='wait'; c.turnSignal=0; c.aiTimer=120;} }
+    } else if (c.aiState === 'signaling') { c.aiTimer--; if (c.aiTimer <= 0) { c.aiState = 'changing'; c.lane = c.targetLane; }
+    } else if (c.aiState === 'changing') { c.x += (c.targetLaneX - c.x) * 0.05; if (Math.abs(c.x - c.targetLaneX) < 2) { c.x = c.targetLaneX; c.aiState = 'done'; c.turnSignal = 0; } }
 
     for (let j = 0; j < traffic.length; j++) {
-      if (i===j) continue; const o = traffic[j];
-      if (c.lane === o.lane && c.aiState !== 'changing' && o.aiState !== 'changing' && c.oncoming === o.oncoming) {
-        if (!c.oncoming && c.y > o.y && c.y - o.y < (c.h/2 + o.h/2 + 30)) { c.ownSpeed = Math.min(c.ownSpeed, o.ownSpeed); c.y = o.y + (c.h/2 + o.h/2 + 30); } 
-        else if (c.oncoming && c.y < o.y && o.y - c.y < (c.h/2 + o.h/2 + 30)) { c.ownSpeed = Math.max(c.ownSpeed, o.ownSpeed); c.y = o.y - (c.h/2 + o.h/2 + 30); }
+      if (i === j) continue; const other = traffic[j];
+      if (c.lane === other.lane && c.aiState !== 'changing' && other.aiState !== 'changing') {
+        if (!c.oncoming && !other.oncoming) { if (c.y > other.y && c.y - other.y < 85) if (c.ownSpeed > other.ownSpeed) c.ownSpeed = other.ownSpeed; } 
+        else if (c.oncoming && electric) { if (c.y < other.y && other.y - c.y < 85) if (c.ownSpeed < other.ownSpeed) c.ownSpeed = other.ownSpeed; }
       }
     }
 
-    if (!c.oncoming && Math.abs(c.x - player.x) <= LANE_W*0.8 && c.y > player.y && c.y - player.y < 120 && c.ownSpeed > currentSpeed) { c.ownSpeed = currentSpeed; c.aiState='braking'; }
-    c.y += (currentSpeed - c.ownSpeed); 
-    
-    if (Math.abs(c.x - player.x) < (c.w+player.w)/2 - 2 && Math.abs(c.y - player.y) < (c.h+player.h)/2 - 5) crash();
+    if (!c.oncoming && Math.abs(c.x - player.x) <= LANE_W * 0.8) {
+      if (c.y > player.y && c.y - player.y < 110) { if (c.ownSpeed > currentSpeed) { c.ownSpeed = currentSpeed; c.aiState = 'braking'; } }
+    }
 
-    if (!c.passed && c.y > player.y + 40) { c.passed=true; if(!c.oncoming && Math.abs(c.x-player.x) <= LANE_W*1.5) { comboTimer=300; score+=15*combo; popup(c.x, player.y-30, '+'+15*combo, '#c6ff3d'); combo++; } }
-    if (!c.nearMissAwarded && Math.abs(c.y - player.y) < 35 && currentSpeed > 4) { const g = Math.abs(c.x - player.x) - (c.w+player.w)/2; if (g>0 && g<18) { c.nearMissAwarded=true; comboTimer=300; score+=40*combo; popup(player.x, player.y-50, 'MAKAS! x'+combo, '#00e5ff'); sfx('nearmiss'); combo++; } }
+    c.y += (currentSpeed - c.ownSpeed); 
+    if (Math.abs(c.x - player.x) < (c.w+player.w)/2 + 12 && Math.abs(c.y - player.y) < (c.h+player.h)/2 - 5) crash();
+
+    if (!c.passed && c.y > player.y + 40) {
+      c.passed = true;
+      if (!c.oncoming && Math.abs(c.x - player.x) <= LANE_W * 1.2) { comboTimer = 300; let pts = 15 * combo; score += pts; popup(c.x, player.y-30, '+' + pts + ' SOLLAMA x' + combo, '#c6ff3d'); combo++; }
+    }
+    if (!c.nearMissAwarded && Math.abs(c.y - player.y) < 35 && currentSpeed > 4) {
+      const gap = Math.abs(c.x - player.x) - (c.w+player.w)/2;
+      if (gap > 0 && gap < 18) { c.nearMissAwarded = true; comboTimer = 300; let pts = 40 * combo; score += pts; popup(player.x, player.y-50, '+' + pts + ' MAKAS! x' + combo, '#00e5ff'); sfx('nearmiss'); combo++; }
+    }
     if (c.y > H + 300 || c.y < -400) traffic.splice(i,1);
   }
 }
 
-/* ÇİZİM */
-function roundRectPath(ctx, x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
-
-function drawScene(){
-  let night = getNightFactor(); const t = THEMES[curTheme];
-  const g = G.createLinearGradient(0,0,0,H);
-  g.addColorStop(0, `rgb(${Math.round(t.bg1 - t.bg1*0.8*night)},${Math.round(t.bg2 - t.bg2*0.8*night)},${Math.round(t.bg3 - t.bg3*0.8*night)})`);
-  g.addColorStop(1, '#05070a'); G.fillStyle = g; G.fillRect(0,0,W,H);
-
-  if (curTheme === 'snow') {
-    G.fillStyle='#fff'; bgStars.forEach(s => { G.globalAlpha=s.a; G.beginPath(); G.arc(s.x, s.y, s.s*2, 0, Math.PI*2); G.fill(); s.y += (currentSpeed*0.5 + 2); if(s.y>H){s.y=0; s.x=Math.random()*W;} });
-  } else if (night > 0.1) {
-    G.fillStyle='#fff'; bgStars.forEach(s => { G.globalAlpha=(Math.sin(tick*0.05+s.a*10)*0.5+0.5)*night; G.beginPath(); G.arc(s.x, s.y, s.s, 0, Math.PI*2); G.fill(); s.y+=currentSpeed*0.01; if(s.y>H){s.y=0; s.x=Math.random()*W;} });
+function updatePickups(){
+  for (let i = pickups.length - 1; i >= 0; i--) {
+    const p = pickups[i]; p.y += currentSpeed;
+    if (!p.collected && Math.abs(p.x-player.x) < 28 && Math.abs(p.y-player.y) < 38) { p.collected = true; score += 30; nitroFuel = Math.min(100, nitroFuel + 40); popup(p.x, p.y-20, '+NOS', '#ffb84d'); sfx('pickup'); }
+    if (p.collected || p.y > H+60) pickups.splice(i,1);
   }
-
-  G.globalAlpha=1; G.fillStyle = `rgb(${Math.round(t.ground[0] - t.ground[0]*0.8*night)},${Math.round(t.ground[1] - t.ground[1]*0.8*night)},${Math.round(t.ground[2] - t.ground[2]*0.8*night)})`;
-  G.fillRect(0,0,ROAD_X,H); G.fillRect(ROAD_X+ROAD_W,0,W,H);
-
-  G.fillStyle = curTheme==='snow' ? (night>0.5 ? '#2a2f38' : '#8fa5b8') : t.road; G.fillRect(ROAD_X, 0, ROAD_W, H);
-  roadDashOffset += currentSpeed; 
-  [ROAD_X-8, ROAD_X+ROAD_W-4].forEach((sx)=>{ for (let y = -26 + (roadDashOffset % 52); y < H; y += 52) { G.fillStyle = curTheme==='snow'?'#fff':'#ddd'; G.fillRect(sx, y, 8, 26); G.fillStyle = '#c0392b'; G.fillRect(sx, y+26, 8, 26); } });
-  
-  G.strokeStyle = 'rgba(255,255,255,0.7)'; G.lineWidth = 3;
-  for (let y = -35 + (roadDashOffset % 60); y < H; y += 60) { G.beginPath(); G.moveTo(ROAD_X+LANE_W, y); G.lineTo(ROAD_X+LANE_W, y+35); G.stroke(); G.beginPath(); G.moveTo(ROAD_X+LANE_W*3, y); G.lineTo(ROAD_X+LANE_W*3, y+35); G.stroke(); }
-  
-  G.strokeStyle = isTwoWay ? t.line : 'rgba(255,255,255,0.7)'; G.lineWidth = isTwoWay ? 2.5 : 3;
-  if(isTwoWay) { G.beginPath(); G.moveTo(ROAD_X+LANE_W*2-3,0); G.lineTo(ROAD_X+LANE_W*2-3,H); G.stroke(); G.beginPath(); G.moveTo(ROAD_X+LANE_W*2+3,0); G.lineTo(ROAD_X+LANE_W*2+3,H); G.stroke(); }
-  else { for (let y = -35 + (roadDashOffset % 60); y < H; y += 60) { G.beginPath(); G.moveTo(ROAD_X+LANE_W*2, y); G.lineTo(ROAD_X+LANE_W*2, y+35); G.stroke(); } }
 }
 
-function drawCar(x,y,w,h,col,facingDown,isP, brk=false, sig=0, isT=false){
-  let night = state==='garage'?0:getNightFactor(); G.save(); G.translate(x,y);
-  G.fillStyle='rgba(0,0,0,0.4)'; G.beginPath(); G.ellipse(0,h/2+4,w/2,6,0,0,Math.PI*2); G.fill();
-  G.fillStyle=col; roundRectPath(G, -w/2, -h/2, w, h, isT?2:6); G.fill(); G.strokeStyle='rgba(0,0,0,0.5)'; G.lineWidth=1.5; G.stroke();
-  G.fillStyle='rgba(20,28,40,0.85)'; 
-  if(isT){ roundRectPath(G, -w/2+2, facingDown?-h/2+4:h*0.2, w-4, h*0.25, 2); G.fill(); }
-  else { roundRectPath(G, -w/2+4, facingDown?-h/2+8:h*0.02, w-8, h*0.32, 4); G.fill(); roundRectPath(G, -w/2+5, facingDown?h*0.1:-h/2+6, w-10, h*0.15, 2); G.fill(); }
-  
-  if (isP) { G.fillStyle='#fff'; G.shadowColor='#fff'; G.shadowBlur=10+(night*15); G.fillRect(-w/2+3, -h/2-2, 6, 4); G.fillRect(w/2-9, -h/2-2, 6, 4); G.shadowBlur=0; G.fillStyle=brakeHeld?'#ff0000':'#880000'; if(brakeHeld||night>0.2) {G.shadowColor='#ff0000'; G.shadowBlur=15;} G.fillRect(-w/2+3, h/2-2, 6, 4); G.fillRect(w/2-9, h/2-2, 6, 4); } 
-  else if (facingDown) { G.fillStyle='#fff2b0'; G.shadowColor='#fff2b0'; G.shadowBlur=night>0.2?15:5; G.fillRect(-w/2+3, h/2-2, 6, 4); G.fillRect(w/2-9, h/2-2, 6, 4); G.shadowBlur=0; } 
-  else { G.fillStyle=brk?'#ff0000':'#ff3333'; G.shadowColor=brk?'#ff0000':'#ff3333'; G.shadowBlur=(brk||night>0.2)?15:0; G.fillRect(-w/2+3, -h/2-2, 6, 4); G.fillRect(w/2-9, -h/2-2, 6, 4); G.shadowBlur=0; }
-  if (sig!==0 && Math.floor(tick/15)%2===0) { G.fillStyle='#ffb84d'; G.shadowColor='#ffb84d'; G.shadowBlur=12; G.fillRect(sig===1?w/2-9:-w/2+3, facingDown?h/2-2:-h/2-2, 6, 4); G.shadowBlur=0; }
+/* ============== ÇİZİM ============== */
+function drawBackground(){
+  let nightFactor = getNightFactor(); 
+  const g = G.createLinearGradient(0,0,0,H);
+  g.addColorStop(0, `rgb(${Math.round(77 - 71*nightFactor)},${Math.round(166 - 150*nightFactor)},${Math.round(255 - 223*nightFactor)})`);
+  g.addColorStop(0.5, '#0d1526'); g.addColorStop(1, '#05070a'); G.fillStyle = g; G.fillRect(0,0,W,H);
+
+  if (nightFactor > 0.1) {
+    G.save(); G.fillStyle = '#fff';
+    bgStars.forEach(s => { G.globalAlpha = (Math.sin(tick*0.05 + s.a*10) * 0.5 + 0.5) * nightFactor; G.beginPath(); G.arc(s.x, s.y, s.s, 0, Math.PI*2); G.fill(); s.y += currentSpeed * 0.01; if(s.y > H) { s.y = 0; s.x = Math.random()*W; } });
+    G.restore();
+  }
+
+  bgOffset += currentSpeed * 0.25;
+  G.save(); G.globalAlpha = 0.5 - (nightFactor * 0.2);
+  for (let i=0;i<9;i++){ const hx = (i*130 - (bgOffset % 130)); G.fillStyle = i%2===0 ? '#141f38' : '#101a30'; G.beginPath(); G.moveTo(hx, 160); G.lineTo(hx+65, 120); G.lineTo(hx+130, 160); G.closePath(); G.fill(); }
   G.restore();
 
-  if (night>0.1) {
-    G.save(); G.translate(x,y); G.globalAlpha = night;
-    let bLen = isP?280:200, sp = isP?70:50, ys = facingDown?h/2:-h/2, ye = facingDown?h/2+bLen:-h/2-bLen;
-    let grad = G.createLinearGradient(0, ys, 0, ye); grad.addColorStop(0, 'rgba(255,255,240,0.7)'); grad.addColorStop(1, 'rgba(255,255,240,0)');
-    G.fillStyle = grad; G.beginPath(); G.moveTo(-w/2+6, ys); G.lineTo(w/2-6, ys); G.lineTo(w/2+sp, ye); G.lineTo(-w/2-sp, ye); G.closePath(); G.fill(); G.restore();
+  G.fillStyle = `rgb(${Math.round(42 - 42*nightFactor)},${Math.round(77 - 77*nightFactor)},${Math.round(46 - 46*nightFactor)})`;
+  G.fillRect(0, 0, ROAD_X, H); G.fillRect(ROAD_X+ROAD_W, 0, W-(ROAD_X+ROAD_W), H);
+}
+
+function drawRoad(){
+  G.fillStyle = '#262933'; G.fillRect(ROAD_X, 0, ROAD_W, H);
+  roadDashOffset += currentSpeed; const stripeH = 26;
+  [ROAD_X-8, ROAD_X+ROAD_W-4].forEach((sx)=>{ for (let y = -stripeH + (roadDashOffset % (stripeH*2)); y < H; y += stripeH*2) { G.fillStyle = '#ddd'; G.fillRect(sx, y, 8, stripeH); G.fillStyle = '#c0392b'; G.fillRect(sx, y+stripeH, 8, stripeH); } });
+  
+  const dashLen = 35, gapLen = 25;
+  let divX1 = ROAD_X + LANE_W; G.strokeStyle = 'rgba(255,255,255,0.7)'; G.lineWidth = 3;
+  for (let y = -dashLen + (roadDashOffset % (dashLen+gapLen)); y < H; y += dashLen+gapLen) { G.beginPath(); G.moveTo(divX1, y); G.lineTo(divX1, y+dashLen); G.stroke(); }
+  let divX2 = ROAD_X + LANE_W * 2; G.strokeStyle = '#f5c542'; G.lineWidth = 2.5; G.beginPath(); G.moveTo(divX2-3,0); G.lineTo(divX2-3,H); G.stroke(); G.beginPath(); G.moveTo(divX2+3,0); G.lineTo(divX2+3,H); G.stroke();
+  let divX3 = ROAD_X + LANE_W * 3; G.strokeStyle = 'rgba(255,255,255,0.7)'; G.lineWidth = 3;
+  for (let y = -dashLen + (roadDashOffset % (dashLen+gapLen)); y < H; y += dashLen+gapLen) { G.beginPath(); G.moveTo(divX3, y); G.lineTo(divX3, y+dashLen); G.stroke(); }
+}
+
+function drawCar(x,y,w,h,color,facingDown,isPlayer, botBraking=false, turnSignal=0){
+  let nightFactor = state === 'garage' ? 0 : getNightFactor();
+
+  G.save(); G.translate(x,y);
+  G.fillStyle = 'rgba(0,0,0,0.4)'; G.beginPath(); G.ellipse(0,h/2+4,w/2,6,0,0,Math.PI*2); G.fill();
+  G.fillStyle = color; roundRectPath(G, -w/2, -h/2, w, h, 6); G.fill(); G.strokeStyle = 'rgba(0,0,0,0.5)'; G.lineWidth = 1.5; G.stroke();
+  G.fillStyle = 'rgba(20,28,40,0.85)'; roundRectPath(G, -w/2+4, facingDown ? -h/2+8 : h*0.02, w-8, h*0.32, 4); G.fill(); roundRectPath(G, -w/2+5, facingDown ? h*0.1 : -h/2+6, w-10, h*0.15, 2); G.fill();
+
+  if (isPlayer) {
+    G.fillStyle = '#fff'; G.shadowColor='#fff'; G.shadowBlur= 10 + (nightFactor*15); G.fillRect(-w/2+3, -h/2-2, 6, 4); G.fillRect(w/2-9, -h/2-2, 6, 4); G.shadowBlur=0;
+    G.fillStyle = brakeHeld ? '#ff0000' : '#880000'; if(brakeHeld || nightFactor > 0.2) { G.shadowColor='#ff0000'; G.shadowBlur=15; }
+    G.fillRect(-w/2+3, h/2-2, 6, 4); G.fillRect(w/2-9, h/2-2, 6, 4);
+  } else if (facingDown) {
+    G.fillStyle = '#fff2b0'; G.shadowColor='#fff2b0'; G.shadowBlur = nightFactor > 0.2 ? 15 : 5; G.fillRect(-w/2+3, h/2-2, 6, 4); G.fillRect(w/2-9, h/2-2, 6, 4); G.shadowBlur=0;
+  } else {
+    G.fillStyle = botBraking ? '#ff0000' : '#ff3333'; G.shadowColor = botBraking ? '#ff0000' : '#ff3333'; G.shadowBlur = (botBraking || nightFactor > 0.2) ? 15 : 0;
+    G.fillRect(-w/2+3, -h/2-2, 6, 4); G.fillRect(w/2-9, -h/2-2, 6, 4); G.shadowBlur=0;
   }
+  if (turnSignal !== 0 && Math.floor(tick / 15) % 2 === 0) { G.fillStyle = '#ffb84d'; G.shadowColor = '#ffb84d'; G.shadowBlur = 12; let sigX = turnSignal === 1 ? w/2-9 : -w/2+3; let sigY = facingDown ? h/2-2 : -h/2-2; G.fillRect(sigX, sigY, 6, 4); G.shadowBlur = 0; }
+  G.restore();
+
+  if (nightFactor > 0.1) {
+    G.save(); G.translate(x,y); G.globalAlpha = nightFactor;
+    let beamLen = isPlayer ? 280 : 200; let spread = isPlayer ? 70 : 50; let yStart = facingDown ? h/2 : -h/2; let yEnd = facingDown ? h/2 + beamLen : -h/2 - beamLen;
+    let beamGrad = G.createLinearGradient(0, yStart, 0, yEnd); beamGrad.addColorStop(0, 'rgba(255, 255, 240, 0.7)'); beamGrad.addColorStop(1, 'rgba(255, 255, 240, 0)');
+    G.fillStyle = beamGrad; G.beginPath(); G.moveTo(-w/2 + 6, yStart); G.lineTo(w/2 - 6, yStart); G.lineTo(w/2 + spread, yEnd); G.lineTo(-w/2 - spread, yEnd); G.closePath(); G.fill(); G.restore();
+  }
+}
+
+function drawPickups(){ pickups.forEach(p=>{ if(p.collected) return; const bob = Math.sin(Date.now()/220 + p.x)*4; G.save(); G.translate(p.x, p.y+bob); G.shadowColor = '#00e5ff'; G.shadowBlur = 12; G.fillStyle = '#00e5ff'; G.beginPath(); G.arc(0,0,p.r,0,Math.PI*2); G.fill(); G.shadowBlur = 0; G.fillStyle = '#000'; G.font = 'bold 12px Orbitron, monospace'; G.textAlign='center'; G.textBaseline='middle'; G.fillText('N', 0, 1); G.restore(); }); }
+
+function drawPlayer(){
+  G.save();
+  if (nosHeld && nitroFuel > 0 && state === 'play') { G.fillStyle = 'rgba(0,229,255,0.7)'; G.beginPath(); G.moveTo(player.x-6, player.y+player.h/2); G.lineTo(player.x+6, player.y+player.h/2); G.lineTo(player.x, player.y+player.h/2+35+Math.random()*15); G.closePath(); G.fill(); }
+  G.restore();
+  drawCar(player.x, player.y, player.w, player.h, player.color, false, true, false, 0);
 }
 
 function loop(timestamp){
-  requestAnimationFrame(loop); if (isPaused) return; 
-  if (!timestamp) timestamp = performance.now();
-  if (timestamp - lastTime < fpsInterval) return;
-  lastTime = timestamp - ((timestamp - lastTime) % fpsInterval);
+  requestAnimationFrame(loop);
+  if (isPaused) return; 
 
-  tick++; G.clearRect(0,0,W,H);
-  if (shakeAmt>0.3) { shakeX=(Math.random()-0.5)*shakeAmt*2; shakeY=(Math.random()-0.5)*shakeAmt*2; shakeAmt*=0.85; } else { shakeX=0; shakeY=0; shakeAmt=0; }
+  if (!timestamp) timestamp = performance.now();
+  let deltaTime = timestamp - lastTime;
+
+  if (deltaTime < frameInterval) return;
+  lastTime = timestamp - (deltaTime % frameInterval);
+
+  tick++;
+  G.clearRect(0,0,W,H);
+
+  if (shakeAmt > 0.3) { shakeX=(Math.random()-0.5)*shakeAmt*2; shakeY=(Math.random()-0.5)*shakeAmt*2; shakeAmt*=0.85; } else { shakeX=0; shakeY=0; shakeAmt=0; }
   G.save(); G.translate(shakeX, shakeY);
 
   if (state === 'play') {
-    updatePhysics(); updatePlayer(); updateTraffic(); 
-    for(let i=pickups.length-1;i>=0;i--){ let p=pickups[i]; p.y+=currentSpeed; if(!p.col&&Math.abs(p.x-player.x)<28&&Math.abs(p.y-player.y)<38){p.col=true; score+=30; nitroFuel=Math.min(100,nitroFuel+40); popup(p.x,p.y-20,'+NOS','#ffb84d'); sfx('nearmiss');} if(p.col||p.y>H+60)pickups.splice(i,1); }
-    if (comboTimer>0) { comboTimer--; if(comboTimer<=0) combo=1; }
-    if (--spawnTimer<=0) { spawnTraffic(); if(Math.random()<Math.min(0.25+(score/1000)*0.05, 0.8)) spawnTraffic(); spawnTimer = Math.max(15, 60 - currentSpeed*3 + Math.random()*15); }
-    if (--pickupTimer<=0) { pickups.push({x:LANE_X[Math.floor(Math.random()*4)],y:-60,r:12,col:false}); pickupTimer=200+Math.floor(Math.random()*100); }
-    score += currentSpeed * 0.1; 
-    document.getElementById('hud-score').innerText = Math.round(score)+'m'; document.getElementById('hud-speed').innerHTML = Math.round(currentSpeed*14.5) + ' <span>km/h</span>';
-    document.getElementById('nitro-fill').style.width=nitroFuel+'%'; document.getElementById('btn-nos').style.opacity=nitroFuel>2?'1':'0.4';
-    let cw=document.getElementById('combo-wrap'); cw.style.opacity=combo>1?(comboTimer<60?(Math.floor(tick/10)%2===0?'1':'0.3'):'1'):'0'; document.getElementById('combo-val').innerText='x'+combo;
-  } else if (state === 'garage') {
-    currentSpeed=3; roadDashOffset+=currentSpeed; bgOffset+=currentSpeed*0.25;
+    updatePhysics(); updatePlayer(); updateTraffic(); updatePickups();
+    if (comboTimer > 0) { comboTimer--; if (comboTimer <= 0) combo = 1; }
+    spawnTimer--;
+    if (spawnTimer <= 0) { spawnTraffic(); let baslangicYogunluk = 0.30; let artisMiktari = (score / 800) * 0.05; let ciftArabaIhtimali = Math.min(baslangicYogunluk + artisMiktari, 0.80); if(Math.random() < ciftArabaIhtimali) spawnTraffic(); spawnTimer = Math.max(15, 60 - currentSpeed*3 + Math.random()*15); }
+    pickupTimer--; if (pickupTimer <= 0) { spawnPickup(); pickupTimer = 200 + Math.floor(Math.random()*100); }
+    score += (currentSpeed * 0.1); updateHud();
   }
 
-  drawScene();
-  if (state==='play' || state==='crash') {
-    traffic.forEach(c => drawCar(c.x, c.y, c.w, c.h, c.color, c.oncoming, false, c.aiState==='braking', c.turnSignal, c.isTruck));
-    pickups.forEach(p=>{ if(p.col)return; G.save(); G.translate(p.x, p.y+Math.sin(tick*0.1)*4); G.shadowColor='#00e5ff'; G.shadowBlur=12; G.fillStyle='#00e5ff'; G.beginPath(); G.arc(0,0,p.r,0,Math.PI*2); G.fill(); G.shadowBlur=0; G.fillStyle='#000'; G.font='bold 12px Orbitron'; G.textAlign='center'; G.textBaseline='middle'; G.fillText('N',0,1); G.restore(); });
-    G.save(); if(nosHeld && nitroFuel>0 && state==='play'){ G.fillStyle='rgba(0,229,255,0.7)'; G.beginPath(); G.moveTo(player.x-6,player.y+player.h/2); G.lineTo(player.x+6,player.y+player.h/2); G.lineTo(player.x,player.y+player.h/2+35+Math.random()*15); G.closePath(); G.fill(); } G.restore();
-    drawCar(player.x, player.y, player.w, player.h, player.color, false, true, false, 0, false);
-    
-    // Eksik olan parçacık (particle) ve popup animasyon motorları eklendi
-    for(let i=particles.length-1;i>=0;i--){ let p=particles[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=p.gravity; p.vx*=0.97; p.life-=0.03; if(p.life<=0)particles.splice(i,1); else { G.globalAlpha=p.life; G.fillStyle=p.col; G.beginPath(); G.arc(p.x,p.y,p.size*p.life,0,Math.PI*2); G.fill(); } }
-    for(let i=popups.length-1;i>=0;i--){ popups[i].life-=0.018; popups[i].y-=0.8; if(popups[i].life<=0)popups.splice(i,1); else { G.globalAlpha=popups[i].life; G.font='bold 14px Orbitron'; G.fillStyle=popups[i].col; G.textAlign='center'; G.fillText(popups[i].text, popups[i].x, popups[i].y); } }
+  drawBackground(); drawRoad();
+  
+  if (state === 'play' || state === 'crash') {
+    traffic.forEach(c => drawCar(c.x, c.y, c.w, c.h, c.color, c.oncoming, false, c.aiState === 'braking', c.turnSignal));
+    drawPickups(); drawPlayer(); updateParticles(); drawParticles(); updatePopups(); drawPopups();
   }
+
   G.restore();
 }
+
 requestAnimationFrame(loop);
 </script>
 </body>
