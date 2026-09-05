@@ -128,15 +128,21 @@ CV.width = W; CV.height = H;
 let best = parseInt(localStorage.getItem('trafikKacisiBest') || '0', 10);
 if(document.getElementById('start-best')) document.getElementById('start-best').textContent = best + 'm'; 
 
-let isTwoWay = true; // Oyun Modu Değişkeni
+let isTwoWay = true; 
 document.getElementById('mod-oneway').onclick = (e) => { isTwoWay = false; e.target.classList.add('active'); document.getElementById('mod-twoway').classList.remove('active'); };
 document.getElementById('mod-twoway').onclick = (e) => { isTwoWay = true; e.target.classList.add('active'); document.getElementById('mod-oneway').classList.remove('active'); };
 
 document.getElementById('btn-start').onclick = (e)=>{ e.preventDefault(); startGame(); };
 document.getElementById('btn-retry').onclick = (e)=>{ e.preventDefault(); startGame(); };
-document.getElementById('btn-menu').onclick = (e)=>{ e.preventDefault(); document.getElementById('gameover-screen').classList.remove('on'); document.getElementById('start-screen').classList.add('on'); state='title'; };
+document.getElementById('btn-menu').onclick = (e)=>{ 
+  e.preventDefault(); 
+  document.getElementById('gameover-screen').classList.remove('on'); 
+  document.getElementById('start-screen').classList.add('on'); 
+  state='title'; 
+  resetGameVars(); // Menüye dönerken değişkenleri güvenlice sıfırla
+};
 
-/* ============== SES MOTORU (3 KADEMELİ) ============== */
+/* ============== SES MOTORU ============== */
 let audioCtx = null, engineOsc = null, engineOsc2 = null, engineGain = null, nitroNoise = null, nitroGain = null;
 let volState = 2; // 2: Yüksek, 1: Kısık, 0: Kapalı
 let isPaused = false;
@@ -146,15 +152,25 @@ document.getElementById('btn-mute').onclick = (e)=>{
   volState = (volState === 2) ? 1 : (volState === 1 ? 0 : 2);
   const icons = ['🔇', '🔉', '🔊']; e.target.innerText = icons[volState];
   if(engineGain) engineGain.gain.value = volState === 2 ? 0.05 : (volState === 1 ? 0.015 : 0);
-  if(volState === 0) { if(engineOsc) engineOsc.stop(); if(engineOsc2) engineOsc2.stop(); engineOsc=null; engineOsc2=null; } 
+  if(volState === 0) { 
+    if(engineOsc) engineOsc.stop(); if(engineOsc2) engineOsc2.stop(); 
+    engineOsc=null; engineOsc2=null; 
+    stopNitroSound(); // Sesi kapattığımızda nitro da dursun
+  } 
   else if (state === 'play' && !isPaused && !engineOsc) startEngine();
 };
 
 document.getElementById('btn-pause').onclick = (e)=>{
   e.preventDefault(); e.target.blur(); if (state !== 'play') return;
   isPaused = !isPaused; document.getElementById('btn-pause').innerText = isPaused ? '▶' : '⏸';
-  if (isPaused) { if(engineOsc) stopEngine(); G.fillStyle = 'rgba(0,0,0,0.6)'; G.fillRect(0,0,W,H); G.fillStyle = '#fff'; G.font = 'bold 30px Orbitron'; G.textAlign = 'center'; G.fillText('DURAKLATILDI', W/2, H/2); } 
-  else { if(volState > 0) startEngine(); }
+  if (isPaused) { 
+    if(engineOsc) stopEngine(); 
+    stopNitroSound(); // Duraklatıldığında nitro sesini kes
+    G.fillStyle = 'rgba(0,0,0,0.6)'; G.fillRect(0,0,W,H); G.fillStyle = '#fff'; G.font = 'bold 30px Orbitron'; G.textAlign = 'center'; G.fillText('DURAKLATILDI', W/2, H/2); 
+  } 
+  else { 
+    if(volState > 0) startEngine(); 
+  }
 };
 
 function getAudio(){ if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if(audioCtx.state === 'suspended') audioCtx.resume(); return audioCtx; }
@@ -165,30 +181,48 @@ function startEngine(){
   const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 600;
   
   engineOsc = audioCtx.createOscillator(); engineOsc.type = 'sawtooth';
-  engineOsc2 = audioCtx.createOscillator(); engineOsc2.type = 'sine'; // Alt frekans (Tokluk)
+  engineOsc2 = audioCtx.createOscillator(); engineOsc2.type = 'sine';
   
   engineOsc.connect(filter); engineOsc2.connect(filter);
   filter.connect(engineGain); engineGain.connect(audioCtx.destination);
   engineOsc.start(); engineOsc2.start();
 }
-function stopEngine(){ if(engineGain) engineGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2); setTimeout(() => { if(engineOsc){ engineOsc.stop(); engineOsc2.stop(); engineOsc=null; engineOsc2=null;} }, 250); }
+function stopEngine(){ 
+  if(engineGain && audioCtx) {
+    try { engineGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2); } catch(e){}
+  }
+  setTimeout(() => { if(engineOsc){ try{engineOsc.stop(); engineOsc2.stop();}catch(e){} engineOsc=null; engineOsc2=null;} }, 250); 
+}
+
+function stopNitroSound() {
+  if (nitroNoise && audioCtx && nitroGain) {
+    try { nitroGain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); } catch(e) {}
+    setTimeout(()=>{ if(nitroNoise){ try{nitroNoise.stop();}catch(e){} nitroNoise=null; } }, 150);
+  }
+}
 
 function mkNoise(ctx, dur){ const b = ctx.createBuffer(1, ctx.sampleRate*dur, ctx.sampleRate); const d = b.getChannelData(0); for(let i=0;i<d.length;i++) d[i] = Math.random()*2-1; const s = ctx.createBufferSource(); s.buffer = b; return s; }
+
 function sfx(type){
   if(!audioCtx || volState === 0) return; const ctx = audioCtx, t = ctx.currentTime, out = ctx.destination;
   let vMult = volState === 2 ? 1 : 0.4;
+  
   if(type === 'nitro_on' && !nitroNoise){ 
     nitroNoise = mkNoise(ctx, 10); nitroNoise.loop = true;
     const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 2000;
     nitroGain = ctx.createGain(); nitroGain.gain.setValueAtTime(0, t); nitroGain.gain.linearRampToValueAtTime(0.5 * vMult, t+0.2);
     nitroNoise.connect(hp).connect(nitroGain).connect(out); nitroNoise.start(t);
   }
-  if(type === 'nitro_off' && nitroNoise){ nitroGain.gain.linearRampToValueAtTime(0.01, t+0.2); setTimeout(()=>{if(nitroNoise)nitroNoise.stop(); nitroNoise=null;}, 200); }
+  
+  if(type === 'nitro_off'){ stopNitroSound(); }
+
   if(type === 'horn'){
     const o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain();
-    o1.type = 'square'; o1.frequency.value = 350; o2.type = 'square'; o2.frequency.value = 400;
-    g.gain.setValueAtTime(0.15 * vMult, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.3);
-    o1.connect(g); o2.connect(g); g.connect(out); o1.start(t); o2.start(t); o1.stop(t+0.35); o2.stop(t+0.35);
+    const filt = ctx.createBiquadFilter(); filt.type = 'bandpass'; filt.frequency.value = 480; filt.Q.value = 1.8;
+    o1.type = 'sawtooth'; o1.frequency.value = 370; o2.type = 'sawtooth'; o2.frequency.value = 493;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.22 * vMult, t+0.03); g.gain.setValueAtTime(0.22 * vMult, t+0.32); g.gain.exponentialRampToValueAtTime(0.001, t+0.42);
+    o1.connect(filt); o2.connect(filt); filt.connect(g); g.connect(out);
+    o1.start(t); o2.start(t); o1.stop(t+0.43); o2.stop(t+0.43);
   }
   if(type === 'brake'){
     const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(1200, t); o.frequency.exponentialRampToValueAtTime(800, t+0.3);
@@ -209,7 +243,12 @@ let currentSpeed = 0, weather = 'clear';
 const COAST_SPEED = 1.5, GAS_SPEED = 9.5, NOS_SPEED = 15.0, STEER_SPEED = 7.0, BRAKE_SPEED = 0.5, ACCEL = 0.12, DECEL = 0.025, BRAKE_DECEL = 0.40;  
 
 let gasHeld = false, brakeHeld = false, nosHeld = false, leftHeld = false, rightHeld = false, wasNosHeld = false; 
-let nitroFuel = 100;
+let nitroFuel = 100, nitroDepleted = false;
+const NITRO_DRAIN = 0.4, NITRO_AUTO_REGEN = 0.05;
+
+const bgStars = [];
+for(let i=0; i<80; i++) { bgStars.push({ x: Math.random()*W, y: Math.random()*H, s: Math.random()*1.5 + 0.5, a: Math.random() }); }
+
 const player = { x: LANE_X[2], y: H - 150, w: 30, h: 54, targetX: LANE_X[2], color: '#00e5ff', lane: 2 };
 const traffic = [], pickups = [], particles = [], popups = [], skids = [], envParticles = []; 
 let spawnTimer = 40, pickupTimer = 220, wrongWayTimer = 0; 
@@ -226,18 +265,22 @@ function shake(amt){ shakeAmt = Math.max(shakeAmt, amt); }
 
 /* GİRİŞ KONTROLLERİ */
 function bindBtn(el, d, u) { el.onpointerdown = (e)=>{e.preventDefault(); d(); el.classList.add('active'); getAudio();}; el.onpointerup = (e)=>{e.preventDefault(); u(); el.classList.remove('active');}; el.onpointerleave = (e)=>{u(); el.classList.remove('active');}; el.onpointercancel = (e)=>{u(); el.classList.remove('active');}; }
-bindBtn(document.getElementById('btn-gas'), ()=>gasHeld=true, ()=>gasHeld=false); bindBtn(document.getElementById('btn-brake'), ()=>brakeHeld=true, ()=>brakeHeld=false); bindBtn(document.getElementById('btn-nos'), ()=>nosHeld=true, ()=>nosHeld=false); bindBtn(document.getElementById('btn-left'), ()=>leftHeld=true, ()=>leftHeld=false); bindBtn(document.getElementById('btn-right'), ()=>rightHeld=true, ()=>rightHeld=false);
+bindBtn(document.getElementById('btn-gas'), ()=>gasHeld=true, ()=>gasHeld=false); bindBtn(document.getElementById('btn-brake'), ()=>brakeHeld=true, ()=>brakeHeld=false); 
+bindBtn(document.getElementById('btn-nos'), ()=>nosHeld=true, ()=>{nosHeld=false; sfx('nitro_off');}); 
+bindBtn(document.getElementById('btn-left'), ()=>leftHeld=true, ()=>leftHeld=false); bindBtn(document.getElementById('btn-right'), ()=>rightHeld=true, ()=>rightHeld=false);
 bindBtn(document.getElementById('btn-horn'), ()=>{ if(state==='play'){ sfx('horn'); triggerHorn(); } }, ()=>{});
 
 window.addEventListener('keydown', (e)=>{ 
   if(e.code==='ArrowLeft'||e.code==='KeyA') leftHeld=true; if(e.code==='ArrowRight'||e.code==='KeyD') rightHeld=true; if(e.code==='ArrowUp'||e.code==='KeyW') gasHeld=true; if(e.code==='ArrowDown'||e.code==='KeyS') brakeHeld=true; if(e.code==='Space') nosHeld=true; 
   if(e.code==='KeyK') { if(state==='play'){ sfx('horn'); triggerHorn(); } }
 });
-window.addEventListener('keyup', (e)=>{ if(e.code==='ArrowLeft'||e.code==='KeyA') leftHeld=false; if(e.code==='ArrowRight'||e.code==='KeyD') rightHeld=false; if(e.code==='ArrowUp'||e.code==='KeyW') gasHeld=false; if(e.code==='ArrowDown'||e.code==='KeyS') brakeHeld=false; if(e.code==='Space') nosHeld=false; });
+window.addEventListener('keyup', (e)=>{ 
+  if(e.code==='ArrowLeft'||e.code==='KeyA') leftHeld=false; if(e.code==='ArrowRight'||e.code==='KeyD') rightHeld=false; if(e.code==='ArrowUp'||e.code==='KeyW') gasHeld=false; if(e.code==='ArrowDown'||e.code==='KeyS') brakeHeld=false; 
+  if(e.code==='Space') { nosHeld=false; sfx('nitro_off'); }
+});
 
 function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
 
-/* DİNAMİK ZAMAN VE HAVA DURUMU */
 function getNightFactor() { 
   let phase = (score % 30000) / 30000; 
   if (phase < 0.4) return 0; // Gündüz
@@ -252,23 +295,31 @@ function updateWeatherState() {
 
 function roundRectPath(ctx, x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 
-/* FPS SABİTLEYİCİ */
+/* FPS SABİTLEYİCİ VE OYUN SIFIRLAMA */
 let lastTime = 0; const FPS_LIMIT = 60, frameInterval = 1000 / FPS_LIMIT;
+let gameLoopId = null;
 
-function startGame(){
-  getAudio(); startEngine();
-  state = 'play'; score = 0; tick = 0; currentSpeed = 0; weather = 'clear';
+function resetGameVars() {
+  score = 0; tick = 0; currentSpeed = 0;
   traffic.length = 0; pickups.length = 0; particles.length = 0; popups.length = 0; skids.length = 0; envParticles.length = 0;
   nitroFuel = 100; gasHeld = brakeHeld = nosHeld = leftHeld = rightHeld = wasNosHeld = false; combo = 1; comboTimer = 0;
   player.x = LANE_X[2]; player.targetX = LANE_X[2]; player.lane = 2;
-  spawnTimer = 20; pickupTimer = 220; wrongWayTimer = 0; shakeAmt = 0; isPaused = false; 
+  spawnTimer = 20; pickupTimer = 220; wrongWayTimer = 0; shakeAmt = 0; isPaused = false;
+  stopNitroSound();
+}
+
+function startGame(){
+  getAudio(); startEngine();
+  state = 'play';
+  resetGameVars();
   document.getElementById('btn-pause').innerText = '⏸'; document.querySelectorAll('.control-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('start-screen').classList.remove('on'); document.getElementById('gameover-screen').classList.remove('on');
   updateHud(); lastTime = performance.now();
+  if(!gameLoopId) requestAnimationFrame(loop);
 }
 
 function crash(){
-  if(state !== 'play') return; state = 'crash'; stopEngine(); sfx('crash'); if(nitroNoise) sfx('nitro_off'); shake(14);
+  if(state !== 'play') return; state = 'crash'; stopEngine(); sfx('crash'); stopNitroSound(); shake(14);
   burst(player.x, player.y, '#ff3b4e', '#ffb84d', 46);
   if (Math.round(score) > best) { best = Math.round(score); try { localStorage.setItem('trafikKacisiBest', String(best)); } catch(e){} document.getElementById('go-newbest').style.display = 'block'; } else { document.getElementById('go-newbest').style.display = 'none'; }
   setTimeout(()=>{ document.getElementById('go-score').textContent = Math.round(score) + 'm'; document.getElementById('go-best').textContent = best + 'm'; document.getElementById('gameover-screen').classList.add('on'); }, 650);
@@ -308,8 +359,19 @@ function triggerHorn() {
 
 function updatePhysics() {
   let targetSpeed = COAST_SPEED;
-  if (nosHeld && nitroFuel > 0) { if (!wasNosHeld) { sfx('nitro_on'); wasNosHeld = true; } targetSpeed = NOS_SPEED; nitroFuel -= NITRO_DRAIN; } 
-  else { if (wasNosHeld) { sfx('nitro_off'); wasNosHeld = false; } nitroFuel = Math.min(100, nitroFuel + NITRO_AUTO_REGEN); if (gasHeld) targetSpeed = GAS_SPEED; }
+  const canNitro = nosHeld && nitroFuel > 0 && !nitroDepleted;
+  
+  if (canNitro) {
+    if (!wasNosHeld) { sfx('nitro_on'); wasNosHeld = true; }
+    targetSpeed = NOS_SPEED;
+    nitroFuel -= NITRO_DRAIN;
+    if (nitroFuel <= 0) { nitroFuel = 0; nitroDepleted = true; sfx('nitro_off'); }
+  } else {
+    if (wasNosHeld) { sfx('nitro_off'); wasNosHeld = false; }
+    nitroFuel = Math.min(100, nitroFuel + NITRO_AUTO_REGEN);
+    if (gasHeld) targetSpeed = GAS_SPEED;
+  }
+  if (!nosHeld) nitroDepleted = false;
   
   if (brakeHeld) { 
     targetSpeed = BRAKE_SPEED; 
@@ -317,12 +379,16 @@ function updatePhysics() {
   }
 
   if (currentSpeed < targetSpeed) currentSpeed += ACCEL; else if (currentSpeed > targetSpeed) currentSpeed -= brakeHeld ? BRAKE_DECEL : DECEL;
+  // Güvenlik: Hız asla negatif veya NaN olmamalı
+  if(isNaN(currentSpeed) || currentSpeed < 0) currentSpeed = 0;
   
   if(engineOsc && audioCtx){ 
     let pitch = 35 + (currentSpeed * 6); 
-    if(nosHeld && nitroFuel > 0) pitch += 30; 
-    engineOsc.frequency.setValueAtTime(pitch, audioCtx.currentTime); 
-    if(engineOsc2) engineOsc2.frequency.setValueAtTime(pitch * 0.5, audioCtx.currentTime); // Ses Hatası (Cızırtı) Çözüldü
+    if(nosHeld && nitroFuel > 0 && !nitroDepleted) pitch += 30; 
+    try {
+      engineOsc.frequency.setValueAtTime(pitch, audioCtx.currentTime); 
+      if(engineOsc2) engineOsc2.frequency.setValueAtTime(pitch * 0.5, audioCtx.currentTime);
+    } catch(e) {}
   }
 }
 
@@ -330,8 +396,8 @@ function updatePlayer(){
   updateWeatherState();
   let grip = 1.0; if(weather === 'rain') grip = 0.7; if(weather === 'snow') grip = 0.4;
 
-  if (keys.left || leftHeld) player.targetX -= STEER_SPEED;
-  if (keys.right || rightHeld) player.targetX += STEER_SPEED;
+  if (leftHeld) player.targetX -= STEER_SPEED;
+  if (rightHeld) player.targetX += STEER_SPEED;
   player.targetX = clamp(player.targetX, ROAD_X+24, ROAD_X+ROAD_W-24);
   
   let handling = STEER_SPEED * 0.035 * grip; 
@@ -407,7 +473,7 @@ function drawRoad(){
   roadDashOffset += currentSpeed; const stripeH = 26;
   [ROAD_X-8, ROAD_X+ROAD_W-4].forEach((sx)=>{ for (let y = -stripeH + (roadDashOffset % (stripeH*2)); y < H; y += stripeH*2) { G.fillStyle = weather==='snow'?'#fff':'#ddd'; G.fillRect(sx, y, 8, stripeH); G.fillStyle = '#c0392b'; G.fillRect(sx, y+stripeH, 8, stripeH); } });
   
-  // FREN İZİ (Skid Marks) Çizimi
+  // FREN İZİ 
   G.fillStyle = 'rgba(10,10,10,0.5)';
   for(let i=skids.length-1; i>=0; i--){ let s=skids[i]; s.y+=currentSpeed; s.life-=0.015; if(s.life<=0) skids.splice(i,1); else { G.globalAlpha=s.life; G.beginPath(); G.arc(s.x, s.y, 3, 0, Math.PI*2); G.fill(); } } G.globalAlpha=1;
 
@@ -447,7 +513,7 @@ function drawCar(x,y,w,h,col,facingDown,isP, brk=false, sig=0, isT=false){
   if (night>0.1) {
     G.save(); G.translate(x,y); G.globalAlpha = night;
     let bLen = isP?280:200, sp = isP?70:50, ys = facingDown?h/2:-h/2, ye = facingDown?h/2+bLen:-h/2-bLen;
-    let grad = G.createLinearGradient(0, ys, 0, ye); grad.addColorStop(0, 'rgba(255,255,240,0.7)'); grad.addColorStop(1, 'rgba(255,255,240,0)');
+    let grad = G.createLinearGradient(0, ys, 0, ye); grad.addColorStop(0, 'rgba(255, 255, 240, 0.7)'); grad.addColorStop(1, 'rgba(255, 255, 240, 0)');
     G.fillStyle = grad; G.beginPath(); G.moveTo(-w/2+6, ys); G.lineTo(w/2-6, ys); G.lineTo(w/2+sp, ye); G.lineTo(-w/2-sp, ye); G.closePath(); G.fill(); G.restore();
   }
 }
@@ -471,7 +537,9 @@ function drawPlayer(){
 }
 
 function loop(timestamp){
-  requestAnimationFrame(loop);
+  if (!gameLoopId) gameLoopId = requestAnimationFrame(loop);
+  else gameLoopId = requestAnimationFrame(loop);
+  
   if (isPaused) return; 
   if (!timestamp) timestamp = performance.now(); let deltaTime = timestamp - lastTime;
   if (deltaTime < frameInterval) return; lastTime = timestamp - (deltaTime % frameInterval);
@@ -498,7 +566,7 @@ function loop(timestamp){
   G.restore();
 }
 
-requestAnimationFrame(loop);
+gameLoopId = requestAnimationFrame(loop);
 </script>
 </body>
 </html>
