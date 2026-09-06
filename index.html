@@ -8,12 +8,9 @@
 <style>
 :root{ --lime:#c6ff3d; --cyan:#00e5ff; --amber:#ffb84d; --red:#ff3b4e; --bg:#05070a; }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{ background:var(--bg); min-height:100vh; width:100vw; display:flex; align-items:center; justify-content:center; font-family:"Rajdhani",sans-serif; overflow:hidden; user-select:none; touch-action:none; }
+body{ background:var(--bg); min-height:100vh; display:flex; align-items:center; justify-content:center; font-family:"Rajdhani",sans-serif; overflow:hidden; user-select:none; touch-action:none; }
 html,body{overscroll-behavior:none;}
-
-/* ARENA SABİTLENDİ - JS İLE ÖLÇEKLENECEK */
-#arena{ position:relative; width:420px; height:760px; margin:0 auto; touch-action:none; transform-origin:center center; }
-
+#arena{ position:relative; width:100%; max-width:420px; aspect-ratio:420/760; margin:0 auto; touch-action:none; }
 canvas{ display:block; width:100%; height:100%; border-radius:14px; box-shadow:0 0 0 2px rgba(198,255,61,0.15), 0 0 60px rgba(0,229,255,0.08), 0 20px 70px rgba(0,0,0,0.8); background:#0a0e14; }
 #hud{ position:absolute; inset:0; pointer-events:none; border-radius:14px; overflow:hidden; }
 
@@ -133,7 +130,7 @@ function resizeGame() {
 }
 window.addEventListener('resize', resizeGame);
 window.addEventListener('orientationchange', resizeGame);
-resizeGame(); // Açılışta hemen çalıştır
+resizeGame();
 
 /* ============== OYUN MOTORU ============== */
 const CV = document.getElementById('c'), G = CV.getContext('2d'), W = 420, H = 760;
@@ -143,13 +140,14 @@ let best = parseInt(localStorage.getItem('trafikKacisiBest') || '0', 10);
 if(document.getElementById('start-best')) document.getElementById('start-best').textContent = best + 'm'; 
 
 let isTwoWay = true; 
-document.getElementById('mod-oneway').onclick = (e) => { isTwoWay = false; e.target.classList.add('active'); document.getElementById('mod-twoway').classList.remove('active'); };
-document.getElementById('mod-twoway').onclick = (e) => { isTwoWay = true; e.target.classList.add('active'); document.getElementById('mod-oneway').classList.remove('active'); };
+document.getElementById('mod-oneway').onclick = (e) => { isTwoWay = false; e.target.classList.add('active'); document.getElementById('mod-twoway').classList.remove('active'); if(document.activeElement) document.activeElement.blur(); };
+document.getElementById('mod-twoway').onclick = (e) => { isTwoWay = true; e.target.classList.add('active'); document.getElementById('mod-oneway').classList.remove('active'); if(document.activeElement) document.activeElement.blur(); };
 
-document.getElementById('btn-start').onclick = (e)=>{ e.preventDefault(); startGame(); };
-document.getElementById('btn-retry').onclick = (e)=>{ e.preventDefault(); startGame(); };
+document.getElementById('btn-start').onclick = (e)=>{ e.preventDefault(); if(document.activeElement) document.activeElement.blur(); startGame(); };
+document.getElementById('btn-retry').onclick = (e)=>{ e.preventDefault(); if(document.activeElement) document.activeElement.blur(); startGame(); };
 document.getElementById('btn-menu').onclick = (e)=>{ 
   e.preventDefault(); 
+  if(document.activeElement) document.activeElement.blur();
   document.getElementById('gameover-screen').classList.remove('on'); 
   document.getElementById('start-screen').classList.add('on'); 
   state='title'; 
@@ -285,14 +283,25 @@ bindBtn(document.getElementById('btn-nos'), ()=>nosHeld=true, ()=>{nosHeld=false
 bindBtn(document.getElementById('btn-left'), ()=>leftHeld=true, ()=>leftHeld=false); bindBtn(document.getElementById('btn-right'), ()=>rightHeld=true, ()=>rightHeld=false);
 bindBtn(document.getElementById('btn-horn'), ()=>{ if(state==='play'){ sfx('horn'); triggerHorn(); } }, ()=>{});
 
+// OYUNU BAŞA SARDIRAN BOŞLUK TUŞU HATASI ÇÖZÜLDÜ
 window.addEventListener('keydown', (e)=>{ 
-  if(e.code==='ArrowLeft'||e.code==='KeyA') leftHeld=true; if(e.code==='ArrowRight'||e.code==='KeyD') rightHeld=true; if(e.code==='ArrowUp'||e.code==='KeyW') gasHeld=true; if(e.code==='ArrowDown'||e.code==='KeyS') brakeHeld=true; if(e.code==='Space') nosHeld=true; 
+  if(['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyA','KeyD','KeyW','KeyS','KeyK'].includes(e.code)) e.preventDefault();
+  if(e.code==='ArrowLeft'||e.code==='KeyA') leftHeld=true; 
+  if(e.code==='ArrowRight'||e.code==='KeyD') rightHeld=true; 
+  if(e.code==='ArrowUp'||e.code==='KeyW') gasHeld=true; 
+  if(e.code==='ArrowDown'||e.code==='KeyS') brakeHeld=true; 
+  if(e.code==='Space') nosHeld=true; 
   if(e.code==='KeyK') { if(state==='play'){ sfx('horn'); triggerHorn(); } }
-});
+}, {passive: false});
+
 window.addEventListener('keyup', (e)=>{ 
-  if(e.code==='ArrowLeft'||e.code==='KeyA') leftHeld=false; if(e.code==='ArrowRight'||e.code==='KeyD') rightHeld=false; if(e.code==='ArrowUp'||e.code==='KeyW') gasHeld=false; if(e.code==='ArrowDown'||e.code==='KeyS') brakeHeld=false; 
+  if(['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyA','KeyD','KeyW','KeyS','KeyK'].includes(e.code)) e.preventDefault();
+  if(e.code==='ArrowLeft'||e.code==='KeyA') leftHeld=false; 
+  if(e.code==='ArrowRight'||e.code==='KeyD') rightHeld=false; 
+  if(e.code==='ArrowUp'||e.code==='KeyW') gasHeld=false; 
+  if(e.code==='ArrowDown'||e.code==='KeyS') brakeHeld=false; 
   if(e.code==='Space') { nosHeld=false; sfx('nitro_off'); }
-});
+}, {passive: false});
 
 function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
 
