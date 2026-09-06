@@ -262,7 +262,7 @@ const NITRO_DRAIN = 0.4, NITRO_AUTO_REGEN = 0.05;
 const bgStars = [];
 for(let i=0; i<80; i++) { bgStars.push({ x: Math.random()*W, y: Math.random()*H, s: Math.random()*1.5 + 0.5, a: Math.random() }); }
 
-const player = { x: LANE_X[2], y: H - 150, w: 30, h: 54, targetX: LANE_X[2], color: '#00e5ff', lane: 2 };
+const player = { x: LANE_X[2], y: H - 150, w: 34, h: 60, targetX: LANE_X[2], color: '#00e5ff', lane: 2 };
 const traffic = [], pickups = [], particles = [], popups = [], skids = []; 
 let spawnTimer = 40, pickupTimer = 220, wrongWayTimer = 0; 
 
@@ -283,7 +283,6 @@ bindBtn(document.getElementById('btn-nos'), ()=>nosHeld=true, ()=>{nosHeld=false
 bindBtn(document.getElementById('btn-left'), ()=>leftHeld=true, ()=>leftHeld=false); bindBtn(document.getElementById('btn-right'), ()=>rightHeld=true, ()=>rightHeld=false);
 bindBtn(document.getElementById('btn-horn'), ()=>{ if(state==='play'){ sfx('horn'); triggerHorn(); } }, ()=>{});
 
-// OYUNU BAŞA SARDIRAN BOŞLUK TUŞU HATASI ÇÖZÜLDÜ
 window.addEventListener('keydown', (e)=>{ 
   if(['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyA','KeyD','KeyW','KeyS','KeyK'].includes(e.code)) e.preventDefault();
   if(e.code==='ArrowLeft'||e.code==='KeyA') leftHeld=true; 
@@ -305,17 +304,19 @@ window.addEventListener('keyup', (e)=>{
 
 function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
 
-/* DİNAMİK ZAMAN (ÇOK YAVAŞ GEÇİŞ) */
+/* DİNAMİK ZAMAN VE HAVA (SABİTLENDİ) */
 function getNightFactor() { 
-  let phase = (tick % 7200) / 7200; 
-  if (phase < 0.4) return 0; 
-  if (phase < 0.6) return (phase - 0.4) * 5; 
-  if (phase < 0.9) return 1; 
-  return Math.max(0, 1 - ((phase - 0.9) * 10)); 
+  // Gece/Gündüz geçişi çok yavaşlatıldı (yaklaşık her 5 dakikada 1 tur)
+  let phase = (tick % 18000) / 18000; 
+  if (phase < 0.45) return 0; // Gündüz
+  if (phase < 0.55) return (phase - 0.45) * 10; // Gün Batımı
+  if (phase < 0.90) return 1; // Gece
+  return Math.max(0, 1 - ((phase - 0.90) * 10)); // Gün Doğumu
 }
 
 function roundRectPath(ctx, x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 
+// DİKDÖRTGEN HİTBOX (Çizgiden Gitme Sömürüsü Engellendi)
 function checkCollision(r1, r2) {
   let r1Left = r1.x - r1.w/2; let r1Right = r1.x + r1.w/2;
   let r1Top = r1.y - r1.h/2; let r1Bottom = r1.y + r1.h/2;
@@ -364,8 +365,14 @@ function updateHud(){
 
 const CAR_COLORS = ['#e0463c','#3fa9f5','#f5c542','#8e6bd8','#4caf6a','#f57f42', '#ffffff', '#222222'];
 function spawnTraffic(){
-  const lane = Math.floor(Math.random()*4); const laneX = LANE_X[lane];
-  const isTruck = Math.random() < 0.15; const w = isTruck ? 36 : 30, h = isTruck ? 100 : 54; 
+  const lane = Math.floor(Math.random()*4); 
+  
+  // YENİ: NPC araçları şeritlerinde milimetrik düz gitmez, hafif sağa sola sapmalı başlar.
+  // Bu sayede yolun tam ortasından "sonsuza kadar gitme" hatası engellenir.
+  const laneX = LANE_X[lane] + (Math.random() * 14 - 7); 
+  
+  // Araç boyutları (Hitboxlar dahil) sömürüyü engellemek için biraz büyütüldü
+  const isTruck = Math.random() < 0.15; const w = isTruck ? 42 : 34, h = isTruck ? 115 : 60; 
   const oncoming = isTwoWay ? (lane < 2) : false; 
   let ownSpeed = oncoming ? -(2.0 + Math.random()*2.5) : (isTruck ? 1.0 + Math.random() : 1.5 + Math.random()*3.5);
   let spawnY = oncoming ? -200 : (ownSpeed > currentSpeed + 0.5 ? H + 200 : -200);
@@ -381,7 +388,7 @@ function triggerHorn() {
       let opts = [];
       if (c.lane > 2 && isTwoWay) opts.push(3); else if (!isTwoWay && c.lane > 0) opts.push(c.lane - 1);
       if (c.lane < 3) opts.push(c.lane + 1);
-      for(let l of opts) { if (!traffic.some(o => o !== c && o.lane === l && Math.abs(o.y - c.y) < 200)) { c.aiState = 'signaling'; c.aiTimer = 15; c.targetLane = l; c.targetLaneX = LANE_X[l]; c.turnSignal = l > c.lane ? 1 : -1; break; } }
+      for(let l of opts) { if (!traffic.some(o => o !== c && o.lane === l && Math.abs(o.y - c.y) < 200)) { c.aiState = 'signaling'; c.aiTimer = 15; c.targetLane = l; c.targetLaneX = LANE_X[l] + (Math.random() * 12 - 6); c.turnSignal = l > c.lane ? 1 : -1; break; } }
     }
   });
 }
@@ -443,7 +450,7 @@ function updateTraffic(){
         else {
           let opts = [];
           if (c.oncoming) { if (c.lane === 1) opts.push(0); if (c.lane === 0) opts.push(1); } else { if (c.lane === 2 && isTwoWay) opts.push(3); else if (!isTwoWay && c.lane > 0) opts.push(c.lane-1); if (c.lane < 3) opts.push(c.lane+1); }
-          if (opts.length > 0) { let nl = opts[0]; if (!traffic.some(o => o !== c && o.lane === nl && Math.abs(o.y - c.y) < 180)) { c.aiState = 'signaling'; c.aiTimer = 45; c.targetLane = nl; c.targetLaneX = LANE_X[newLane]; c.turnSignal = nl > c.lane ? 1 : -1; } else { c.aiState = 'braking'; c.ownSpeed = c.oncoming ? -1.0 : 1.0; } }
+          if (opts.length > 0) { let nl = opts[0]; if (!traffic.some(o => o !== c && o.lane === nl && Math.abs(o.y - c.y) < 180)) { c.aiState = 'signaling'; c.aiTimer = 45; c.targetLane = nl; c.targetLaneX = LANE_X[newLane] + (Math.random() * 12 - 6); c.turnSignal = nl > c.lane ? 1 : -1; } else { c.aiState = 'braking'; c.ownSpeed = c.oncoming ? -1.0 : 1.0; } }
         }
       }
     } else if (c.aiState === 'signaling') { c.aiTimer--; if (c.aiTimer <= 0) { c.aiState = 'changing'; c.lane = c.targetLane; }
@@ -461,8 +468,9 @@ function updateTraffic(){
 
     c.y += (currentSpeed - c.ownSpeed); 
     
-    let pRect = { x: player.x, y: player.y, w: player.w - 6, h: player.h - 6 };
-    let cRect = { x: c.x, y: c.y, w: c.w - 4, h: c.h - 4 };
+    // YENİ: SIKI HİTBOX KONTROLÜ (Kenarlara sıfıra sıfır sürtme yanmaya sebep olur)
+    let pRect = { x: player.x, y: player.y, w: player.w - 2, h: player.h - 4 };
+    let cRect = { x: c.x, y: c.y, w: c.w - 2, h: c.h - 4 };
     
     if (checkCollision(pRect, cRect)) {
       crash();
