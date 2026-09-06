@@ -243,6 +243,24 @@ function sfx(type){
   }
   if(type === 'nearmiss'){ const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(500, t); o.frequency.exponentialRampToValueAtTime(1200, t+0.12); g.gain.setValueAtTime(0.18 * vMult, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.15); o.connect(g); g.connect(out); o.start(t); o.stop(t+0.16); }
   if(type === 'pickup'){ [660,880,1100].forEach((f,i)=>{ const o = ctx.createOscillator(), g = ctx.createGain(); o.type='square'; o.frequency.value=f; g.gain.setValueAtTime(0.14 * vMult, t+i*0.05); g.gain.exponentialRampToValueAtTime(0.001, t+i*0.05+0.1); o.connect(g); g.connect(out); o.start(t+i*0.05); o.stop(t+i*0.05+0.1); }); }
+  
+  // YENİ SUPRA/RACING BACKFIRE (EGZOZ PATLATMA) SESİ
+  if(type === 'backfire'){
+    const n = mkNoise(ctx, 0.2); 
+    const bp = ctx.createBiquadFilter(); bp.type='lowpass'; bp.frequency.setValueAtTime(800, t); bp.frequency.exponentialRampToValueAtTime(150, t+0.15); 
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.8 * vMult, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.15);
+    
+    // Kesici Çatırdama (Crackling) Efekti İçin İkinci Osilatör
+    const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(60, t); o.frequency.exponentialRampToValueAtTime(30, t+0.1);
+    const go = ctx.createGain(); go.gain.setValueAtTime(0.6 * vMult, t); go.gain.exponentialRampToValueAtTime(0.01, t+0.1);
+    
+    n.connect(bp).connect(g).connect(out);
+    o.connect(go).connect(out);
+    
+    n.start(t); n.stop(t+0.2);
+    o.start(t); o.stop(t+0.15);
+  }
+
   if(type === 'crash'){ const n = mkNoise(ctx, 0.45); const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(2200,t); lp.frequency.exponentialRampToValueAtTime(120,t+0.45); const g = ctx.createGain(); g.gain.setValueAtTime(0.65 * vMult,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.45); n.connect(lp); lp.connect(g); g.connect(out); n.start(t); n.stop(t+0.45); const o = ctx.createOscillator(), g2 = ctx.createGain(); o.type='sawtooth'; o.frequency.setValueAtTime(140,t); o.frequency.exponentialRampToValueAtTime(30,t+0.4); g2.gain.setValueAtTime(0.45 * vMult,t); g2.gain.exponentialRampToValueAtTime(0.001,t+0.4); o.connect(g2); g2.connect(out); o.start(t); o.stop(t+0.41); }
 }
 
@@ -258,11 +276,12 @@ const COAST_SPEED = 1.5, GAS_SPEED = 9.5, NOS_SPEED = 15.0, STEER_SPEED = 7.0, B
 let gasHeld = false, brakeHeld = false, nosHeld = false, leftHeld = false, rightHeld = false, wasNosHeld = false; 
 let nitroFuel = 100, nitroDepleted = false;
 const NITRO_DRAIN = 0.4, NITRO_AUTO_REGEN = 0.05;
+let backfireTimer = 120; // Patlatma zamanlayıcısı eklendi
 
 const bgStars = [];
 for(let i=0; i<80; i++) { bgStars.push({ x: Math.random()*W, y: Math.random()*H, s: Math.random()*1.5 + 0.5, a: Math.random() }); }
 
-const player = { x: LANE_X[2], y: H - 150, w: 34, h: 60, targetX: LANE_X[2], color: '#00e5ff', lane: 2 };
+const player = { x: LANE_X[2], y: H - 150, w: 30, h: 54, targetX: LANE_X[2], color: '#00e5ff', lane: 2 };
 const traffic = [], pickups = [], particles = [], popups = [], skids = []; 
 let spawnTimer = 40, pickupTimer = 220, wrongWayTimer = 0; 
 
@@ -304,19 +323,17 @@ window.addEventListener('keyup', (e)=>{
 
 function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
 
-/* DİNAMİK ZAMAN VE HAVA (SABİTLENDİ) */
+/* DİNAMİK ZAMAN (ÇOK YAVAŞ GEÇİŞ) */
 function getNightFactor() { 
-  // Gece/Gündüz geçişi çok yavaşlatıldı (yaklaşık her 5 dakikada 1 tur)
   let phase = (tick % 18000) / 18000; 
-  if (phase < 0.45) return 0; // Gündüz
-  if (phase < 0.55) return (phase - 0.45) * 10; // Gün Batımı
-  if (phase < 0.90) return 1; // Gece
-  return Math.max(0, 1 - ((phase - 0.90) * 10)); // Gün Doğumu
+  if (phase < 0.45) return 0; 
+  if (phase < 0.55) return (phase - 0.45) * 10; 
+  if (phase < 0.90) return 1; 
+  return Math.max(0, 1 - ((phase - 0.90) * 10)); 
 }
 
 function roundRectPath(ctx, x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 
-// DİKDÖRTGEN HİTBOX (Çizgiden Gitme Sömürüsü Engellendi)
 function checkCollision(r1, r2) {
   let r1Left = r1.x - r1.w/2; let r1Right = r1.x + r1.w/2;
   let r1Top = r1.y - r1.h/2; let r1Bottom = r1.y + r1.h/2;
@@ -332,7 +349,7 @@ let gameLoopId = null;
 function resetGameVars() {
   score = 0; tick = 0; currentSpeed = 0;
   traffic.length = 0; pickups.length = 0; particles.length = 0; popups.length = 0; skids.length = 0; 
-  nitroFuel = 100; gasHeld = brakeHeld = nosHeld = leftHeld = rightHeld = wasNosHeld = false; combo = 1; comboTimer = 0;
+  nitroFuel = 100; gasHeld = brakeHeld = nosHeld = leftHeld = rightHeld = wasNosHeld = false; combo = 1; comboTimer = 0; backfireTimer = 120;
   player.x = LANE_X[2]; player.targetX = LANE_X[2]; player.lane = 2;
   spawnTimer = 20; pickupTimer = 220; wrongWayTimer = 0; shakeAmt = 0; isPaused = false;
   stopNitroSound();
@@ -366,12 +383,8 @@ function updateHud(){
 const CAR_COLORS = ['#e0463c','#3fa9f5','#f5c542','#8e6bd8','#4caf6a','#f57f42', '#ffffff', '#222222'];
 function spawnTraffic(){
   const lane = Math.floor(Math.random()*4); 
-  
-  // YENİ: NPC araçları şeritlerinde milimetrik düz gitmez, hafif sağa sola sapmalı başlar.
-  // Bu sayede yolun tam ortasından "sonsuza kadar gitme" hatası engellenir.
   const laneX = LANE_X[lane] + (Math.random() * 14 - 7); 
   
-  // Araç boyutları (Hitboxlar dahil) sömürüyü engellemek için biraz büyütüldü
   const isTruck = Math.random() < 0.15; const w = isTruck ? 42 : 34, h = isTruck ? 115 : 60; 
   const oncoming = isTwoWay ? (lane < 2) : false; 
   let ownSpeed = oncoming ? -(2.0 + Math.random()*2.5) : (isTruck ? 1.0 + Math.random() : 1.5 + Math.random()*3.5);
@@ -417,6 +430,20 @@ function updatePhysics() {
   if (currentSpeed < targetSpeed) currentSpeed += ACCEL; else if (currentSpeed > targetSpeed) currentSpeed -= brakeHeld ? BRAKE_DECEL : DECEL;
   if(isNaN(currentSpeed) || currentSpeed < 0) currentSpeed = 0;
   
+  // YENİ: BACKFIRE (Egzoz Patlatma) KONTROLÜ
+  // Yüksek devirde gaz verilirken (7 km/h'den hızlıysa) ara sıra çatırdama sesi gelir
+  if (currentSpeed > 7 && !brakeHeld) {
+    backfireTimer--;
+    if (backfireTimer <= 0) {
+      sfx('backfire');
+      // Daha hızlı giderken patlama aralığını kısaltır
+      let speedRatio = clamp((currentSpeed - 7) / (NOS_SPEED - 7), 0, 1);
+      backfireTimer = (140 - speedRatio * 90) + Math.random() * 60;
+    }
+  } else if (backfireTimer < 60) {
+    backfireTimer = 60 + Math.random() * 60; // Yavaşladığında aralığı sıfırla
+  }
+
   if(engineOsc && audioCtx){ 
     let pitch = 35 + (currentSpeed * 6); 
     if(nosHeld && nitroFuel > 0 && !nitroDepleted) pitch += 30; 
@@ -468,7 +495,6 @@ function updateTraffic(){
 
     c.y += (currentSpeed - c.ownSpeed); 
     
-    // YENİ: SIKI HİTBOX KONTROLÜ (Kenarlara sıfıra sıfır sürtme yanmaya sebep olur)
     let pRect = { x: player.x, y: player.y, w: player.w - 2, h: player.h - 4 };
     let cRect = { x: c.x, y: c.y, w: c.w - 2, h: c.h - 4 };
     
@@ -519,7 +545,6 @@ function drawRoad(){
   roadDashOffset += currentSpeed; const stripeH = 26;
   [ROAD_X-8, ROAD_X+ROAD_W-4].forEach((sx)=>{ for (let y = -stripeH + (roadDashOffset % (stripeH*2)); y < H; y += stripeH*2) { G.fillStyle = '#ddd'; G.fillRect(sx, y, 8, stripeH); G.fillStyle = '#c0392b'; G.fillRect(sx, y+stripeH, 8, stripeH); } });
   
-  // FREN İZİ 
   G.fillStyle = 'rgba(10,10,10,0.5)';
   for(let i=skids.length-1; i>=0; i--){ let s=skids[i]; s.y+=currentSpeed; s.life-=0.015; if(s.life<=0) skids.splice(i,1); else { G.globalAlpha=s.life; G.beginPath(); G.arc(s.x, s.y, 3, 0, Math.PI*2); G.fill(); } } G.globalAlpha=1;
 
@@ -575,30 +600,35 @@ function loop(timestamp){
   if (!gameLoopId) gameLoopId = requestAnimationFrame(loop);
   else gameLoopId = requestAnimationFrame(loop);
   
-  if (isPaused) return; 
-  if (!timestamp) timestamp = performance.now(); let deltaTime = timestamp - lastTime;
-  if (deltaTime < frameInterval) return; lastTime = timestamp - (deltaTime % frameInterval);
+  try {
+    if (isPaused) return; 
+    if (!timestamp) timestamp = performance.now(); let deltaTime = timestamp - lastTime;
+    if (deltaTime < frameInterval) return; lastTime = timestamp - (deltaTime % frameInterval);
 
-  tick++; G.clearRect(0,0,W,H);
-  if (shakeAmt > 0.3) { shakeX=(Math.random()-0.5)*shakeAmt*2; shakeY=(Math.random()-0.5)*shakeAmt*2; shakeAmt*=0.85; } else { shakeX=0; shakeY=0; shakeAmt=0; }
-  G.save(); G.translate(shakeX, shakeY);
+    tick++; G.clearRect(0,0,W,H);
+    if (shakeAmt > 0.3) { shakeX=(Math.random()-0.5)*shakeAmt*2; shakeY=(Math.random()-0.5)*shakeAmt*2; shakeAmt*=0.85; } else { shakeX=0; shakeY=0; shakeAmt=0; }
+    G.save(); G.translate(shakeX, shakeY);
 
-  if (state === 'play') {
-    updatePhysics(); updatePlayer(); updateTraffic(); updatePickups();
-    if (comboTimer > 0) { comboTimer--; if (comboTimer <= 0) combo = 1; }
-    spawnTimer--; if (spawnTimer <= 0) { spawnTraffic(); let baseDen = 0.30; let addDen = (score / 800) * 0.05; let dubProb = Math.min(baseDen + addDen, 0.80); if(Math.random() < dubProb) spawnTraffic(); spawnTimer = Math.max(15, 60 - currentSpeed*3 + Math.random()*15); }
-    pickupTimer--; if (pickupTimer <= 0) { spawnPickup(); pickupTimer = 200 + Math.floor(Math.random()*100); }
-    score += (currentSpeed * 0.1); updateHud();
+    if (state === 'play') {
+      updatePhysics(); updatePlayer(); updateTraffic(); updatePickups();
+      if (comboTimer > 0) { comboTimer--; if (comboTimer <= 0) combo = 1; }
+      spawnTimer--; if (spawnTimer <= 0) { spawnTraffic(); let baseDen = 0.30; let addDen = (score / 800) * 0.05; let dubProb = Math.min(baseDen + addDen, 0.80); if(Math.random() < dubProb) spawnTraffic(); spawnTimer = Math.max(15, 60 - currentSpeed*3 + Math.random()*15); }
+      pickupTimer--; if (pickupTimer <= 0) { spawnPickup(); pickupTimer = 200 + Math.floor(Math.random()*100); }
+      score += (currentSpeed * 0.1); updateHud();
+    }
+
+    drawBackground(); drawRoad();
+    
+    if (state === 'play' || state === 'crash') {
+      traffic.forEach(c => drawCar(c.x, c.y, c.w, c.h, c.color, c.oncoming, false, c.aiState === 'braking', c.turnSignal, c.isTruck));
+      drawPickups(); drawPlayer(); updateParticles(); drawParticles(); updatePopups(); drawPopups();
+    }
+
+    G.restore();
+  } catch (err) {
+    try { G.restore(); } catch(e) {}
+    console.error(err);
   }
-
-  drawBackground(); drawRoad();
-  
-  if (state === 'play' || state === 'crash') {
-    traffic.forEach(c => drawCar(c.x, c.y, c.w, c.h, c.color, c.oncoming, false, c.aiState === 'braking', c.turnSignal, c.isTruck));
-    drawPickups(); drawPlayer(); updateParticles(); drawParticles(); updatePopups(); drawPopups();
-  }
-
-  G.restore();
 }
 
 gameLoopId = requestAnimationFrame(loop);
