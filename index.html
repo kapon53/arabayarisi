@@ -8,9 +8,16 @@
 <style>
 :root{ --lime:#c6ff3d; --cyan:#00e5ff; --amber:#ffb84d; --red:#ff3b4e; --bg:#05070a; }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{ background:var(--bg); min-height:100vh; display:flex; align-items:center; justify-content:center; font-family:"Rajdhani",sans-serif; overflow:hidden; user-select:none; touch-action:none; }
-html,body{overscroll-behavior:none;}
-#arena{ position:relative; width:100%; max-width:420px; aspect-ratio:420/760; margin:0 auto; touch-action:none; }
+
+/* TİTREMEYİ (JITTER) ÖNLEYEN SABİT EKRAN KİLİDİ */
+html, body {
+  width: 100%; height: 100%; position: fixed; inset: 0;
+  background: var(--bg); display: flex; align-items: center; justify-content: center;
+  font-family: "Rajdhani", sans-serif; overflow: hidden; user-select: none; touch-action: none;
+  overscroll-behavior: none;
+}
+
+#arena{ position:relative; width:100%; max-width:420px; aspect-ratio:420/760; margin:0 auto; touch-action:none; transform-origin:center center; }
 canvas{ display:block; width:100%; height:100%; border-radius:14px; box-shadow:0 0 0 2px rgba(198,255,61,0.15), 0 0 60px rgba(0,229,255,0.08), 0 20px 70px rgba(0,0,0,0.8); background:#0a0e14; }
 #hud{ position:absolute; inset:0; pointer-events:none; border-radius:14px; overflow:hidden; }
 
@@ -67,11 +74,32 @@ canvas{ display:block; width:100%; height:100%; border-radius:14px; box-shadow:0
 button.game-btn{ padding:14px 30px; margin: 5px; background:transparent; border:2px solid var(--lime); color:var(--lime); font-family:"Orbitron",monospace; font-weight:700; font-size:13px; letter-spacing:3px; cursor:pointer; clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%); transition:background .2s,box-shadow .2s,color .2s; width: 80%; }
 button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px rgba(198,255,61,0.5); }
 .btn-blue { border-color:var(--cyan); color:var(--cyan); } .btn-blue:active{ background:var(--cyan); color:#000; box-shadow:0 0 30px rgba(0,229,255,0.5); }
+.btn-amber { border-color:var(--amber); color:var(--amber); } .btn-amber:active{ background:var(--amber); color:#000; box-shadow:0 0 30px rgba(255,184,77,0.5); }
 
 .crash-title{ color:var(--red); font-size:1.5em; text-shadow:0 0 18px rgba(255,59,78,0.7); font-family:"Orbitron",monospace; font-weight:900; margin-bottom:6px; }
 .crash-score{ font-family:"Orbitron",monospace; font-size:30px; color:#fff; margin:10px 0 4px; }
 .crash-new-best{ font-family:"Rajdhani",sans-serif; color:var(--amber); font-size:13px; letter-spacing:2px; margin-bottom:10px; display:none; }
 .crash-sub{ font-family:"Rajdhani",sans-serif; color:rgba(255,255,255,0.5); font-size:12px; margin-bottom:8px; letter-spacing:1px; }
+
+/* REHBER KİTABI (PARŞÖMEN) TASARIMI */
+#info-screen { z-index: 50; }
+.book-panel {
+  background: #f4eecb; color: #3e2723; width: 85%; max-width: 340px; padding: 25px; border-radius: 4px;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.1), 0 10px 40px rgba(0,0,0,0.9);
+  position: relative; text-align: left; border: 2px solid #d7ccc8;
+}
+.book-close {
+  position: absolute; top: 10px; right: 15px; color: #d32f2f; font-size: 22px; font-weight: bold; cursor: pointer; font-family: sans-serif; transition: transform 0.1s;
+}
+.book-close:active { transform: scale(0.8); }
+.book-title {
+  font-family: "Orbitron", monospace; font-size: 16px; font-weight: 900; margin-bottom: 15px; border-bottom: 2px solid #8d6e63; padding-bottom: 8px; text-align: center;
+}
+.book-text { font-size: 14px; line-height: 1.7; font-weight: 600; letter-spacing: 0.5px; }
+.book-text b { color: #d32f2f; }
+
+/* DURAKLATMA (PAUSE) MENÜSÜ */
+.pause-title { color:#fff; font-size:1.5em; text-shadow:0 0 18px rgba(255,255,255,0.5); font-family:"Orbitron",monospace; font-weight:900; margin-bottom:20px; }
 
 </style>
 </head>
@@ -105,6 +133,32 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
       </div>
       <div class="best-row">REKOR: <b id="start-best">0m</b></div>
       <button class="game-btn" id="btn-start">YARIŞA BAŞLA</button>
+      <button class="game-btn btn-amber" id="btn-info">NASIL OYNANIR?</button>
+    </div>
+  </div>
+
+  <!-- BİLGİLENDİRME (PARŞÖMEN) EKRANI -->
+  <div id="info-screen" class="screen">
+    <div class="book-panel">
+      <div class="book-close" id="btn-close-info">X</div>
+      <div class="book-title">HAYATTA KALMA REHBERİ</div>
+      <div class="book-text">
+        • <b>GAZ & FREN:</b> Hızını koru. Bazen durmak da bir stratejidir.<br>
+        • <b>NOS:</b> Ekstra patlayıcı hız sağlar. Ama yakıt çabuk biter, dikkat et!<br>
+        • <b>KORNA (K):</b> Önündeki araçları panikletip sağa/sola kaçırır. Sıkıştığında hayat kurtarır.<br>
+        • <b>MAKAS & SOLLAMA:</b> Araçların yakınından veya yanından hızlıca geçerek Kombo yap.<br>
+        • <b>TERS YÖN:</b> Çift Yön modunda karşı şeritte giderek ekstra puan topla.
+      </div>
+    </div>
+  </div>
+
+  <!-- DURAKLATMA (PAUSE) EKRANI -->
+  <div id="pause-screen" class="screen">
+    <div class="panel">
+      <div class="pause-title">DURAKLATILDI</div>
+      <button class="game-btn" id="btn-resume">DEVAM ET</button>
+      <button class="game-btn btn-amber" id="btn-restart-pause">YENİDEN BAŞLAT</button>
+      <button class="game-btn btn-blue" id="btn-menu-pause">ANA MENÜ</button>
     </div>
   </div>
 
@@ -123,16 +177,19 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
 
 <script>
 /* ============== EKRAN BOYUTLANDIRMA (RESPONSIVE) ============== */
+let resizeTimeout;
 function resizeGame() {
-  const arena = document.getElementById('arena');
-  const scale = Math.min(window.innerWidth / 420, window.innerHeight / 760);
-  arena.style.transform = `scale(${scale})`;
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    const arena = document.getElementById('arena');
+    const scale = Math.min(window.innerWidth / 420, window.innerHeight / 760);
+    arena.style.transform = `scale(${scale})`;
+  }, 50);
 }
 window.addEventListener('resize', resizeGame);
 window.addEventListener('orientationchange', resizeGame);
 resizeGame();
 
-/* ============== OYUN MOTORU ============== */
 const CV = document.getElementById('c'), G = CV.getContext('2d'), W = 420, H = 760;
 CV.width = W; CV.height = H;
 
@@ -154,16 +211,20 @@ document.getElementById('btn-menu').onclick = (e)=>{
   resetGameVars(); 
 };
 
+// Bilgilendirme Ekranı Kontrolleri
+document.getElementById('btn-info').onclick = (e)=>{ e.preventDefault(); document.getElementById('info-screen').classList.add('on'); };
+document.getElementById('btn-close-info').onclick = (e)=>{ e.preventDefault(); document.getElementById('info-screen').classList.remove('on'); };
+
 /* ============== SES MOTORU ============== */
 let audioCtx = null, engineOsc = null, engineOsc2 = null, engineGain = null, nitroNoise = null, nitroGain = null;
-let volState = 2; // 2: Yüksek, 1: Kısık, 0: Kapalı
+let volState = 2; 
 let isPaused = false;
 
 document.getElementById('btn-mute').onclick = (e)=>{
   e.preventDefault(); e.target.blur();
   volState = (volState === 2) ? 1 : (volState === 1 ? 0 : 2);
   const icons = ['🔇', '🔉', '🔊']; e.target.innerText = icons[volState];
-  if(engineGain) engineGain.gain.value = volState === 2 ? 0.05 : (volState === 1 ? 0.015 : 0);
+  if(engineGain) engineGain.gain.value = volState === 2 ? 0.03 : (volState === 1 ? 0.01 : 0);
   if(volState === 0) { 
     if(engineOsc) engineOsc.stop(); if(engineOsc2) engineOsc2.stop(); 
     engineOsc=null; engineOsc2=null; 
@@ -172,24 +233,49 @@ document.getElementById('btn-mute').onclick = (e)=>{
   else if (state === 'play' && !isPaused && !engineOsc) startEngine();
 };
 
+/* YENİ DURAKLATMA MENÜSÜ KONTROLLERİ */
 document.getElementById('btn-pause').onclick = (e)=>{
-  e.preventDefault(); e.target.blur(); if (state !== 'play') return;
-  isPaused = !isPaused; document.getElementById('btn-pause').innerText = isPaused ? '▶' : '⏸';
+  e.preventDefault(); e.target.blur(); 
+  if (state !== 'play') return;
+  isPaused = !isPaused; 
   if (isPaused) { 
     if(engineOsc) stopEngine(); 
     stopNitroSound(); 
-    G.fillStyle = 'rgba(0,0,0,0.6)'; G.fillRect(0,0,W,H); G.fillStyle = '#fff'; G.font = 'bold 30px Orbitron'; G.textAlign = 'center'; G.fillText('DURAKLATILDI', W/2, H/2); 
-  } 
-  else { 
+    document.getElementById('pause-screen').classList.add('on');
+  } else { 
     if(volState > 0) startEngine(); 
+    document.getElementById('pause-screen').classList.remove('on');
   }
+};
+
+document.getElementById('btn-resume').onclick = (e)=>{
+  e.preventDefault(); if(document.activeElement) document.activeElement.blur();
+  isPaused = false;
+  document.getElementById('pause-screen').classList.remove('on');
+  if(volState > 0) startEngine();
+};
+
+document.getElementById('btn-restart-pause').onclick = (e)=>{
+  e.preventDefault(); if(document.activeElement) document.activeElement.blur();
+  document.getElementById('pause-screen').classList.remove('on');
+  startGame();
+};
+
+document.getElementById('btn-menu-pause').onclick = (e)=>{
+  e.preventDefault(); if(document.activeElement) document.activeElement.blur();
+  document.getElementById('pause-screen').classList.remove('on');
+  document.getElementById('start-screen').classList.add('on');
+  state='title'; 
+  resetGameVars();
 };
 
 function getAudio(){ if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if(audioCtx.state === 'suspended') audioCtx.resume(); return audioCtx; }
 function startEngine(){
   if(volState === 0) return; getAudio();
   if(engineOsc) { engineOsc.stop(); if(engineOsc2) engineOsc2.stop(); }
-  engineGain = audioCtx.createGain(); engineGain.gain.value = volState === 2 ? 0.05 : 0.015;
+  engineGain = audioCtx.createGain(); 
+  // Motor sesi bir tık daha kısıldı (0.05'ten 0.03'e)
+  engineGain.gain.value = volState === 2 ? 0.03 : 0.01;
   const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 600;
   
   engineOsc = audioCtx.createOscillator(); engineOsc.type = 'sawtooth';
@@ -223,7 +309,8 @@ function sfx(type){
     nitroNoise = mkNoise(ctx, 10); nitroNoise.loop = true;
     const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 2500;
     nitroGain = ctx.createGain(); nitroGain.gain.setValueAtTime(0, t); 
-    nitroGain.gain.linearRampToValueAtTime(0.15 * vMult, t+0.2);
+    // Nitro sesi bir tık daha kısıldı (0.15'ten 0.10'a)
+    nitroGain.gain.linearRampToValueAtTime(0.10 * vMult, t+0.2);
     nitroNoise.connect(hp).connect(nitroGain).connect(out); nitroNoise.start(t);
   }
   
@@ -243,24 +330,6 @@ function sfx(type){
   }
   if(type === 'nearmiss'){ const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(500, t); o.frequency.exponentialRampToValueAtTime(1200, t+0.12); g.gain.setValueAtTime(0.18 * vMult, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.15); o.connect(g); g.connect(out); o.start(t); o.stop(t+0.16); }
   if(type === 'pickup'){ [660,880,1100].forEach((f,i)=>{ const o = ctx.createOscillator(), g = ctx.createGain(); o.type='square'; o.frequency.value=f; g.gain.setValueAtTime(0.14 * vMult, t+i*0.05); g.gain.exponentialRampToValueAtTime(0.001, t+i*0.05+0.1); o.connect(g); g.connect(out); o.start(t+i*0.05); o.stop(t+i*0.05+0.1); }); }
-  
-  // YENİ SUPRA/RACING BACKFIRE (EGZOZ PATLATMA) SESİ
-  if(type === 'backfire'){
-    const n = mkNoise(ctx, 0.2); 
-    const bp = ctx.createBiquadFilter(); bp.type='lowpass'; bp.frequency.setValueAtTime(800, t); bp.frequency.exponentialRampToValueAtTime(150, t+0.15); 
-    const g = ctx.createGain(); g.gain.setValueAtTime(0.8 * vMult, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.15);
-    
-    // Kesici Çatırdama (Crackling) Efekti İçin İkinci Osilatör
-    const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(60, t); o.frequency.exponentialRampToValueAtTime(30, t+0.1);
-    const go = ctx.createGain(); go.gain.setValueAtTime(0.6 * vMult, t); go.gain.exponentialRampToValueAtTime(0.01, t+0.1);
-    
-    n.connect(bp).connect(g).connect(out);
-    o.connect(go).connect(out);
-    
-    n.start(t); n.stop(t+0.2);
-    o.start(t); o.stop(t+0.15);
-  }
-
   if(type === 'crash'){ const n = mkNoise(ctx, 0.45); const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(2200,t); lp.frequency.exponentialRampToValueAtTime(120,t+0.45); const g = ctx.createGain(); g.gain.setValueAtTime(0.65 * vMult,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.45); n.connect(lp); lp.connect(g); g.connect(out); n.start(t); n.stop(t+0.45); const o = ctx.createOscillator(), g2 = ctx.createGain(); o.type='sawtooth'; o.frequency.setValueAtTime(140,t); o.frequency.exponentialRampToValueAtTime(30,t+0.4); g2.gain.setValueAtTime(0.45 * vMult,t); g2.gain.exponentialRampToValueAtTime(0.001,t+0.4); o.connect(g2); g2.connect(out); o.start(t); o.stop(t+0.41); }
 }
 
@@ -276,7 +345,6 @@ const COAST_SPEED = 1.5, GAS_SPEED = 9.5, NOS_SPEED = 15.0, STEER_SPEED = 7.0, B
 let gasHeld = false, brakeHeld = false, nosHeld = false, leftHeld = false, rightHeld = false, wasNosHeld = false; 
 let nitroFuel = 100, nitroDepleted = false;
 const NITRO_DRAIN = 0.4, NITRO_AUTO_REGEN = 0.05;
-let backfireTimer = 120; // Patlatma zamanlayıcısı eklendi
 
 const bgStars = [];
 for(let i=0; i<80; i++) { bgStars.push({ x: Math.random()*W, y: Math.random()*H, s: Math.random()*1.5 + 0.5, a: Math.random() }); }
@@ -349,7 +417,7 @@ let gameLoopId = null;
 function resetGameVars() {
   score = 0; tick = 0; currentSpeed = 0;
   traffic.length = 0; pickups.length = 0; particles.length = 0; popups.length = 0; skids.length = 0; 
-  nitroFuel = 100; gasHeld = brakeHeld = nosHeld = leftHeld = rightHeld = wasNosHeld = false; combo = 1; comboTimer = 0; backfireTimer = 120;
+  nitroFuel = 100; gasHeld = brakeHeld = nosHeld = leftHeld = rightHeld = wasNosHeld = false; combo = 1; comboTimer = 0;
   player.x = LANE_X[2]; player.targetX = LANE_X[2]; player.lane = 2;
   spawnTimer = 20; pickupTimer = 220; wrongWayTimer = 0; shakeAmt = 0; isPaused = false;
   stopNitroSound();
@@ -430,20 +498,6 @@ function updatePhysics() {
   if (currentSpeed < targetSpeed) currentSpeed += ACCEL; else if (currentSpeed > targetSpeed) currentSpeed -= brakeHeld ? BRAKE_DECEL : DECEL;
   if(isNaN(currentSpeed) || currentSpeed < 0) currentSpeed = 0;
   
-  // YENİ: BACKFIRE (Egzoz Patlatma) KONTROLÜ
-  // Yüksek devirde gaz verilirken (7 km/h'den hızlıysa) ara sıra çatırdama sesi gelir
-  if (currentSpeed > 7 && !brakeHeld) {
-    backfireTimer--;
-    if (backfireTimer <= 0) {
-      sfx('backfire');
-      // Daha hızlı giderken patlama aralığını kısaltır
-      let speedRatio = clamp((currentSpeed - 7) / (NOS_SPEED - 7), 0, 1);
-      backfireTimer = (140 - speedRatio * 90) + Math.random() * 60;
-    }
-  } else if (backfireTimer < 60) {
-    backfireTimer = 60 + Math.random() * 60; // Yavaşladığında aralığı sıfırla
-  }
-
   if(engineOsc && audioCtx){ 
     let pitch = 35 + (currentSpeed * 6); 
     if(nosHeld && nitroFuel > 0 && !nitroDepleted) pitch += 30; 
@@ -545,6 +599,7 @@ function drawRoad(){
   roadDashOffset += currentSpeed; const stripeH = 26;
   [ROAD_X-8, ROAD_X+ROAD_W-4].forEach((sx)=>{ for (let y = -stripeH + (roadDashOffset % (stripeH*2)); y < H; y += stripeH*2) { G.fillStyle = '#ddd'; G.fillRect(sx, y, 8, stripeH); G.fillStyle = '#c0392b'; G.fillRect(sx, y+stripeH, 8, stripeH); } });
   
+  // FREN İZİ 
   G.fillStyle = 'rgba(10,10,10,0.5)';
   for(let i=skids.length-1; i>=0; i--){ let s=skids[i]; s.y+=currentSpeed; s.life-=0.015; if(s.life<=0) skids.splice(i,1); else { G.globalAlpha=s.life; G.beginPath(); G.arc(s.x, s.y, 3, 0, Math.PI*2); G.fill(); } } G.globalAlpha=1;
 
