@@ -87,9 +87,8 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
   background: #f4eecb; color: #3e2723; width: 85%; max-width: 360px; padding: 25px; border-radius: 4px;
   box-shadow: inset 0 0 20px rgba(0,0,0,0.1), 0 10px 40px rgba(0,0,0,0.9);
   position: relative; text-align: left; border: 2px solid #d7ccc8;
-  max-height: 80vh; overflow-y: auto; /* Yazılar uzarsa kaydırma çubuğu çıkar */
+  max-height: 80vh; overflow-y: auto; 
 }
-/* Gizli scrollbar efekti (Temiz parşömen görünümü için) */
 .book-panel::-webkit-scrollbar { width: 0px; background: transparent; }
 .book-close {
   position: absolute; top: 10px; right: 15px; color: #d32f2f; font-size: 22px; font-weight: bold; cursor: pointer; font-family: sans-serif; transition: transform 0.1s;
@@ -176,6 +175,7 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
       <div class="pause-title">DURAKLATILDI</div>
       <button class="game-btn" id="btn-resume">DEVAM ET</button>
       <button class="game-btn btn-amber" id="btn-restart-pause">YENİDEN BAŞLAT</button>
+      <!-- ANA MENÜ BUTONU (SİTENİN ANA SAYFASINA GİDER) -->
       <button class="game-btn btn-blue" id="btn-menu-pause">ANA MENÜ</button>
     </div>
   </div>
@@ -188,6 +188,7 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
       <div class="crash-new-best" id="go-newbest">✨ YENİ REKOR! ✨</div>
       <div class="crash-sub">REKOR: <b id="go-best">0m</b></div>
       <button class="game-btn" id="btn-retry">TEKRAR DENE</button>
+      <!-- ANA MENÜ BUTONU (SİTENİN ANA SAYFASINA GİDER) -->
       <button class="game-btn btn-blue" id="btn-menu">ANA MENÜ</button>
     </div>
   </div>
@@ -229,13 +230,13 @@ document.getElementById('mod-twoway').onclick = (e) => { isTwoWay = true; e.targ
 
 document.getElementById('btn-start').onclick = (e)=>{ e.preventDefault(); if(document.activeElement) document.activeElement.blur(); startGame(); };
 document.getElementById('btn-retry').onclick = (e)=>{ e.preventDefault(); if(document.activeElement) document.activeElement.blur(); startGame(); };
+
+// ==========================================
+// ANA SİTEYE YÖNLENDİRME (OYUN SONU EKRANI)
+// ==========================================
 document.getElementById('btn-menu').onclick = (e)=>{ 
   e.preventDefault(); 
-  if(document.activeElement) document.activeElement.blur();
-  document.getElementById('gameover-screen').classList.remove('on'); 
-  document.getElementById('start-screen').classList.add('on'); 
-  state='title'; 
-  resetGameVars(); 
+  window.location.href = 'https://kapon53.github.io/'; 
 };
 
 // Bilgilendirme Ekranı
@@ -286,10 +287,12 @@ document.getElementById('btn-restart-pause').onclick = (e)=>{
   document.getElementById('pause-screen').classList.remove('on'); startGame();
 };
 
+// ==========================================
+// ANA SİTEYE YÖNLENDİRME (DURAKLATMA EKRANI)
+// ==========================================
 document.getElementById('btn-menu-pause').onclick = (e)=>{
-  e.preventDefault(); if(document.activeElement) document.activeElement.blur();
-  document.getElementById('pause-screen').classList.remove('on'); document.getElementById('start-screen').classList.add('on');
-  state='title'; resetGameVars();
+  e.preventDefault(); 
+  window.location.href = 'https://kapon53.github.io/'; 
 };
 
 function getAudio(){ if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if(audioCtx.state === 'suspended') audioCtx.resume(); return audioCtx; }
@@ -368,7 +371,7 @@ for(let i=0; i<80; i++) { bgStars.push({ x: Math.random()*W, y: Math.random()*H,
 const player = { x: LANE_X[2], y: H - 150, w: 30, h: 54, targetX: LANE_X[2], color: '#00e5ff', lane: 2 };
 const traffic = [], pickups = [], particles = [], popups = [], skids = []; 
 let spawnTimer = 40, pickupTimer = 220, wrongWayTimer = 0, wrongWayArmed = true; 
-let lineRideTimer = 0; // Şerit Çizgisi Cezası İçin Zamanlayıcı
+let lineRideTimer = 0; 
 
 function burst(x,y,col1,col2,n){ for(let i=0;i<n;i++){ const a = Math.random()*Math.PI*2, s = 1.5+Math.random()*6; particles.push({ x,y, vx:Math.cos(a)*s, vy:Math.sin(a)*s-1, life:1, col: Math.random()>0.5?col1:col2, size:2+Math.random()*4, gravity:0.15+Math.random()*0.1 }); } }
 function updateParticles(){ for(let i=particles.length-1;i>=0;i--){ const p = particles[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=p.gravity; p.vx*=0.97; p.life-=0.03; if(p.life<=0) particles.splice(i,1); } }
@@ -540,14 +543,14 @@ function updatePlayer(){
   player.x += (player.targetX - player.x) * handling;
   player.lane = Math.floor((player.x - ROAD_X) / LANE_W);
 
-  // === TIRTIRKLI ÇİZGİ CEZASI (Tolerans 3 saniyeye ayarlandı) ===
+  // === TIRTIRKLI ÇİZGİ CEZASI ===
   let d1 = Math.abs(player.x - (ROAD_X + LANE_W));
   let d2 = Math.abs(player.x - (ROAD_X + LANE_W*2));
   let d3 = Math.abs(player.x - (ROAD_X + LANE_W*3));
   
   if (Math.min(d1, d2, d3) < 14) {
     lineRideTimer++;
-    if (lineRideTimer > 180) { // Çizgide 3 saniye (60 fps * 3 = 180 kare) kalırsa ceza başlar
+    if (lineRideTimer > 180) { 
       currentSpeed *= 0.96; 
       if (currentSpeed > 5) shake(1.5); 
       if (tick % 5 === 0) burst(player.x, player.y+20, '#555', '#333', 5); 
@@ -559,7 +562,6 @@ function updatePlayer(){
   } else {
     lineRideTimer = 0; 
   }
-  // =======================================================================
 
   const isWrongWay = isTwoWay && player.x < (ROAD_X + ROAD_W/2);
   if (isWrongWay && currentSpeed > 4) {
