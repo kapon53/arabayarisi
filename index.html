@@ -122,7 +122,6 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
   <div id="btn-nos" class="control-btn">NOS</div>
   <div id="btn-gas" class="control-btn">GAZ</div>
 
-  <!-- ANA EKRAN -->
   <div id="start-screen" class="screen on">
     <div class="panel">
       <div class="logo">TRAFİK<span>KAÇIŞI</span></div>
@@ -137,7 +136,6 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
     </div>
   </div>
 
-  <!-- BİLGİLENDİRME (PARŞÖMEN) EKRANI -->
   <div id="info-screen" class="screen">
     <div class="book-panel">
       <div class="book-close" id="btn-close-info">X</div>
@@ -153,7 +151,6 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
     </div>
   </div>
 
-  <!-- DURAKLATMA (PAUSE) EKRANI -->
   <div id="pause-screen" class="screen">
     <div class="panel">
       <div class="pause-title">DURAKLATILDI</div>
@@ -163,7 +160,6 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
     </div>
   </div>
 
-  <!-- OYUN SONU -->
   <div id="gameover-screen" class="screen">
     <div class="panel">
       <div class="crash-title">ÇARPTIN!</div>
@@ -194,6 +190,11 @@ resizeGame();
 
 const CV = document.getElementById('c'), G = CV.getContext('2d'), W = 420, H = 760;
 CV.width = W; CV.height = H;
+
+// EKSİK DEĞİŞKENLER BURAYA EKLENDİ
+let gameLoopId = null;
+let lastTime = 0;
+const frameInterval = 1000 / 60;
 
 let best = parseInt(localStorage.getItem('trafikKacisiBest') || '0', 10);
 if(document.getElementById('start-best')) document.getElementById('start-best').textContent = best + 'm'; 
