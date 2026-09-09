@@ -75,21 +75,20 @@ button.game-btn{ padding:14px 30px; margin: 5px; background:transparent; border:
 button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px rgba(198,255,61,0.5); }
 .btn-blue { border-color:var(--cyan); color:var(--cyan); } .btn-blue:active{ background:var(--cyan); color:#000; box-shadow:0 0 30px rgba(0,229,255,0.5); }
 .btn-amber { border-color:var(--amber); color:var(--amber); } .btn-amber:active{ background:var(--amber); color:#000; box-shadow:0 0 30px rgba(255,184,77,0.5); }
+.btn-purple { border-color:#b388ff; color:#b388ff; } .btn-purple:active{ background:#b388ff; color:#000; box-shadow:0 0 30px rgba(179,136,255,0.5); }
 
 .crash-title{ color:var(--red); font-size:1.5em; text-shadow:0 0 18px rgba(255,59,78,0.7); font-family:"Orbitron",monospace; font-weight:900; margin-bottom:6px; }
 .crash-score{ font-family:"Orbitron",monospace; font-size:30px; color:#fff; margin:10px 0 4px; }
 .crash-new-best{ font-family:"Rajdhani",sans-serif; color:var(--amber); font-size:13px; letter-spacing:2px; margin-bottom:10px; display:none; }
 .crash-sub{ font-family:"Rajdhani",sans-serif; color:rgba(255,255,255,0.5); font-size:12px; margin-bottom:8px; letter-spacing:1px; }
 
-/* REHBER KİTABI (PARŞÖMEN) TASARIMI */
-#info-screen { z-index: 50; }
+/* KİTAP (PARŞÖMEN) TASARIMI - REHBER & LİDERLİK */
 .book-panel {
   background: #f4eecb; color: #3e2723; width: 85%; max-width: 360px; padding: 25px; border-radius: 4px;
   box-shadow: inset 0 0 20px rgba(0,0,0,0.1), 0 10px 40px rgba(0,0,0,0.9);
   position: relative; text-align: left; border: 2px solid #d7ccc8;
-  max-height: 80vh; overflow-y: auto; 
+  display: flex; flex-direction: column;
 }
-.book-panel::-webkit-scrollbar { width: 0px; background: transparent; }
 .book-close {
   position: absolute; top: 10px; right: 15px; color: #d32f2f; font-size: 22px; font-weight: bold; cursor: pointer; font-family: sans-serif; transition: transform 0.1s;
 }
@@ -97,11 +96,13 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
 .book-title {
   font-family: "Orbitron", monospace; font-size: 16px; font-weight: 900; margin-bottom: 15px; border-bottom: 2px solid #8d6e63; padding-bottom: 8px; text-align: center;
 }
-.book-text { font-size: 13px; line-height: 1.6; font-weight: 600; letter-spacing: 0.5px; }
+.book-text { font-size: 13px; line-height: 1.6; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 15px; }
 .book-text b { color: #d32f2f; }
-.book-section-title { font-size: 15px; text-align: center; color: #d32f2f; margin: 15px 0 5px 0; font-weight: 900; }
-.vehicle-item { margin-bottom: 6px; display: flex; align-items: flex-start; }
-.vehicle-icon { font-size: 18px; margin-right: 8px; line-height: 1.2; }
+.book-section-title { font-size: 15px; text-align: center; color: #d32f2f; margin: 10px 0 5px 0; font-weight: 900; }
+
+.lb-box { background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px; text-align: center; }
+.lb-label { font-family: "Rajdhani", sans-serif; font-weight: 700; font-size: 14px; color: #5d4037; }
+.lb-val { font-family: "Orbitron", monospace; font-size: 22px; font-weight: 900; color: #d32f2f; margin-top: 4px; }
 
 /* DURAKLATMA (PAUSE) MENÜSÜ */
 .pause-title { color:#fff; font-size:1.5em; text-shadow:0 0 18px rgba(255,255,255,0.5); font-family:"Orbitron",monospace; font-weight:900; margin-bottom:20px; }
@@ -139,33 +140,47 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
       <div class="best-row">REKOR: <b id="start-best">0m</b></div>
       <button class="game-btn" id="btn-start">YARIŞA BAŞLA</button>
       <button class="game-btn btn-amber" id="btn-info">NASIL OYNANIR?</button>
+      <button class="game-btn btn-purple" id="btn-leaderboard">LİDERLİK TABLOSU</button>
+    </div>
+  </div>
+
+  <!-- LİDERLİK TABLOSU EKRANI -->
+  <div id="leaderboard-screen" class="screen" style="z-index: 55;">
+    <div class="book-panel">
+      <div class="book-close" id="btn-close-leaderboard">X</div>
+      <div class="book-title">🏆 LİDERLİK TABLOSU 🏆</div>
+      
+      <div class="lb-box">
+        <div class="lb-label">TEK YÖN REKORU</div>
+        <div class="lb-val" id="lb-oneway-val">0m</div>
+      </div>
+      <div class="lb-box">
+        <div class="lb-label">ÇİFT YÖN REKORU</div>
+        <div class="lb-val" id="lb-twoway-val">0m</div>
+      </div>
+      
+      <button class="game-btn btn-blue" id="btn-menu-from-leaderboard" style="width:100%; margin:10px 0 0 0; padding:10px;">ANA MENÜ</button>
     </div>
   </div>
 
   <!-- BİLGİLENDİRME (PARŞÖMEN) EKRANI -->
-  <div id="info-screen" class="screen">
+  <div id="info-screen" class="screen" style="z-index: 50;">
     <div class="book-panel">
       <div class="book-close" id="btn-close-info">X</div>
       <div class="book-title">HAYATTA KALMA REHBERİ</div>
       <div class="book-text">
-        <div class="book-section-title" style="margin-top:0;">KONTROLLER</div>
+        <div class="book-section-title">KLAVYE KONTROLLERİ</div>
         • <b>W / Yukarı Ok:</b> Gaz<br>
         • <b>S / Aşağı Ok:</b> Fren (Yavaşla)<br>
         • <b>A - D / Sol-Sağ Ok:</b> Yönlendirme<br>
         • <b>BOŞLUK (Space):</b> NOS (Hızlandırma)<br>
-        • <b>K:</b> Korna (Araçları panikletir)<br>
-
-        <div class="book-section-title">TRAFİKTEKİ ARAÇLAR</div>
-        <div class="vehicle-item"><span class="vehicle-icon">🚗</span> <div><b>Standart:</b> Trafiğin temeli. Geçmesi kolaydır.</div></div>
-        <div class="vehicle-item"><span class="vehicle-icon">🏎️</span> <div><b>Makasçı:</b> Sürekli şerit değiştiren tehlikeli serseriler. Arkalarında rüzgarlıkları var.</div></div>
-        <div class="vehicle-item"><span class="vehicle-icon">🚌</span> <div><b>Otobüs:</b> Uzun, ağır ve sollaması vakit alır.</div></div>
-        <div class="vehicle-item"><span class="vehicle-icon">🚛</span> <div><b>TIR (Dorseli):</b> Yolların kralları. Görüş açını kapatırlar, arkasına fazla takılma!</div></div>
-
+        • <b>K:</b> Korna (Araçları sağa/sola kaçırtır)<br>
         <div class="book-section-title">TAKTİKLER</div>
         • Araçlara teğet geçip <b>MAKAS</b> atarak kombo yap.<br>
-        • <b>DİKKAT:</b> İki şeridin tam ortasındaki kesikli çizgide <b>3 saniyeden fazla</b> takılı kalırsan sarsıntı yaşarsın, hızın kesilir ve kombon sıfırlanır!<br>
-        • <b>TERS YÖN:</b> Çift Yön modunda karşı şeritte giderek devasa puan kazan.
+        • <b>DİKKAT:</b> İki şeridin tam ortasındaki çizgiye takılı kalırsan sarsıntı yaşarsın, hızın kesilir ve kombon sıfırlanır!<br>
+        • <b>TERS YÖN:</b> Karşı şeritte giderek devasa ekstra puan kazan.
       </div>
+      <button class="game-btn btn-blue" id="btn-menu-from-info" style="width:100%; margin:0; padding:10px;">ANA MENÜ</button>
     </div>
   </div>
 
@@ -175,7 +190,6 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
       <div class="pause-title">DURAKLATILDI</div>
       <button class="game-btn" id="btn-resume">DEVAM ET</button>
       <button class="game-btn btn-amber" id="btn-restart-pause">YENİDEN BAŞLAT</button>
-      <!-- ANA MENÜ BUTONU (SİTENİN ANA SAYFASINA GİDER) -->
       <button class="game-btn btn-blue" id="btn-menu-pause">ANA MENÜ</button>
     </div>
   </div>
@@ -188,7 +202,6 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
       <div class="crash-new-best" id="go-newbest">✨ YENİ REKOR! ✨</div>
       <div class="crash-sub">REKOR: <b id="go-best">0m</b></div>
       <button class="game-btn" id="btn-retry">TEKRAR DENE</button>
-      <!-- ANA MENÜ BUTONU (SİTENİN ANA SAYFASINA GİDER) -->
       <button class="game-btn btn-blue" id="btn-menu">ANA MENÜ</button>
     </div>
   </div>
@@ -197,7 +210,7 @@ button.game-btn:active{ background:var(--lime); color:#000; box-shadow:0 0 30px 
 <script>
 /* EKRAN KAYMASINI VE TİTREMEYİ ENGELLER */
 document.addEventListener('touchmove', function(e) {
-  if (e.target.tagName !== 'BUTTON' && !e.target.closest('.book-panel')) { e.preventDefault(); }
+  if (e.target.tagName !== 'BUTTON') { e.preventDefault(); }
 }, { passive: false });
 
 /* ============== EKRAN BOYUTLANDIRMA ============== */
@@ -221,27 +234,61 @@ let gameLoopId = null;
 let lastTime = 0;
 const frameInterval = 1000 / 60;
 
-let best = parseInt(localStorage.getItem('trafikKacisiBest') || '0', 10);
+/* ============== YENİ ÇİFTLİ KAYIT SİSTEMİ ============== */
+let bestOneWay = parseInt(localStorage.getItem('trafikKacisiBest_OneWay') || '0', 10);
+let bestTwoWay = parseInt(localStorage.getItem('trafikKacisiBest_TwoWay') || '0', 10);
+
+// Eski sürümlerden gelen tekli rekoru kurtar ve Çift Yön'e ekle
+let oldBest = parseInt(localStorage.getItem('trafikKacisiBest') || '0', 10);
+if(oldBest > bestTwoWay) {
+  bestTwoWay = oldBest;
+  localStorage.setItem('trafikKacisiBest_TwoWay', String(bestTwoWay));
+}
+
+let isTwoWay = true; // Varsayılan mod
+let best = isTwoWay ? bestTwoWay : bestOneWay;
 if(document.getElementById('start-best')) document.getElementById('start-best').textContent = best + 'm'; 
 
-let isTwoWay = true; 
-document.getElementById('mod-oneway').onclick = (e) => { isTwoWay = false; e.target.classList.add('active'); document.getElementById('mod-twoway').classList.remove('active'); if(document.activeElement) document.activeElement.blur(); };
-document.getElementById('mod-twoway').onclick = (e) => { isTwoWay = true; e.target.classList.add('active'); document.getElementById('mod-oneway').classList.remove('active'); if(document.activeElement) document.activeElement.blur(); };
-
-document.getElementById('btn-start').onclick = (e)=>{ e.preventDefault(); if(document.activeElement) document.activeElement.blur(); startGame(); };
-document.getElementById('btn-retry').onclick = (e)=>{ e.preventDefault(); if(document.activeElement) document.activeElement.blur(); startGame(); };
-
-// ==========================================
-// ANA SİTEYE YÖNLENDİRME (OYUN SONU EKRANI)
-// ==========================================
-document.getElementById('btn-menu').onclick = (e)=>{ 
-  e.preventDefault(); 
-  window.location.href = 'https://kapon53.github.io/'; 
+document.getElementById('mod-oneway').onclick = (e) => { 
+  isTwoWay = false; best = bestOneWay;
+  e.target.classList.add('active'); document.getElementById('mod-twoway').classList.remove('active'); 
+  document.getElementById('start-best').textContent = best + 'm'; // Ekranda anında değişsin
+  if(document.activeElement) document.activeElement.blur(); 
+};
+document.getElementById('mod-twoway').onclick = (e) => { 
+  isTwoWay = true; best = bestTwoWay;
+  e.target.classList.add('active'); document.getElementById('mod-oneway').classList.remove('active'); 
+  document.getElementById('start-best').textContent = best + 'm'; // Ekranda anında değişsin
+  if(document.activeElement) document.activeElement.blur(); 
 };
 
-// Bilgilendirme Ekranı
+/* OYUN ANA BUTONLARI */
+document.getElementById('btn-start').onclick = (e)=>{ e.preventDefault(); if(document.activeElement) document.activeElement.blur(); startGame(); };
+document.getElementById('btn-retry').onclick = (e)=>{ e.preventDefault(); if(document.activeElement) document.activeElement.blur(); startGame(); };
+document.getElementById('btn-menu').onclick = (e)=>{ 
+  e.preventDefault(); 
+  if(document.activeElement) document.activeElement.blur();
+  document.getElementById('gameover-screen').classList.remove('on'); 
+  document.getElementById('start-screen').classList.add('on'); 
+  state='title'; 
+  resetGameVars(); 
+};
+
+/* BİLGİLENDİRME (INFO) EKRANI */
 document.getElementById('btn-info').onclick = (e)=>{ e.preventDefault(); document.getElementById('info-screen').classList.add('on'); };
 document.getElementById('btn-close-info').onclick = (e)=>{ e.preventDefault(); document.getElementById('info-screen').classList.remove('on'); };
+document.getElementById('btn-menu-from-info').onclick = (e)=>{ e.preventDefault(); document.getElementById('info-screen').classList.remove('on'); };
+
+/* YENİ: LİDERLİK TABLOSU EKRANI */
+document.getElementById('btn-leaderboard').onclick = (e)=>{ 
+  e.preventDefault(); 
+  document.getElementById('lb-oneway-val').textContent = bestOneWay + 'm';
+  document.getElementById('lb-twoway-val').textContent = bestTwoWay + 'm';
+  document.getElementById('leaderboard-screen').classList.add('on'); 
+};
+document.getElementById('btn-close-leaderboard').onclick = (e)=>{ e.preventDefault(); document.getElementById('leaderboard-screen').classList.remove('on'); };
+document.getElementById('btn-menu-from-leaderboard').onclick = (e)=>{ e.preventDefault(); document.getElementById('leaderboard-screen').classList.remove('on'); };
+
 
 /* ============== SES MOTORU ============== */
 let audioCtx = null, engineOsc = null, engineOsc2 = null, engineGain = null, nitroNoise = null, nitroGain = null;
@@ -287,12 +334,10 @@ document.getElementById('btn-restart-pause').onclick = (e)=>{
   document.getElementById('pause-screen').classList.remove('on'); startGame();
 };
 
-// ==========================================
-// ANA SİTEYE YÖNLENDİRME (DURAKLATMA EKRANI)
-// ==========================================
 document.getElementById('btn-menu-pause').onclick = (e)=>{
-  e.preventDefault(); 
-  window.location.href = 'https://kapon53.github.io/'; 
+  e.preventDefault(); if(document.activeElement) document.activeElement.blur();
+  document.getElementById('pause-screen').classList.remove('on'); document.getElementById('start-screen').classList.add('on');
+  state='title'; resetGameVars();
 };
 
 function getAudio(){ if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if(audioCtx.state === 'suspended') audioCtx.resume(); return audioCtx; }
@@ -371,7 +416,7 @@ for(let i=0; i<80; i++) { bgStars.push({ x: Math.random()*W, y: Math.random()*H,
 const player = { x: LANE_X[2], y: H - 150, w: 30, h: 54, targetX: LANE_X[2], color: '#00e5ff', lane: 2 };
 const traffic = [], pickups = [], particles = [], popups = [], skids = []; 
 let spawnTimer = 40, pickupTimer = 220, wrongWayTimer = 0, wrongWayArmed = true; 
-let lineRideTimer = 0; 
+let lineRideTimer = 0;
 
 function burst(x,y,col1,col2,n){ for(let i=0;i<n;i++){ const a = Math.random()*Math.PI*2, s = 1.5+Math.random()*6; particles.push({ x,y, vx:Math.cos(a)*s, vy:Math.sin(a)*s-1, life:1, col: Math.random()>0.5?col1:col2, size:2+Math.random()*4, gravity:0.15+Math.random()*0.1 }); } }
 function updateParticles(){ for(let i=particles.length-1;i>=0;i--){ const p = particles[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=p.gravity; p.vx*=0.97; p.life-=0.03; if(p.life<=0) particles.splice(i,1); } }
@@ -448,11 +493,31 @@ function startGame(){
   if(!gameLoopId) requestAnimationFrame(loop);
 }
 
+/* YENİ KAYIT SİSTEMİ İLE ÇARPIŞMA EKRANI */
 function crash(){
   if(state !== 'play') return; state = 'crash'; stopEngine(); sfx('crash'); stopNitroSound(); shake(14);
   burst(player.x, player.y, '#ff3b4e', '#ffb84d', 46);
-  if (Math.round(score) > best) { best = Math.round(score); try { localStorage.setItem('trafikKacisiBest', String(best)); } catch(e){} document.getElementById('go-newbest').style.display = 'block'; } else { document.getElementById('go-newbest').style.display = 'none'; }
-  setTimeout(()=>{ document.getElementById('go-score').textContent = Math.round(score) + 'm'; document.getElementById('go-best').textContent = best + 'm'; document.getElementById('gameover-screen').classList.add('on'); }, 650);
+  
+  if (Math.round(score) > best) { 
+    best = Math.round(score);
+    // Hangi moddaysak onun rekorunu kaydet
+    if (isTwoWay) {
+      bestTwoWay = best;
+      try { localStorage.setItem('trafikKacisiBest_TwoWay', String(bestTwoWay)); } catch(e){}
+    } else {
+      bestOneWay = best;
+      try { localStorage.setItem('trafikKacisiBest_OneWay', String(bestOneWay)); } catch(e){}
+    }
+    document.getElementById('go-newbest').style.display = 'block'; 
+  } else { 
+    document.getElementById('go-newbest').style.display = 'none'; 
+  }
+  
+  setTimeout(()=>{ 
+    document.getElementById('go-score').textContent = Math.round(score) + 'm'; 
+    document.getElementById('go-best').textContent = best + 'm'; 
+    document.getElementById('gameover-screen').classList.add('on'); 
+  }, 650);
 }
 
 function updateHud(){
@@ -550,7 +615,7 @@ function updatePlayer(){
   
   if (Math.min(d1, d2, d3) < 14) {
     lineRideTimer++;
-    if (lineRideTimer > 180) { 
+    if (lineRideTimer > 20) { 
       currentSpeed *= 0.96; 
       if (currentSpeed > 5) shake(1.5); 
       if (tick % 5 === 0) burst(player.x, player.y+20, '#555', '#333', 5); 
