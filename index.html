@@ -404,6 +404,7 @@ const LANE_X = [ROAD_X + LANE_W*0.5, ROAD_X + LANE_W*1.5, ROAD_X + LANE_W*2.5, R
 let state = 'title', tick = 0, score = 0, combo = 1, comboTimer = 0; 
 let shakeAmt = 0, shakeX = 0, shakeY = 0, roadDashOffset = 0, bgOffset = 0;
 let currentSpeed = 0; 
+
 const COAST_SPEED = 1.5, GAS_SPEED = 9.5, NOS_SPEED = 15.0, STEER_SPEED = 7.0, BRAKE_SPEED = 0.5, ACCEL = 0.12, DECEL = 0.025, BRAKE_DECEL = 0.40;  
 
 let gasHeld = false, brakeHeld = false, nosHeld = false, leftHeld = false, rightHeld = false, wasNosHeld = false; 
@@ -529,6 +530,8 @@ function updateHud(){
 }
 
 const CAR_COLORS = ['#e0463c','#3fa9f5','#f5c542','#8e6bd8','#4caf6a','#f57f42', '#ffffff', '#222222'];
+const BUS_COLORS = ['#f5b400', '#e8e8e8', '#3fa9f5'];
+const TRUCK_COLORS = ['#e6e6e6', '#c62828', '#2e5eaa', '#f5f5f5'];
 const NPC_TYPES = ['car', 'car', 'car', 'car', 'car', 'bus', 'truck_trailer', 'racer', 'racer'];
 
 function spawnTraffic(){
@@ -537,8 +540,9 @@ function spawnTraffic(){
   const type = NPC_TYPES[Math.floor(Math.random()*NPC_TYPES.length)];
   
   let w = 30, h = 54, isCrazy = false, baseSpeed = 1.5 + Math.random()*3.5;
-  if (type === 'bus') { w = 34; h = 130; baseSpeed = 1.2 + Math.random()*2; }
-  else if (type === 'truck_trailer') { w = 36; h = 170; baseSpeed = 1.0 + Math.random()*1.5; }
+  let forcedColor = null;
+  if (type === 'bus') { w = 36; h = 118; baseSpeed = 1.2 + Math.random()*1.6; forcedColor = BUS_COLORS[Math.floor(Math.random()*BUS_COLORS.length)]; }
+  else if (type === 'truck_trailer') { w = 38; h = 190; baseSpeed = 1.0 + Math.random()*1.3; forcedColor = TRUCK_COLORS[Math.floor(Math.random()*TRUCK_COLORS.length)]; }
   else if (type === 'racer') { w = 30; h = 56; baseSpeed = 4.5 + Math.random()*3; isCrazy = true; } 
   else { isCrazy = Math.random() < Math.min(0.15 + (score / 15000), 0.60); }
   
@@ -553,7 +557,7 @@ function spawnTraffic(){
   let spawnY = oncoming ? -400 : (ownSpeed > currentSpeed + 0.5 ? H + 400 : -400);
   if (traffic.some(c => c.lane === lane && Math.abs(c.y - spawnY) < (h/2 + c.h/2 + 60))) return;
 
-  traffic.push({ x: laneX, y: spawnY, w, h, lane, ownSpeed, color: CAR_COLORS[Math.floor(Math.random()*CAR_COLORS.length)], oncoming, passed: false, nearMissAwarded: false, type: type, isCrazy: isCrazy, aiState: 'wait', aiTimer: (type === 'racer' ? 20 : 60) + Math.random() * 50, turnSignal: 0, targetLaneX: laneX, targetLane: lane });
+  traffic.push({ x: laneX, y: spawnY, w, h, lane, ownSpeed, color: forcedColor || CAR_COLORS[Math.floor(Math.random()*CAR_COLORS.length)], oncoming, passed: false, nearMissAwarded: false, type: type, isCrazy: isCrazy, aiState: 'wait', aiTimer: (type === 'racer' ? 20 : 60) + Math.random() * 50, turnSignal: 0, targetLaneX: laneX, targetLane: lane });
 }
 function spawnPickup(){ pickups.push({ x: LANE_X[Math.floor(Math.random()*4)], y: -60, r: 12, collected: false }); }
 
@@ -734,17 +738,35 @@ function drawCar(x,y,w,h,col,facingDown,isP, brk=false, sig=0, carType='car'){
   G.fillStyle='rgba(0,0,0,0.4)'; G.beginPath(); G.ellipse(0,h/2+4,w/2,6,0,0,Math.PI*2); G.fill();
   
   if (carType === 'truck_trailer') {
-     G.fillStyle = col; roundRectPath(G, -w/2, facingDown ? -h/2 : h/2-30, w, 30, 4); G.fill(); G.strokeStyle='rgba(0,0,0,0.5)'; G.lineWidth=1.5; G.stroke();
-     G.fillStyle = '#ddd'; roundRectPath(G, -w/2, facingDown ? -h/2+35 : -h/2, w, h-35, 2); G.fill(); G.stroke();
-     G.fillStyle = '#333'; G.fillRect(-4, facingDown ? -h/2+30 : h/2-35, 8, 5);
-     G.fillStyle = '#111'; roundRectPath(G, -w/2+2, facingDown ? -h/2+8 : h/2-25, w-4, 12, 2); G.fill();
+     // Kısa, koyu renkli çekici (kabin) - her zaman kendi rengi, römorktan bağımsız
+     const cabH = 26, cabY = facingDown ? -h/2 : h/2 - cabH;
+     G.fillStyle = '#2b2f36'; roundRectPath(G, -w/2+2, cabY, w-4, cabH, 4); G.fill(); G.strokeStyle='rgba(0,0,0,0.6)'; G.lineWidth=1.5; G.stroke();
+     G.fillStyle = 'rgba(20,28,40,0.9)'; roundRectPath(G, -w/2+5, facingDown ? cabY+4 : cabY+cabH-14, w-10, 10, 2); G.fill();
+     // Dingil boşluğu (hitch gap) - çekici ile römork arasında görünür ayrım
+     const gapY = facingDown ? cabY+cabH : cabY-6;
+     G.fillStyle = '#111'; G.fillRect(-3, gapY, 6, 6);
+     // Büyük dikdörtgen konteyner römork - kendi rengi, düz ve sade
+     const trailerH = h - cabH - 6, trailerY = facingDown ? cabY+cabH+6 : -h/2;
+     G.fillStyle = col; roundRectPath(G, -w/2, trailerY, w, trailerH, 3); G.fill(); G.strokeStyle='rgba(0,0,0,0.45)'; G.lineWidth=1.5; G.stroke();
+     // Konteyner oluk çizgileri (yatay dalgalı sac görünümü) - pencere YOK
+     G.strokeStyle = 'rgba(0,0,0,0.15)'; G.lineWidth = 1;
+     for (let ly = trailerY+10; ly < trailerY+trailerH-6; ly += 14) { G.beginPath(); G.moveTo(-w/2+3, ly); G.lineTo(w/2-3, ly); G.stroke(); }
+     // Kenar reflektör şeridi
+     G.fillStyle = 'rgba(255,60,60,0.7)'; G.fillRect(-w/2+1, trailerY+trailerH-8, w-2, 3);
   } 
   else if (carType === 'bus') {
-     G.fillStyle = col; roundRectPath(G, -w/2, -h/2, w, h, 4); G.fill(); G.strokeStyle='rgba(0,0,0,0.5)'; G.lineWidth=1.5; G.stroke();
-     G.fillStyle = 'rgba(20,28,40,0.9)'; 
-     roundRectPath(G, -w/2+2, facingDown ? -h/2+2 : h/2-15, w-4, 15, 2); G.fill();
-     roundRectPath(G, -w/2+2, facingDown ? h/2-10 : -h/2+2, w-4, 8, 2); G.fill();
-     G.fillRect(-w/2+2, -h/2+20, 4, h-40); G.fillRect(w/2-6, -h/2+20, 4, h-40);
+     // Şehir otobüsü - canlı gövde rengi + tam boy pencere şeridi + kapı çizgileri
+     G.fillStyle = col; roundRectPath(G, -w/2, -h/2, w, h, 8); G.fill(); G.strokeStyle='rgba(0,0,0,0.5)'; G.lineWidth=1.5; G.stroke();
+     // Alt gövde koyu şerit
+     G.fillStyle = 'rgba(20,20,25,0.35)'; G.fillRect(-w/2, h/2-14, w, 14);
+     // Üst boydan boya cam şeridi
+     G.fillStyle = 'rgba(20,28,40,0.9)';
+     roundRectPath(G, -w/2+3, -h/2+14, w-6, h-32, 3); G.fill();
+     // Cam şeridini bölen dikey kapı/pencere çıtaları
+     G.strokeStyle = 'rgba(0,0,0,0.5)'; G.lineWidth = 2;
+     for (let seg = 1; seg <= 4; seg++) { let ly = -h/2+14 + (h-32) * (seg/5); G.beginPath(); G.moveTo(-w/2+3, ly); G.lineTo(w/2-3, ly); G.stroke(); }
+     // Ön/arka alınlık (destinasyon panosu) rengi
+     G.fillStyle = 'rgba(255,255,255,0.85)'; roundRectPath(G, -w/2+6, facingDown ? h/2-13 : -h/2+3, w-12, 7, 2); G.fill();
   }
   else if (carType === 'racer') {
      G.fillStyle = col; roundRectPath(G, -w/2, -h/2, w, h, 6); G.fill(); G.strokeStyle='rgba(0,0,0,0.5)'; G.lineWidth=1.5; G.stroke();
@@ -821,7 +843,7 @@ function loop(timestamp){
     if (state === 'play') {
       updatePhysics(); updatePlayer(); updateTraffic(); updatePickups();
       if (comboTimer > 0) { comboTimer--; if (comboTimer <= 0) combo = 1; }
-      spawnTimer--; if (spawnTimer <= 0) { spawnTraffic(); let baseDen = 0.30; let addDen = (score / 800) * 0.05; let dubProb = Math.min(baseDen + addDen, 0.80); if(Math.random() < dubProb) spawnTraffic(); spawnTimer = Math.max(15, 60 - currentSpeed*3 + Math.random()*15); }
+      spawnTimer--; if (spawnTimer <= 0) { spawnTraffic(); let baseDen = 0.16; let addDen = (score / 1600) * 0.04; let dubProb = Math.min(baseDen + addDen, 0.80); if(Math.random() < dubProb) spawnTraffic(); spawnTimer = Math.max(22, 78 - currentSpeed*3 + Math.random()*18); }
       pickupTimer--; if (pickupTimer <= 0) { spawnPickup(); pickupTimer = 200 + Math.floor(Math.random()*100); }
       score += (currentSpeed * 0.1); updateHud();
     }
